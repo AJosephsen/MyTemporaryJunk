@@ -1,0 +1,301 @@
+
+===== STAGE: Stage =====
+# variables: a=0, A="10", R=0, G=255, B=162, Alfa=67, Hue=158, Saturation=255, Value=255, C=1, H'=2.6333333333333333, S=1, V=1, mode="1"
+
+===== SPRITE: pen =====
+# variables: char="10905xx03", i=10, j=45, size="02", str="0xffffff", x=178, y=-165, ox=0, oy=0, X=0.6333333333333333, m=0
+# lists: chardata (490 items)
+
+when green flag clicked:
+  mode = "1"
+  forever:
+    if (mode = "2"):
+      pen.clear()
+      call text _ at x: _ y: _("%02#ffffffMerry Christmas & Happy New Year!!", -190, -165)
+      call 星　大きさ： _ 位置：x _ y _ 太さ： _ 色： _(10, 0, 150, 4, "0xb4ffea4f")
+      call 星　大きさ： _ 位置：x _ y _ 太さ： _ 色： _(6, 0, 150, 4, "0xb4ffea4f")
+      call 星　大きさ： _ 位置：x _ y _ 太さ： _ 色： _(2, 0, 150, 4, "0xb4ffea4f")
+      call tree2()
+    else:
+      pen.clear()
+      if (mode = "1"):
+        call tree1()
+      if (mode = "3"):
+        call tree3()
+      if (mode = "4"):
+        call tree4()
+      call text _ at x: _ y: _("%02#ffffffMerry Christmas & Happy New Year!!", -190, -165)
+      call 星　大きさ： _ 位置：x _ y _ 太さ： _ 色： _(10, 0, 150, 4, "0xb4ffea4f")
+      call 星　大きさ： _ 位置：x _ y _ 太さ： _ 色： _(6, 0, 150, 4, "0xb4ffea4f")
+      call 星　大きさ： _ 位置：x _ y _ 太さ： _ 色： _(2, 0, 150, 4, "0xb4ffea4f")
+      wait 1s
+
+define tree1():
+  go to (0, 150)
+  point in direction 204
+  repeat 16 times:
+    repeat until (y < "-125"):
+      move random(1, 50) steps
+      pen.size = random(5, 15)
+      call A _ 色相 _ 彩度 _ 明度 _(random(0, 230), random(0, 360), 255, 255)
+      if (y > "-125"):
+        pen.down()
+        pen.up()
+        pen.size += -10
+        call A _ 色相 _ 彩度 _ 明度 _(100, 90, 100, 255)
+        pen.down()
+        pen.up()
+    turn left 3°
+    go to (0, 150)
+  go to (0, 150)
+  point in direction 203
+  repeat 16 times:
+    repeat until (y < "-125"):
+      move random(1, 100) steps
+      pen.size = random(5, 25)
+      call A _ 色相 _ 彩度 _ 明度 _(random(0, 230), random(0, 360), 255, 255)
+      if (("-125" < y) and (y < "72")):
+        pen.down()
+        pen.up()
+        pen.size += -10
+        call A _ 色相 _ 彩度 _ 明度 _(100, 90, 100, 255)
+        pen.down()
+        pen.up()
+    turn left 3°
+    go to (0, 150)
+  go to (0, 150)
+  point in direction 202
+  repeat 16 times:
+    repeat until (y < "-125"):
+      move random(1, 75) steps
+      pen.size = random(5, 30)
+      call A _ 色相 _ 彩度 _ 明度 _(random(0, 230), random(0, 360), 255, 255)
+      if (("-125" < y) and (y < "-27")):
+        pen.down()
+        pen.up()
+        pen.size += -10
+        call A _ 色相 _ 彩度 _ 明度 _(100, 90, 100, 255)
+        pen.down()
+        pen.up()
+    turn left 3°
+    go to (0, 150)
+
+define tree3():
+  go to (0, 150)
+  point in direction 204
+  repeat 16 times:
+    repeat until (y < "-125"):
+      move random(1, 50) steps
+      pen.size = random(3, 10)
+      call A _ 色相 _ 彩度 _ 明度 _(random(0, 230), random(180, 240), random(0, 255), 255)
+      if (y > "-125"):
+        pen.down()
+        pen.up()
+        pen.size += -5
+        call A _ 色相 _ 彩度 _ 明度 _(255, 90, 0, 255)
+        pen.down()
+        pen.up()
+    turn left 3°
+    go to (0, 150)
+  go to (0, 150)
+  point in direction 203
+  repeat 16 times:
+    repeat until (y < "-125"):
+      move random(1, 100) steps
+      pen.size = random(5, 15)
+      call A _ 色相 _ 彩度 _ 明度 _(random(100, 230), random(180, 200), 255, 255)
+      if (("-125" < y) and (y < "30")):
+        pen.down()
+        pen.up()
+        pen.size += -7
+        call A _ 色相 _ 彩度 _ 明度 _(255, 90, 0, 255)
+        pen.down()
+        pen.up()
+    turn left 3°
+    go to (0, 150)
+  go to (0, 150)
+  point in direction 202
+  repeat 16 times:
+    repeat until (y < "-125"):
+      move random(1, 75) steps
+      pen.size = random(5, 15)
+      call A _ 色相 _ 彩度 _ 明度 _(random(0, 230), random(180, 200), 255, 255)
+      if (("-125" < y) and (y < "-27")):
+        pen.down()
+        pen.up()
+        pen.size += -7
+        call A _ 色相 _ 彩度 _ 明度 _(255, 90, 0, 255)
+        pen.down()
+        pen.up()
+    turn left 3°
+    go to (0, 150)
+
+define 星　大きさ： _ 位置：x _ y _ 太さ： _ 色： _(s, x, y, w, c):
+  pen.size = w
+  pen.color = c
+  go to (x, (y + (s * 1.5)))
+  point in direction 27.5
+  pen.down()
+  repeat 5 times:
+    turn right 124°
+    move s steps
+    turn right -52°
+    move s steps
+  pen.up()
+
+define A _ 色相 _ 彩度 _ 明度 _(A, H, S, V):
+  Alfa = A
+  Hue = H
+  Saturation = S
+  Value = V
+  call HSV_to_RGB()
+  pen.color = ((Alfa * 16777216) + (((R * 65536) + (G * 256)) + B))
+
+define HSV_to_RGB():
+  if ((Hue > "360") or (Hue = "360")):
+    Hue = (Hue mod 360)
+  V = (Value / 255)
+  S = (Saturation / 255)
+  C = (V * S)
+  H' = (Hue / 60)
+  X = (C * (1 - abs(((H' mod 2) - 1))))
+  m = (V - C)
+  if ((H' = "0") or ((H' > "0") and (H' < "1"))):
+    R = C
+    G = X
+    B = "0"
+  if ((H' = "1") or ((H' > "1") and (H' < "2"))):
+    R = X
+    G = C
+    B = "0"
+  if ((H' = "2") or ((H' > "2") and (H' < "3"))):
+    R = "0"
+    G = C
+    B = X
+  if ((H' = "3") or ((H' > "3") and (H' < "4"))):
+    R = "0"
+    G = X
+    B = C
+  if ((H' = "4") or ((H' > "4") and (H' < "5"))):
+    R = X
+    G = "0"
+    B = C
+  if ((H' = "5") or ((H' > "5") and (H' < "6"))):
+    R = C
+    G = "0"
+    B = X
+  R = round(((R + m) * 255))
+  G = round(((G + m) * 255))
+  B = round(((B + m) * 255))
+
+define text _ at x: _ y: _(text, x, y):
+  x = x
+  y = y
+  j = "1"
+  repeat until (j > length(text)):
+    if (letter j of text = "#"):
+      str = "0x"
+      repeat 6 times:
+        j += 1
+        str = join(str, letter j of text)
+      pen.color = str
+    else:
+      if (letter j of text = ";"):
+        x = x
+        y += (size * -12)
+      else:
+        if (letter j of text = "%"):
+          size = join(letter (j + 1) of text, letter (j + 2) of text)
+          pen.size = size
+          j += 2
+        else:
+          if (letter j of text = "\\"):
+            j += 1
+          costume = letter j of text
+          costume = join(letter j of text, "#")
+          char = chardata[costume number]
+          pen.up()
+          ox = "0"
+          oy = "0"
+          i = "2"
+          repeat ((length(char) - 1) / 2) times:
+            if (letter i of char = "x"):
+              pen.up()
+            else:
+              if (letter i of char = "+"):
+                oy += letter (i + 1) of char
+              else:
+                if (letter i of char = "-"):
+                  oy += ( - letter (i + 1) of char)
+                else:
+                  if (letter i of char = ">"):
+                    ox += letter (i + 1) of char
+                  else:
+                    if (letter i of char = "<"):
+                      ox += ( - letter (i + 1) of char)
+                    else:
+                      go to ((x + ((letter i of char + ox) * size)), (y + ((letter (i + 1) of char + oy) * size)))
+                      pen.down()
+            i += 2
+          x += ((letter 1 of char + 1) * size)
+    j += 1
+    if (x > "223"):
+      x = x
+      y += (size * -10)
+  pen.up()
+
+define tree4():
+  go to (0, 150)
+  point in direction 203
+  repeat 46 times:
+    repeat until (y < "-125"):
+      move random(1, 100) steps
+      pen.size = random(5, 25)
+      if (y > "-125"):
+        call A _ 色相 _ 彩度 _ 明度 _(random(100, 200), 45, random(155, 255), 155)
+        pen.down()
+        pen.up()
+    turn left 1°
+    go to (0, 150)
+
+when key "space" pressed:
+  mode += 1
+  if (mode > "4"):
+    mode = "1"
+
+define tree2_1():
+  repeat 100 times:
+    go to (random(-140, 140), random(-125, 150))
+    pen.size = 5
+    call A _ 色相 _ 彩度 _ 明度 _(200, random(0, 360), 0, 255)
+    if ((((y - 150) / x) < "-2") or ("2" < ((y - 150) / x))):
+      pen.down()
+      pen.up()
+
+define tree2_2():
+  repeat 100 times:
+    go to (random(-140, 140), random(-125, 150))
+    pen.size = 20
+    call A _ 色相 _ 彩度 _ 明度 _(random(10, 100), random(0, 360), 255, 255)
+    if ((((y - 150) / x) < "-2") or ("2" < ((y - 150) / x))):
+      pen.down()
+      pen.up()
+
+define tree2_3():
+  repeat 100 times:
+    go to (random(-140, 140), random(-125, 150))
+    pen.size = 40
+    call A _ 色相 _ 彩度 _ 明度 _(random(10, 50), random(0, 360), 255, 255)
+    if ((((y - 150) / x) < "-2") or ("2" < ((y - 150) / x))):
+      pen.down()
+      pen.up()
+
+define tree2():
+  call tree2_1()
+  wait 0.5s
+  call tree2_2()
+  wait 0.5s
+  call tree2_3()
+  wait 0.5s
+
+control_wait:

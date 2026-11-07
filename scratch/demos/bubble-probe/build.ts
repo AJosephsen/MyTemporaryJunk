@@ -47,7 +47,22 @@ const keyOf = (d: DD, x: In, y: In) => d.join(d.round(x), d.join(",", d.round(d.
 // ---------------------------------------------------------------- Stage
 function stageScripts(): Blocks {
   const B = new Blocks(P), d = dsl(B);
-  B.script(d.whenFlag(), [d.set("phase", "setup"), d.broadcastWait("fill board"), d.broadcast("play")]);
+  const { v, set, change, repeat, ifElse, ifThen, eq, lt, and, not, floor, div, sub, mod, random, addTo, length } = d;
+  // The board comes from the list `layout`; if it is empty (as in a fresh project), a random one is made first.
+  B.script(d.whenFlag(), [
+    set("phase", "setup"),
+    ifThen(eq(length("layout"), 0), [d.call("random layout")]),
+    d.broadcastWait("fill board"), d.broadcast("play"),
+  ]);
+  d.define("random layout", [
+    set("i", 1),
+    repeat(COLS * ROWS, [
+      set("row", floor(div(sub(v("i"), 1), COLS))), set("col", mod(sub(v("i"), 1), COLS)),
+      ifElse(and(lt(v("row"), 5), not(and(eq(mod(v("row"), 2), 1), eq(v("col"), COLS - 1)))),
+        [addTo("layout", random(1, 4))], [addTo("layout", 0)]),
+      change("i", 1),
+    ]),
+  ], { warp: true, x: 400, y: 20 });
   return B;
 }
 function ceilingScripts(): Blocks {

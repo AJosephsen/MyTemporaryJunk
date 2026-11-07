@@ -24,7 +24,10 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
     const v = slot[1];
     if (typeof v === "string") {
       const r = get(v);
-      return r.shadow ? `(${String(Object.values(r.fields)[0][0])} v)` : reporter(r);
+      const MENU: Record<string, string> = { _myself_: "myself", _mouse_: "mouse-pointer", _edge_: "edge" };
+      if (!r.shadow) return reporter(r);
+      const m = String(Object.values(r.fields)[0][0]);
+      return `(${MENU[m] ?? m} v)`;
     }
     switch (v[0]) {
       case 11: return `(${v[1]} v)`;
@@ -47,6 +50,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "operator_mathop": return `([${field(b, "OPERATOR")} v] of ${value(b, "NUM")})`;
       case "operator_join": return `(join ${value(b, "STRING1")} ${value(b, "STRING2")})`;
       case "operator_random": return `(pick random ${value(b, "FROM")} to ${value(b, "TO")})`;
+      case "looks_size": return "(size)";
       case "data_itemoflist": return `(item ${value(b, "INDEX")} of [${field(b, "LIST")} v])`;
       case "data_lengthoflist": return `(length of [${field(b, "LIST")} v])`;
       case "motion_direction": return "(direction)";
@@ -83,6 +87,17 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "motion_pointindirection": return [`point in direction ${value(b, "DIRECTION")}`];
       case "motion_turnright": return [`turn right ${value(b, "DEGREES")} degrees`];
       case "motion_turnleft": return [`turn left ${value(b, "DEGREES")} degrees`];
+      case "motion_changexby": return [`change x by ${value(b, "DX")}`];
+      case "motion_changeyby": return [`change y by ${value(b, "DY")}`];
+      case "looks_seteffectto": return [`set [${field(b, "EFFECT").toLowerCase()} v] effect to ${value(b, "VALUE")}`];
+      case "looks_changeeffectby": return [`change [${field(b, "EFFECT").toLowerCase()} v] effect by ${value(b, "CHANGE")}`];
+      case "looks_cleargraphiceffects": return ["clear graphic effects"];
+      case "looks_setsizeto": return [`set size to ${value(b, "SIZE")} %`];
+      case "looks_changesizeby": return [`change size by ${value(b, "CHANGE")}`];
+      case "looks_goforwardbackwardlayers": return [`go [${field(b, "FORWARD_BACKWARD")} v] ${value(b, "NUM")} layers`];
+      case "control_create_clone_of": return [`create clone of ${value(b, "CLONE_OPTION")}`];
+      case "control_start_as_clone": return ["when I start as a clone"];
+      case "control_delete_this_clone": return ["delete this clone"];
       case "looks_switchcostumeto": return [`switch costume to ${value(b, "COSTUME")}`];
       case "looks_show": return ["show"];
       case "looks_hide": return ["hide"];

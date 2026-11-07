@@ -143,3 +143,45 @@ test("every tutorial checkpoint runs for 3 seconds without errors", async t => {
     await t.frames(90);
   }
 });
+
+// ---------------------------------------------------------------- particles (game only)
+const particleCount = (t: T) => t.page(w => w.vm.runtime.targets.filter((x: any) => x.sprite.name === "Particle" && !x.isOriginal).length as number);
+
+test("game: the engine makes fire and smoke while thrusting, and they fade away", async t => {
+  await startRound(t, GAME);
+  t.expect((await particleCount(t)) === 0, "no particles before thrust");
+  await t.hold("up arrow");
+  await t.frames(40);
+  const thrusting = await particleCount(t);
+  await t.release("up arrow");
+  await t.hold("down arrow");
+  await t.frames(80);
+  await t.release("down arrow");
+  const later = await particleCount(t);
+  t.log({ thrusting, later });
+  t.expect(thrusting >= 10, `particles while thrusting: ${thrusting}`);
+  t.expect(later === 0, `particles left 80 frames after the engine stopped: ${later}`);
+});
+
+test("game: full boost stays well below the 300-clone limit", async t => {
+  await startRound(t, GAME);
+  await t.hold("space");
+  let most = 0;
+  for (let i = 0; i < 6; i++) { await t.frames(10); most = Math.max(most, await particleCount(t)); }
+  await t.release("space");
+  t.log({ most });
+  t.expect(most > 20 && most < 150, `most particles at once: ${most}`);
+});
+
+test("game: a crash makes an explosion, cleared when the next round starts", async t => {
+  await startRound(t, GAME);
+  await t.until(v => v.state === "crash", { max: 400 });
+  await t.frames(2);
+  const burst = await particleCount(t);
+  await t.until(v => v.state === "flying", { max: 90, what: "the next round" });
+  await t.frames(1);
+  const after = await particleCount(t);
+  t.log({ burst, after });
+  t.expect(burst >= 25, `explosion particles: ${burst}`);
+  t.expect(after === 0, `particles in the new round: ${after}`);
+});

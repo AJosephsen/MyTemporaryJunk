@@ -33,6 +33,16 @@ through named phases, each a broadcast:
 | `round over` | Drone | Show the result, then `new round` or `game over` |
 | `game over` | Drone | Show the final score |
 
+### Particles
+
+The Particle sprite makes engine exhaust (fire and smoke) and the crash explosion. Scratch has no blend modes,
+so the glow comes from soft costumes that fade to transparent at the edge, plus graphic effects:
+fire shrinks, shifts from yellow to red (colour effect) and fades (ghost effect); smoke grows, drifts upwards
+and fades. The hidden original sprite is the emitter; each particle is a clone with its own speed, lifetime,
+size and growth (variables for this sprite only), and updates itself on every `tick`. Loops that emit several
+particles run inside custom blocks without screen refresh, so they finish within the frame. Clones delete
+themselves when they fade out or when a new round starts. Full boost peaks at about 90 clones (Scratch allows 300).
+
 The per-frame work is split into custom blocks (My Blocks). Tick scripts never pause: `judge landing`,
 which contains the only loop, runs without screen refresh. A tick script that paused would be restarted
 by the next tick.

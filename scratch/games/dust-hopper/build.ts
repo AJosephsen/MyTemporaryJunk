@@ -169,6 +169,104 @@ function droneScripts(): Blocks {
   return B;
 }
 
+// ---------------------------------------------------------------- Particles: exhaust fire, smoke and explosions
+// The original Particle sprite stays hidden and acts as the emitter. Every particle is a clone with its own
+// speed and lifetime (variables for this sprite only), and moves itself on each tick.
+function particleScripts(): Blocks {
+  const B = new Blocks(P).local("isClone", "kind", "pvx", "pvy", "life", "maxLife", "speed", "startSize", "grow");
+  const { v, add, sub, mul, div, lt, gt, eq, and, or, not, sin, cos, round, random, set, change, touching, goto,
+    costume, show, hide, whenReceive, ifThen, ifElse, repeat, define, call, changeX, changeY, setEffect,
+    changeEffect, clearEffects, setSize, changeSize, cloneMyself, whenCloned, deleteClone } = dsl(B);
+  // age goes from 0 (new) to 1 (about to disappear)
+  const age = () => sub(1, div(v("life"), v("maxLife")));
+  const fadeIn = (start: number) => setEffect("GHOST", add(start, mul(age(), 100 - start)));
+
+  B.script(whenReceive("setup"), [hide(), set("isClone", 0)], 20, 20);
+
+  B.script(whenReceive("tick"), [
+    ifElse(eq(v("isClone"), 1), [call("update particle")], [
+      ifThen(and(eq(v("state"), "flying"), gt(v("force"), 0)), [call("run exhaust")]),
+    ]),
+  ], 20, 160);
+
+  B.script(whenReceive("round over"), [
+    ifThen(and(eq(v("isClone"), 0), eq(v("state"), "crash")), [call("explode")]),
+  ], 20, 520);
+
+  // Loops inside a tick must finish within the frame, so these two run without screen refresh.
+  // Exhaust: more particles at higher thrust.
+  define("run exhaust", [
+    repeat(add(1, round(mul(v("force"), 40))), [
+      set("kind", "fire"), call("emit exhaust"),
+      ifThen(eq(random(1, 3), 1), [set("kind", "smoke"), call("emit exhaust")]),
+    ]),
+  ], { warp: true, x: 1000, y: 20 });
+
+  define("explode", [
+    repeat(30, [
+      set("kind", "blast"),
+      ifThen(eq(random(1, 3), 1), [set("kind", "smoke")]),
+      call("emit explosion"),
+    ]),
+  ], { warp: true, x: 1000, y: 300 });
+
+  B.script(whenReceive("new round"), [ifThen(eq(v("isClone"), 1), [deleteClone()])], 20, 760);
+
+  B.script(whenCloned(), [
+    set("isClone", 1),
+    clearEffects(),
+    ifElse(eq(v("kind"), "smoke"), [costume("smoke"), setEffect("GHOST", 40)], [costume("fire")]),
+    setSize(v("startSize")),
+    show(),
+  ], 20, 860);
+
+  // Exhaust leaves the nozzle (10 px below the drone's centre) opposite to the thrust, moving with the drone.
+  define("emit exhaust", [
+    ifElse(eq(v("kind"), "fire"),
+      [set("life", random(7, 11)), set("startSize", 100), set("grow", -6)],
+      [set("life", random(25, 40)), set("startSize", 60), set("grow", 4)]),
+    set("maxLife", v("life")),
+    set("speed", div(random(20, 35), 10)),
+    set("pvx", add(sub(v("vx"), mul(sin(v("angle")), v("speed"))), div(random(-5, 5), 10))),
+    set("pvy", add(sub(v("vy"), mul(cos(v("angle")), v("speed"))), div(random(-5, 5), 10))),
+    goto(sub(v("posX"), mul(sin(v("angle")), 10)), sub(v("posY"), mul(cos(v("angle")), 10))),
+    cloneMyself(),
+  ], { warp: true, x: 520, y: 20 });
+
+  define("emit explosion", [
+    ifElse(eq(v("kind"), "blast"),
+      [set("life", random(12, 24)), set("startSize", random(140, 200)), set("grow", -4)],
+      [set("life", random(30, 55)), set("startSize", 80), set("grow", 5)]),
+    set("maxLife", v("life")),
+    set("pvx", div(random(-35, 35), 10)),
+    set("pvy", div(random(-10, 45), 10)),
+    goto(v("posX"), v("posY")),
+    cloneMyself(),
+  ], { warp: true, x: 520, y: 380 });
+
+  define("update particle", [
+    changeX(v("pvx")), changeY(v("pvy")), change("life", -1), changeSize(v("grow")),
+    ifElse(eq(v("kind"), "smoke"), [
+      // Smoke slows down, drifts upwards and fades.
+      set("pvx", mul(v("pvx"), 0.94)),
+      set("pvy", add(mul(v("pvy"), 0.92), 0.03)),
+      fadeIn(40),
+    ], [
+      // Fire slows down, turns from yellow to red (a hue shift of up to -18) and fades.
+      set("pvx", mul(v("pvx"), 0.9)),
+      set("pvy", mul(v("pvy"), 0.9)),
+      setEffect("COLOR", mul(age(), -18)), fadeIn(0),
+    ]),
+    // Exhaust hitting the ground spreads sideways instead of going through it.
+    ifThen(and(lt(v("pvy"), 0), or(touching("Ground"), touching("Pads"))), [
+      set("pvy", 0), change("pvx", div(random(-20, 20), 10)),
+    ]),
+    ifThen(lt(v("life"), 1), [deleteClone()]),
+  ], { x: 520, y: 700 });
+
+  return B;
+}
+
 // ---------------------------------------------------------------- project
 const A = art(P);
 const sb3 = P.build({
@@ -177,7 +275,8 @@ const sb3 = P.build({
   sprites: [
     P.sprite("Ground", { blocks: groundScripts(), costumes: A.ground, layer: 1 }),
     P.sprite("Pads", { blocks: padScripts(), costumes: A.pads, layer: 2 }),
-    P.sprite("Drone", { blocks: droneScripts(), costumes: A.drone, layer: 3, x: -60, y: 150 }),
+    P.sprite("Particle", { blocks: particleScripts(), costumes: A.particle(), layer: 3, visible: false }),
+    P.sprite("Drone", { blocks: droneScripts(), costumes: A.drone, layer: 4, x: -60, y: 150 }),
   ],
   listValues: { thrustTable: THRUST_TABLE },
   shown: ["Score", "Fuel", "Throttle", "Drift", "Descent"],

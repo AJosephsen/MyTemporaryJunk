@@ -61,6 +61,17 @@ const spikes = Array.from({ length: 16 }, (_, i) => {
 }).join(" ");
 const boom = svg(40, 50, `<polygon points="${spikes}" fill="#ff7a2f"/><circle cx="20" cy="20" r="7" fill="#ffe066"/>`);
 
+// Particles: soft round blobs that fade to transparent at the edge, so they look like glow and haze
+// even though Scratch has no blend modes. Colour and fading over time are done with graphic effects.
+const smoke = svg(32, 32,
+  `<defs><radialGradient id="g"><stop offset="0" stop-color="#e2dde9" stop-opacity="0.85"/>` +
+  `<stop offset="0.6" stop-color="#aaa3b8" stop-opacity="0.45"/><stop offset="1" stop-color="#8a8499" stop-opacity="0"/></radialGradient></defs>` +
+  `<circle cx="16" cy="16" r="16" fill="url(#g)"/>`);
+const fire = svg(24, 24,
+  `<defs><radialGradient id="g"><stop offset="0" stop-color="#fffbe0"/><stop offset="0.35" stop-color="#ffd23f" stop-opacity="0.95"/>` +
+  `<stop offset="0.7" stop-color="#ff7a2f" stop-opacity="0.55"/><stop offset="1" stop-color="#ff4f1e" stop-opacity="0"/></radialGradient></defs>` +
+  `<circle cx="12" cy="12" r="12" fill="url(#g)"/>`);
+
 // Costume objects for each sprite, registered with the given project.
 export function art(P: Project) {
   return {
@@ -69,5 +80,7 @@ export function art(P: Project) {
     pads: [P.costume("pads", pads, 240, 180)],
     drone: [P.costume("drone", drone, 20, 20), P.costume("drone-flame", droneFlame, 20, 20),
       P.costume("drone-boost", droneBoost, 20, 20), P.costume("boom", boom, 20, 20)],
+    // Registered only when a project uses particles.
+    particle: () => [P.costume("fire", fire, 12, 12), P.costume("smoke", smoke, 16, 16)],
   };
 }

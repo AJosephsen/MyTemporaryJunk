@@ -24,13 +24,15 @@ export class Project {
     return { name, dataFormat: "svg", assetId: md5, md5ext: `${md5}.svg`, rotationCenterX: cx, rotationCenterY: cy };
   }
 
-  sprite(name: string, opts: { blocks?: Blocks; costumes: any[]; layer: number; x?: number; y?: number }) {
+  sprite(name: string, opts: { blocks?: Blocks; costumes: any[]; layer: number; x?: number; y?: number; visible?: boolean }) {
     // A block with no parent that does not start a script was created but never placed.
     const strays = Object.values(opts.blocks?.map ?? {}).filter((b: any) => b.parent === null && !b.topLevel);
     if (strays.length) throw new Error(`${name}: ${strays.length} stray blocks (${strays.map((b: any) => b.opcode).join(", ")})`);
     return {
-      isStage: false, name, variables: {}, lists: {}, broadcasts: {}, blocks: opts.blocks?.map ?? {}, comments: {},
-      currentCostume: 0, costumes: opts.costumes, sounds: [], volume: 100, layerOrder: opts.layer, visible: true,
+      isStage: false, name, broadcasts: {}, blocks: opts.blocks?.map ?? {}, comments: {}, lists: {},
+      // Variables "for this sprite only": every clone gets its own copy.
+      variables: Object.fromEntries(Object.entries(opts.blocks?.locals ?? {}).map(([n, id]) => [id, [n, 0]])),
+      currentCostume: 0, costumes: opts.costumes, sounds: [], volume: 100, layerOrder: opts.layer, visible: opts.visible ?? true,
       x: opts.x ?? 0, y: opts.y ?? 0, size: 100, direction: 90, draggable: false, rotationStyle: "all around",
     };
   }
@@ -68,6 +70,9 @@ export class Project {
 
 export class Blocks {
   map: Record<string, any> = {};
+  /** Variables that belong to this sprite only (name -> id). */
+  locals: Record<string, string> = {};
+  local(...names: string[]) { for (const n of names) this.locals[n] ??= this.project.nid("lvar"); return this; }
   readonly project: Project;
   constructor(project: Project) { this.project = project; }
 
@@ -101,15 +106,16 @@ export class Blocks {
 // Block-building helpers bound to one sprite's block map.
 export function dsl(B: Blocks) {
   const P = B.project;
+  const vid = (name: string) => B.locals[name] ?? P.varId(name);
   const num = (x: In): any[] => {
     if (typeof x === "number") return [1, [4, String(x)]];
     if (typeof x === "string") return [1, [10, x]];
-    if ("v" in x) return [3, [12, x.v, P.varId(x.v)], [4, "0"]];
+    if ("v" in x) return [3, [12, x.v, vid(x.v)], [4, "0"]];
     return [3, x.id, [4, "0"]];
   };
   const txt = (x: In): any[] => {
     if (typeof x === "number" || typeof x === "string") return [1, [10, String(x)]];
-    if ("v" in x) return [3, [12, x.v, P.varId(x.v)], [10, ""]];
+    if ("v" in x) return [3, [12, x.v, vid(x.v)], [10, ""]];
     return [3, x.id, [10, ""]];
   };
   const bool = (r: Ref) => [2, r.id];
@@ -130,8 +136,9 @@ export function dsl(B: Blocks) {
     join: (a: In, b: In) => B.add("operator_join", { STRING1: txt(a), STRING2: txt(b) }),
     item: (list: string, idx: In) => B.add("data_itemoflist", { INDEX: num(idx) }, { LIST: [list, P.listId(list)] }),
     length: (list: string) => B.add("data_lengthoflist", {}, { LIST: [list, P.listId(list)] }),
-    set: (name: string, x: In) => B.add("data_setvariableto", { VALUE: txt(x) }, { VARIABLE: [name, P.varId(name)] }),
-    change: (name: string, x: In) => B.add("data_changevariableby", { VALUE: num(x) }, { VARIABLE: [name, P.varId(name)] }),
+    set: (name: string, x: In) => B.add("data_setvariableto", { VALUE: txt(x) }, { VARIABLE: [name, vid(name)] }),
+    change: (name: string, x: In) => B.add("data_changevariableby", { VALUE: num(x) }, { VARIABLE: [name, vid(name)] }),
+    random: (from: In, to: In) => B.add("operator_random", { FROM: num(from), TO: num(to) }),
     key: (k: string) => B.add("sensing_keypressed", { KEY_OPTION: [1, B.shadow("sensing_keyoptions", { KEY_OPTION: [k, null] })] }),
     touching: (sprite: string) => B.add("sensing_touchingobject", {
       TOUCHINGOBJECTMENU: [1, B.shadow("sensing_touchingobjectmenu", { TOUCHINGOBJECTMENU: [sprite, null] })] }),
@@ -144,6 +151,20 @@ export function dsl(B: Blocks) {
     addTo: (list: string, x: In) => B.add("data_addtolist", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     costume: (name: string) => B.add("looks_switchcostumeto", { COSTUME: [1, B.shadow("looks_costume", { COSTUME: [name, null] })] }),
     show: () => B.add("looks_show"),
+    changeX: (n: In) => B.add("motion_changexby", { DX: num(n) }),
+    changeY: (n: In) => B.add("motion_changeyby", { DY: num(n) }),
+    // Graphic effects: COLOR, FISHEYE, WHIRL, PIXELATE, MOSAIC, BRIGHTNESS, GHOST
+    setEffect: (effect: string, n: In) => B.add("looks_seteffectto", { VALUE: num(n) }, { EFFECT: [effect, null] }),
+    changeEffect: (effect: string, n: In) => B.add("looks_changeeffectby", { CHANGE: num(n) }, { EFFECT: [effect, null] }),
+    clearEffects: () => B.add("looks_cleargraphiceffects"),
+    setSize: (n: In) => B.add("looks_setsizeto", { SIZE: num(n) }),
+    changeSize: (n: In) => B.add("looks_changesizeby", { CHANGE: num(n) }),
+    back: (layers: number) => B.add("looks_goforwardbackwardlayers", { NUM: num(layers) }, { FORWARD_BACKWARD: ["backward", null] }),
+    // Clones
+    cloneMyself: () => B.add("control_create_clone_of", {
+      CLONE_OPTION: [1, B.shadow("control_create_clone_of_menu", { CLONE_OPTION: ["_myself_", null] })] }),
+    whenCloned: () => B.add("control_start_as_clone"),
+    deleteClone: () => B.add("control_delete_this_clone"),
     hide: () => B.add("looks_hide"),
     front: () => B.add("looks_gotofrontback", {}, { FRONT_BACK: ["front", null] }),
     say: (m: In) => B.add("looks_say", { MESSAGE: txt(m) }),

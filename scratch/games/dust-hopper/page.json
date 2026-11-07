@@ -1,0 +1,14 @@
+{
+  "title": "Dust Hopper",
+  "tagline": "Land the survey drone gently on a yellow pad.",
+  "project": "dust-hopper.sb3",
+  "left": [
+    { "key": "ArrowLeft", "label": "◀", "name": "Tilt left" },
+    { "key": "ArrowRight", "label": "▶", "name": "Tilt right" }
+  ],
+  "right": [
+    { "key": " ", "label": "Boost", "name": "Boost kick" },
+    { "key": "ArrowUp", "label": "Thrust", "name": "Thrust (hold)", "big": true }
+  ],
+  "keys": "Hold ↑ to thrust · ← → to tilt · Space for a boost kick"
+}

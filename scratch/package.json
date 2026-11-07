@@ -11,7 +11,8 @@
     "build": "node --experimental-strip-types --no-warnings workbench/build-all.ts",
     "test": "node --experimental-strip-types --no-warnings workbench/test.ts",
     "check": "tsc -p .",
-    "export": "node --experimental-strip-types --no-warnings workbench/export.ts"
+    "export": "node --experimental-strip-types --no-warnings workbench/export.ts",
+    "export:game": "node --experimental-strip-types --no-warnings workbench/export-game.ts"
   },
   "dependencies": {
     "@turbowarp/scaffolding": "0.4.0"

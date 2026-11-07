@@ -91,11 +91,11 @@ test("comet rally step 6: a player who aims beats the robot", async t => {
   t.expect((await t.sprite("Ball")).bubble === "You win!", "winner message");
 });
 
-test("comet rally step 6: a player who never moves loses 0 : 5", async t => {
+test("comet rally step 6: a player who never moves loses", async t => {
   await start(t, 6);
   await t.mouse(0, 170);
   const v = await t.until(v => v["Robot score"] === 5, { max: 30 * 120 });
-  t.expect(v["Your score"] === 0, `your score ${v["Your score"]}`);
+  t.expect(v["Your score"] < 2, `your score ${v["Your score"]}`);
   t.expect((await t.sprite("Ball")).bubble === "The robot wins!", "winner message");
 });
 

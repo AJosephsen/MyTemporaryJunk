@@ -97,7 +97,8 @@ test("drone falls", async t => {
 | `page(fn)` | Run code in the page; `w.vm` is the Scratch VM |
 | `screenshot(file)`, `expect(ok, msg)`, `near(a, b, tol, label)`, `log(...)` | Helpers |
 
-How it works: the test page stops the engine's own timer and runs on a virtual clock. Each step moves time on by
+How it works: the test page stops the engine's own timer, runs on a virtual clock, and uses a fixed random seed,
+so every run plays out exactly the same. Each step moves time on by
 exactly one frame, runs due timers (used by blocks like *say for 2 seconds*), then runs one engine frame.
 
 Scratch detail worth knowing: when nothing on screen needs redrawing, Scratch re-runs loops several times within one

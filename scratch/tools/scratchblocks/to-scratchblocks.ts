@@ -49,6 +49,8 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "operator_round": return `(round ${value(b, "NUM")})`;
       case "operator_mathop": return `([${field(b, "OPERATOR")} v] of ${value(b, "NUM")})`;
       case "operator_join": return `(join ${value(b, "STRING1")} ${value(b, "STRING2")})`;
+      case "operator_letter_of": return `(letter ${value(b, "LETTER")} of ${value(b, "STRING")})`;
+      case "operator_length": return `(length of ${value(b, "STRING")})`;
       case "operator_random": return `(pick random ${value(b, "FROM")} to ${value(b, "TO")})`;
       case "looks_size": return "(size)";
       case "sensing_mousex": return "(mouse x)";
@@ -80,6 +82,8 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
   function statement(b: Block): string[] {
     switch (b.opcode) {
       case "event_whenflagclicked": return ["when flag clicked"];
+      case "event_whenthisspriteclicked": return ["when this sprite clicked"];
+      case "event_whenstageclicked": return ["when stage clicked"];
       case "event_whenbroadcastreceived": return [`when I receive [${field(b, "BROADCAST_OPTION")} v]`];
       case "event_broadcast": return [`broadcast ${value(b, "BROADCAST_INPUT")}`];
       case "event_broadcastandwait": return [`broadcast ${value(b, "BROADCAST_INPUT")} and wait`];

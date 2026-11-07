@@ -132,8 +132,10 @@
       },
       key(name, isDown) { vm.postIOData("keyboard", { key: KEYS[name] ?? name, isDown }); },
       // Moves the mouse to a Stage position (x: -240..240, y: -180..180).
-      mouse(x, y, isDown = false) {
-        vm.postIOData("mouse", { x: x + 240, y: 180 - y, canvasWidth: 480, canvasHeight: 360, isDown });
+      mouse(x, y, isDown) {
+        const data = { x: x + 240, y: 180 - y, canvasWidth: 480, canvasHeight: 360 };
+        if (isDown !== undefined) data.isDown = isDown;
+        vm.postIOData("mouse", data);
       },
       // Steps frame by frame until check(vars, workbench, memo) is true; check runs here, in the page.
       async until(source, max) {

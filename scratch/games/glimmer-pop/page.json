@@ -1,0 +1,13 @@
+{
+  "title": "Glimmer Pop",
+  "tagline": "Match 3 or more bubbles to pop them. Clear the board before the ceiling comes down!",
+  "project": "glimmer-pop.sb3",
+  "left": [
+    { "key": "ArrowLeft", "label": "◀", "name": "Aim left" },
+    { "key": "ArrowRight", "label": "▶", "name": "Aim right" }
+  ],
+  "right": [
+    { "key": " ", "label": "Shoot", "name": "Shoot", "big": true }
+  ],
+  "keys": "Aim with the mouse or ← →, shoot with a click or Space. On a touch screen, tap where you want to shoot."
+}

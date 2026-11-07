@@ -39,6 +39,8 @@ export interface T {
   place(sprite: string, x: number, y: number, direction?: number): Promise<void>;
   /** Moves the mouse to a Stage position (x: -240..240, y: -180..180). */
   mouse(x: number, y: number): Promise<void>;
+  /** A quick click at a Stage position: button down and up again within the same frame. */
+  click(x: number, y: number): Promise<void>;
   /** Runs fn(w) inside the page, with w = the page's workbench object (w.vm is the Scratch VM). */
   page<R>(fn: (w: any) => R): Promise<R>;
   screenshot(file: string): Promise<void>;
@@ -90,6 +92,7 @@ export async function run(opts: { filter?: string; verbose?: boolean } = {}) {
       sprite: name => wb((w, n) => w.sprite(n), name),
       async place(name, x, y, d) { await wb((w, a) => w.place(a[0], a[1], a[2], a[3]), [name, x, y, d]); },
       async mouse(x, y) { await wb((w, a) => w.mouse(a[0], a[1]), [x, y]); },
+      async click(x, y) { await wb((w, a) => { w.mouse(a[0], a[1], true); w.mouse(a[0], a[1], false); }, [x, y]); },
       page: fn => wb(fn),
       async screenshot(file) { await wb(w => w.step(1)); await page.locator("#stage").screenshot({ path: file }); },
       expect(ok, message) { if (!ok) throw new Failure(message); },

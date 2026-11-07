@@ -18,6 +18,7 @@ All Scratch work lives here.
 |---|---|
 | [Dust Hopper](games/dust-hopper/) | Single-screen landing game using the physics model of the 1979 arcade lander |
 | [Comet Rally](games/comet-rally/) | Two-paddle rally against a robot; the finished game is the tutorial's last checkpoint |
+| [Glimmer Pop](games/glimmer-pop/) | Bubble shooter on a hex grid: match 3 to pop, loose bubbles fall, the ceiling comes down |
 
 ## Tutorials
 

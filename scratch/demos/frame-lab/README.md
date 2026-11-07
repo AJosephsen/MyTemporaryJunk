@@ -37,3 +37,19 @@ A script started by a broadcast exists only once per sprite or clone. When the s
 script has finished, Scratch restarts it instead of running a second copy, so several responses in one frame count
 as one. Count in the responders instead (`change direct by 1`, or `add (my id) to [answers]`), and read the count after
 `broadcast and wait`, when all responders are done.
+
+## The same message again
+
+| Case | Result |
+|---|---|
+| Several broadcasts reach a script before it has had its turn | It runs **once** (the request/response case above). |
+| A broadcast reaches a script that is **still running** (here: in the middle of a 3-pass loop) | The script **restarts from the top**, in the same frame. The first run is abandoned: it never reaches its last pass or its end. |
+| A broadcast reaches a script that **already finished** earlier in the same frame | It runs **again**: in the next frame when the screen needs redrawing, in the same frame when nothing moved. |
+
+Measured with spin = 1, the restart case reads:
+`1: send 1 | 1: slow start | 1: slow pass 1 | 2: slow pass 2 | 3: send 2 | 3: slow start | 3: slow pass 1 | 4: slow pass 2 | 5: slow pass 3 | 6: slow end`.
+
+So broadcasts are never queued: each `when I receive` script (per sprite or clone) is either started, restarted or
+merged with a start that is already waiting. A script that must finish its work should not be the target of a message
+that can arrive again while it runs; let it set a flag that it checks instead, or move the work into a custom block that
+runs without screen refresh, so it finishes before the next message can arrive.

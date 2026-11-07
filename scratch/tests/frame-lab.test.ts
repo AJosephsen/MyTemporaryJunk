@@ -14,7 +14,7 @@ async function measure(t: T, kase: string, spin: number): Promise<string[]> {
   await t.set("go", 1);
   const out: string[] = [];
   let seen = 0;
-  for (let frame = 1; frame <= 5; frame++) {
+  for (let frame = 1; frame <= 6; frame++) {
     await t.frames(1);
     const log = (await t.get("log")) as string[];
     for (; seen < log.length; seen++) out.push(`${frame}: ${log[seen]}`);
@@ -61,5 +61,27 @@ for (const spin of [1, 0]) {
     t.expect(v.direct === 5, `direct ${v.direct}`);
     // Five "response" broadcasts in one frame start the Sender's script once: the others restart the same script.
     t.expect(v.responses === 1, `responses ${v.responses}`);
+  });
+}
+
+const count = (out: string[], entry: string) => out.filter(o => o.endsWith(": " + entry)).length;
+
+for (const spin of [1, 0]) {
+  const how = spin ? "redrawing every frame" : "nothing moving";
+  test(`frame lab: a broadcast to a script that is still running restarts it; the first run never finishes (${how})`, async t => {
+    const out = await measure(t, "restart", spin);
+    t.log(out.join(" | "));
+    t.expect(count(out, "slow start") === 2, `starts: ${out}`);
+    t.expect(count(out, "slow pass 3") === 1 && count(out, "slow end") === 1, `the first run went on: ${out}`);
+    const restart = out.findIndex(o => o.endsWith("send 2"));
+    t.expect(out[restart + 1]?.endsWith("slow start") && frameOf([out[restart + 1]], "slow start") === Number(out[restart].split(":")[0]),
+      `the restart did not begin in the same frame as the second broadcast: ${out}`);
+  });
+  test(`frame lab: a broadcast to a script that already finished runs it again, ${spin ? "in the next frame" : "in the same frame"} (${how})`, async t => {
+    const out = await measure(t, "again", spin);
+    t.log(out.join(" | "));
+    const runs = out.filter(o => o.endsWith(": quick run"));
+    t.expect(runs.length === 2, `runs: ${out}`);
+    t.expect(runs[1]?.startsWith(spin ? "2:" : "1:"), `second run: ${out}`);
   });
 }

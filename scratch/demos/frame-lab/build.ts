@@ -29,6 +29,12 @@ function senderScripts(): Blocks {
         ifThen(eq(v("case"), "wait"), [log(d, "send"), broadcastWait("ping"), log(d, "after wait")]),
         ifThen(eq(v("case"), "warp"), [call("send in warp")]),
         ifThen(eq(v("case"), "chain"), [log(d, "send"), broadcast("ping2")]),
+        // Restart: the second broadcast arrives while the Worker's script is still running (2 frames later).
+        ifThen(eq(v("case"), "restart"), [
+          log(d, "send 1"), broadcast("slow"), d.repeat(2, [d.change("pause", 1)]), log(d, "send 2"), broadcast("slow"),
+        ]),
+        // Again in the same frame, after the Worker's quick script has already finished: Echo sends it a second time.
+        ifThen(eq(v("case"), "again"), [log(d, "send"), broadcast("quick"), broadcast("echo")]),
         // Request / response: 5 responders (a sprite and 4 clones) each answer with their own broadcast.
         ifThen(eq(v("case"), "request"), [
           set("responses", 0), set("direct", 0), log(d, "send"), broadcastWait("request"), log(d, "after wait"),
@@ -58,6 +64,22 @@ function responderScripts(): Blocks {
   return B;
 }
 
+function workerScripts(): Blocks {
+  const B = new Blocks(P), d = dsl(B);
+  // A slow script: a normal loop, so it pauses after each pass and runs over several frames.
+  B.script(d.whenReceive("slow"), [
+    log(d, "slow start"), d.set("n", 1), d.repeat(3, [d.addTo("log", d.join("slow pass ", d.v("n"))), d.change("n", 1)]), log(d, "slow end"),
+  ], 20, 20);
+  B.script(d.whenReceive("quick"), [log(d, "quick run")], 20, 200);
+  return B;
+}
+
+function echoScripts(): Blocks {
+  const B = new Blocks(P), d = dsl(B);
+  B.script(d.whenReceive("echo"), [log(d, "echo sends quick"), d.broadcast("quick")], 20, 20);
+  return B;
+}
+
 function spinnerScripts(): Blocks {
   const B = new Blocks(P), d = dsl(B);
   B.script(d.whenFlag(), [d.ifThen(d.eq(d.v("spin"), 1), [d.forever([d.turn(3)])])], 20, 20);
@@ -72,6 +94,8 @@ const sb3 = P.build({
     P.sprite("Sender", { blocks: senderScripts(), costumes: [P.costume("box", box("#3f8fd8"), 20, 20)], layer: 1, x: -100 }),
     P.sprite("Receiver", { blocks: receiverScripts(), costumes: [P.costume("box", box("#e8456b"), 20, 20)], layer: 2, x: 0 }),
     P.sprite("Responder", { blocks: responderScripts(), costumes: [P.costume("box", box("#f0a020"), 20, 20)], layer: 4, y: -100 }),
+    P.sprite("Worker", { blocks: workerScripts(), costumes: [P.costume("box", box("#8a5cd8"), 20, 20)], layer: 5, x: -100, y: 100 }),
+    P.sprite("Echo", { blocks: echoScripts(), costumes: [P.costume("box", box("#666666"), 20, 20)], layer: 6, x: 0, y: 100 }),
     P.sprite("Spinner", { blocks: spinnerScripts(), costumes: [P.costume("box", box("#3fa94d"), 20, 20)], layer: 3, x: 100 }),
   ],
   listValues: { log: [] },

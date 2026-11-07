@@ -168,3 +168,15 @@ test("glimmer pop: a quick click (down and up within one frame) aims and shoots"
     t.expect(Math.sign(v.aimDir) === Math.sign(x), `aim towards ${x}: ${v.aimDir}`);
   }
 });
+
+test("glimmer pop: the mouse leaving the Stage does not change the aim", async t => {
+  await ready(t);
+  await t.mouse(0, 100);
+  await t.frames(1);
+  await t.hold("right arrow"); await t.frames(10); await t.release("right arrow");
+  const aimed = await t.get("aimDir");
+  await t.mouse(-400, -300);                  // e.g. a finger on an on-screen button beside the Stage
+  await t.frames(3);
+  t.expect(aimed === 25, `aim after 10 frames of the right arrow: ${aimed}`);
+  t.expect((await t.get("aimDir")) === aimed, `aim after the mouse left the Stage: ${await t.get("aimDir")}`);
+});

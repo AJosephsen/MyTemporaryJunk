@@ -146,6 +146,10 @@ for (const b of document.querySelectorAll(".key")) {
   b.addEventListener("pointerdown", e => { e.preventDefault(); b.setPointerCapture?.(e.pointerId); press(true); });
   for (const ev of ["pointerup", "pointercancel", "lostpointercapture"]) b.addEventListener(ev, () => press(false));
   b.addEventListener("contextmenu", e => e.preventDefault());
+  // The Scratch player follows the mouse and touches across the whole page. Keep the buttons' own touches and
+  // mouse movements away from it, or pressing a button would also count as moving the mouse to the button.
+  for (const ev of ["mousedown", "mousemove", "mouseup", "touchstart", "touchmove", "touchend", "touchcancel"])
+    b.addEventListener(ev, e => e.stopPropagation());
 }
 
 // Full screen: real full screen where the browser allows it, otherwise fill the window.

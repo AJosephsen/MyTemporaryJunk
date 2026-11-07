@@ -328,7 +328,10 @@ function shooterScripts(): Blocks {
 
   define("aim", [
     // The mouse aims when it moves or clicks; pointing at or below the launcher aims as far to that side as allowed.
-    ifThen(or(or(not(eq(mouseX(), v("lastMX"))), not(eq(mouseY(), v("lastMY")))), eq(v("fire"), 1)), [
+    // Off the Stage, Scratch reports the mouse at the Stage's edge; that never aims.
+    set("mouseOn", 0),
+    ifThen(d.and(lt(d.abs(mouseX()), 239.5), lt(d.abs(mouseY()), 179.5)), [set("mouseOn", 1)]),
+    ifThen(d.and(eq(v("mouseOn"), 1), or(or(not(eq(mouseX(), v("lastMX"))), not(eq(mouseY(), v("lastMY")))), eq(v("fire"), 1))), [
       set("aimDY", sub(mouseY(), GEOM.launchY)), ifThen(lt(v("aimDY"), 8), [set("aimDY", 8)]),
       set("aimDir", atan(div(sub(mouseX(), GEOM.launchX), v("aimDY")))),
     ]),

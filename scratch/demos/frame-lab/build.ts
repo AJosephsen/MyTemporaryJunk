@@ -1,0 +1,66 @@
+// Frame Lab: measures in which frame broadcast receivers run. The test sets `case` and `go`, then steps one frame at a
+// time and reads the list `log` after each frame. `spin` = 1 keeps a sprite turning, so every frame must be redrawn
+// (as in a real game); with spin = 0 nothing moves and Scratch may re-run scripts within one frame.
+import { writeFileSync } from "node:fs";
+import { Project, Blocks, dsl } from "../../lib/sb3.ts";
+
+const P = new Project();
+const svg = (w: number, h: number, body: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
+const log = (d: ReturnType<typeof dsl>, text: string) => d.addTo("log", text);
+
+function stageScripts(): Blocks {
+  const B = new Blocks(P), d = dsl(B);
+  B.script(d.whenReceive("ping"), [log(d, "Stage got ping")], 20, 20);
+  B.script(d.whenReceive("ping3"), [log(d, "Stage got ping3")], 20, 120);
+  return B;
+}
+
+function senderScripts(): Blocks {
+  const B = new Blocks(P), d = dsl(B);
+  const { v, eq, set, ifThen, call, broadcast, broadcastWait, forever, whenFlag, whenReceive } = d;
+  const plain = () => [log(d, "send"), broadcast("ping"), log(d, "after send")];
+  B.script(whenFlag(), [
+    set("go", 0),
+    forever([
+      ifThen(eq(v("go"), 1), [
+        set("go", 0),
+        ifThen(eq(v("case"), "plain"), plain()),
+        ifThen(eq(v("case"), "wait"), [log(d, "send"), broadcastWait("ping"), log(d, "after wait")]),
+        ifThen(eq(v("case"), "warp"), [call("send in warp")]),
+        ifThen(eq(v("case"), "chain"), [log(d, "send"), broadcast("ping2")]),
+      ]),
+    ]),
+  ], 20, 20);
+  d.define("send in warp", plain(), { warp: true, x: 500, y: 20 });
+  B.script(whenReceive("ping"), [log(d, "Sender got ping")], 500, 200);
+  return B;
+}
+
+function receiverScripts(): Blocks {
+  const B = new Blocks(P), d = dsl(B);
+  B.script(d.whenReceive("ping"), [log(d, "Receiver got ping")], 20, 20);
+  B.script(d.whenReceive("ping2"), [log(d, "Receiver got ping2"), d.broadcast("ping3")], 20, 120);
+  return B;
+}
+
+function spinnerScripts(): Blocks {
+  const B = new Blocks(P), d = dsl(B);
+  B.script(d.whenFlag(), [d.ifThen(d.eq(d.v("spin"), 1), [d.forever([d.turn(3)])])], 20, 20);
+  return B;
+}
+
+const box = (fill: string) => svg(40, 40, `<rect width="40" height="40" rx="6" fill="${fill}"/>`);
+const sb3 = P.build({
+  backdrop: P.costume("plain", svg(480, 360, `<rect width="480" height="360" fill="#eef2f5"/>`), 240, 180),
+  stage: stageScripts(),
+  sprites: [
+    P.sprite("Sender", { blocks: senderScripts(), costumes: [P.costume("box", box("#3f8fd8"), 20, 20)], layer: 1, x: -100 }),
+    P.sprite("Receiver", { blocks: receiverScripts(), costumes: [P.costume("box", box("#e8456b"), 20, 20)], layer: 2, x: 0 }),
+    P.sprite("Spinner", { blocks: spinnerScripts(), costumes: [P.costume("box", box("#3fa94d"), 20, 20)], layer: 3, x: 100 }),
+  ],
+  listValues: { log: [] },
+  shown: [],
+});
+writeFileSync(new URL("frame-lab.sb3", import.meta.url), sb3);
+console.log(`frame-lab.sb3: ${sb3.length} bytes`);

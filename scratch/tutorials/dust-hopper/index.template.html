@@ -531,9 +531,10 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 
   <section class="stack" id="further">
     <h2>Going further</h2>
-    <p>Your engine is simple: double the throttle and you double the push. The 1979 arcade game used a table of 16 values instead, so the first few throttle steps add a lot of push and the last few add only a little: 0, 2, 5, 8, 11, 13, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28. The full version of Dust Hopper uses that table, stored in a list, with the same phases and My Blocks as your game. You can open it and compare.</p>
+    <p>Your engine is simple: double the throttle and you double the push. The 1979 arcade game used a table of 16 values instead, so the first few throttle steps add a lot of push and the last few add only a little: 0, 2, 5, 8, 11, 13, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28. Try storing that table in a list and looking up the force with <b>item (Throttle + 1) of</b> the list.</p>
+    <p>The full version of Dust Hopper takes another route: no throttle at all. Holding Up fires the engine at about twice gravity, and gravity pulls the drone down again when you let go. Space gives a one-frame <b>boost kick</b> that costs 30 fuel and recharges in a second. It also has fire and smoke particles made from clones. It uses the same phases and My Blocks as your game, so you can open it and compare.</p>
     <div class="checkpoint">
-      <p>Dust Hopper, full version, with the 1979 thrust table.</p>
+      <p>Dust Hopper, full version: burst thrust, boost kick and particles.</p>
       <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/games/dust-hopper/dust-hopper.sb3">Download dust-hopper.sb3</a>
     </div>
     <p>More ideas to try on your own:</p>

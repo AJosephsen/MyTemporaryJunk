@@ -1,6 +1,7 @@
 // Builds dust-hopper.sb3: a single-screen landing game for Scratch 3.
 // Physics follow the per-frame model of the 1979 arcade lander:
-//   thrust table lookup -> split by sin/cos of angle -> v += thrust - gravity -> pos += v
+//   thrust split by sin/cos of the tilt -> v += thrust - gravity -> pos += v
+// Controls: hold Up for thrust (about twice gravity); Space gives a one-frame boost kick along the drone.
 //
 // Structure: no game loop in any sprite. The Stage broadcasts [tick] once per frame, and the game moves
 // through named phases, each a broadcast:
@@ -15,10 +16,16 @@
 // Run: node --experimental-strip-types --no-warnings build.ts
 import { writeFileSync } from "node:fs";
 import { Project, Blocks, dsl } from "../../lib/sb3.ts";
-import { PADS, THRUST_TABLE, art } from "./art.ts";
+import { PADS, art } from "./art.ts";
 
 const P = new Project();
-const INSTRUCTIONS = "Up/Down: throttle. Left/Right: tilt. Space: boost. Land gently on a yellow pad!";
+const INSTRUCTIONS = "Up: thrust. Left/Right: tilt. Space: boost kick. Land gently on a yellow pad!";
+const THRUST = 0.075;      // force while Up is held (gravity is 0.035)
+const THRUST_FUEL = 1;     // fuel per frame of thrust
+const KICK = 2;            // speed added by one boost kick
+const KICK_FUEL = 30;      // fuel per kick
+const KICK_RECHARGE = 30;  // frames before the next kick (1 second)
+const FLASH = 6;           // frames the big boost flame shows
 
 // ---------------------------------------------------------------- Stage: the clock and the game totals
 function stageScripts(): Blocks {
@@ -27,7 +34,7 @@ function stageScripts(): Blocks {
   B.script(whenFlag(), [broadcastWait("setup"), broadcast("new round"), forever([broadcast("tick")])], 20, 20);
   B.script(whenReceive("setup"), [
     set("gravity", 0.035), set("Score", 0), set("fuelLeft", 1000), set("Fuel", 1000),
-    set("Throttle", 0), set("Drift", 0), set("Descent", 0), set("state", "waiting"),
+    set("Drift", 0), set("Descent", 0), set("state", "waiting"),
   ], 20, 220);
   return B;
 }
@@ -65,7 +72,7 @@ function droneScripts(): Blocks {
 
   B.script(whenReceive("new round"), [
     set("posX", -60), set("posY", 150), set("vx", 1.2), set("vy", 0),
-    set("Throttle", 0), set("cooldown", 0),
+    set("cooldown", 0), set("force", 0), set("boostHeld", 0), set("recharge", 0), set("boostFlash", 0),
     point(90), costume("drone"), show(), front(), goto(v("posX"), v("posY")),
     set("state", "flying"),
   ], 20, at());
@@ -97,29 +104,37 @@ function droneScripts(): Blocks {
 
   // ---- custom blocks, one job each
   define("read controls", [
-    // One step per key press, repeating while the key is held.
+    // Tilt one step per press, repeating while the key is held.
     ifElse(gt(v("cooldown"), 0), [change("cooldown", -1)], [
-      ifThen(and(key("up arrow"), lt(v("Throttle"), 15)), [change("Throttle", 1), set("cooldown", 3)]),
-      ifThen(and(key("down arrow"), gt(v("Throttle"), 0)), [change("Throttle", -1), set("cooldown", 3)]),
       ifThen(key("right arrow"), [turn(11.25), set("cooldown", 4)]),
       ifThen(key("left arrow"), [turnLeft(11.25), set("cooldown", 4)]),
     ]),
+    // angle: 0 = upright, positive = tilted right.
+    set("angle", sub(direction(), 90)),
+    ifThen(lt(v("angle"), -180), [change("angle", 360)]),
   ], { x: 600, y: 20 });
 
   define("run engine", [
-    // Thrust from the 1979 table (TRSTAB); table value 17 equals gravity. Space boosts.
-    set("level", v("Throttle")),
-    ifThen(key("space"), [set("level", 16)]),
-    ifThen(lt(v("fuelLeft"), 0.01), [set("level", 0)]),
-    set("force", mul(item("thrustTable", add(v("level"), 1)), div(v("gravity"), 17))),
-    change("fuelLeft", mul(item("thrustTable", add(v("level"), 1)), -0.05)),
+    // Thrust only while Up is held.
+    set("force", 0),
+    ifThen(and(key("up arrow"), gt(v("fuelLeft"), 0)), [set("force", THRUST), change("fuelLeft", -THRUST_FUEL)]),
+    // Boost kick: one push per press of Space, then a short recharge.
+    ifElse(key("space"), [
+      ifThen(and(and(eq(v("boostHeld"), 0), eq(v("recharge"), 0)), not(lt(v("fuelLeft"), KICK_FUEL))), [
+        change("vx", mul(sin(v("angle")), KICK)),
+        change("vy", mul(cos(v("angle")), KICK)),
+        change("fuelLeft", -KICK_FUEL),
+        set("recharge", KICK_RECHARGE),
+        set("boostFlash", FLASH),
+      ]),
+      set("boostHeld", 1),
+    ], [set("boostHeld", 0)]),
+    ifThen(gt(v("recharge"), 0), [change("recharge", -1)]),
+    ifThen(gt(v("boostFlash"), 0), [change("boostFlash", -1)]),
     ifThen(lt(v("fuelLeft"), 0), [set("fuelLeft", 0)]),
   ], { x: 600, y: 420 });
 
   define("move", [
-    // angle: 0 = upright, positive = tilted right.
-    set("angle", sub(direction(), 90)),
-    ifThen(lt(v("angle"), -180), [change("angle", 360)]),
     change("vx", mul(v("force"), sin(v("angle")))),
     change("vy", sub(mul(v("force"), cos(v("angle"))), v("gravity"))),
     change("posX", v("vx")),
@@ -156,8 +171,9 @@ function droneScripts(): Blocks {
   ], { warp: true, x: 1100, y: 20 });
 
   define("show flame", [
-    ifThen(and(eq(v("state"), "flying"), gt(v("level"), 0)),
-      [ifElse(lt(v("level"), 9), [costume("drone-flame")], [costume("drone-boost")])]),
+    ifThen(eq(v("state"), "flying"), [
+      ifElse(gt(v("boostFlash"), 0), [costume("drone-boost")], [ifThen(gt(v("force"), 0), [costume("drone-flame")])]),
+    ]),
   ], { x: 1100, y: 600 });
 
   define("update displays", [
@@ -185,7 +201,7 @@ function particleScripts(): Blocks {
 
   B.script(whenReceive("tick"), [
     ifElse(eq(v("isClone"), 1), [call("update particle")], [
-      ifThen(and(eq(v("state"), "flying"), gt(v("force"), 0)), [call("run exhaust")]),
+      ifThen(and(eq(v("state"), "flying"), or(gt(v("force"), 0), gt(v("boostFlash"), 0))), [call("run exhaust")]),
     ]),
   ], 20, 160);
 
@@ -196,7 +212,8 @@ function particleScripts(): Blocks {
   // Loops inside a tick must finish within the frame, so these two run without screen refresh.
   // Exhaust: more particles at higher thrust.
   define("run exhaust", [
-    repeat(add(1, round(mul(v("force"), 40))), [
+    // A boost kick adds a burst for a few frames.
+    repeat(add(add(1, round(mul(v("force"), 40))), mul(v("boostFlash"), 2)), [
       set("kind", "fire"), call("emit exhaust"),
       ifThen(eq(random(1, 3), 1), [set("kind", "smoke"), call("emit exhaust")]),
     ]),
@@ -278,8 +295,8 @@ const sb3 = P.build({
     P.sprite("Particle", { blocks: particleScripts(), costumes: A.particle(), layer: 3, visible: false }),
     P.sprite("Drone", { blocks: droneScripts(), costumes: A.drone, layer: 4, x: -60, y: 150 }),
   ],
-  listValues: { thrustTable: THRUST_TABLE },
-  shown: ["Score", "Fuel", "Throttle", "Drift", "Descent"],
+  shown: ["Score", "Fuel", "Drift", "Descent"],
+  shownLeft: 2,
 });
 writeFileSync(new URL("dust-hopper.sb3", import.meta.url), sb3);
 console.log(`dust-hopper.sb3: ${sb3.length} bytes`);

@@ -38,8 +38,9 @@ export class Project {
   }
 
   // Assembles project.json and packs it with the costume files.
-  build(opts: { backdrop: any; sprites: any[]; stage?: Blocks; listValues?: Record<string, (number | string)[]>; shown?: string[] }): Buffer {
+  build(opts: { backdrop: any; sprites: any[]; stage?: Blocks; listValues?: Record<string, (number | string)[]>; shown?: string[]; shownLeft?: number }): Buffer {
     const shown = opts.shown ?? [];
+    const left = opts.shownLeft ?? 3; // displays in the top left corner; the rest go top right
     shown.forEach(n => this.varId(n));
     const project = {
       targets: [
@@ -56,7 +57,7 @@ export class Project {
       ],
       monitors: shown.map((n, i) => ({
         id: this.vars[n], mode: "default", opcode: "data_variable", params: { VARIABLE: n }, spriteName: null,
-        value: 0, width: 0, height: 0, x: i < 3 ? 5 : 375, y: 5 + (i % 3) * 27, visible: true,
+        value: 0, width: 0, height: 0, x: i < left ? 5 : 375, y: 5 + (i < left ? i : i - left) * 27, visible: true,
         sliderMin: 0, sliderMax: 100, isDiscrete: true,
       })),
       extensions: [],

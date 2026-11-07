@@ -8,9 +8,9 @@ Open `dust-hopper.sb3` in the Scratch editor (File > Load from your computer).
 
 | Key | Action |
 |---|---|
-| Up / Down | Raise / lower throttle (0–15) |
+| Up (hold) | Thrust, about twice gravity; 1 fuel per frame. Let go and gravity pulls the drone down |
 | Left / Right | Tilt by 11.25° |
-| Space | Boost (extra thrust, burns more fuel) |
+| Space (press) | Boost kick: one push of 2 speed units along the drone; 30 fuel; recharges in 1 second |
 
 ## Rules
 
@@ -49,9 +49,10 @@ by the next tick.
 
 ## Physics
 
-Each frame follows the model of the 1979 arcade lander: the throttle level is looked up in a thrust table,
-split into x and y by the sine and cosine of the tilt, added to the velocity together with gravity, and the
-velocity is added to the position. The drone wraps around the sides using its own position variables, so the
+Each frame follows the model of the 1979 arcade lander: the engine force is split into x and y by the sine
+and cosine of the tilt, added to the velocity together with gravity, and the velocity is added to the position.
+Unlike the original, there is no throttle: the engine is either on (Up held) or off, and the boost kick changes
+the velocity directly for one frame. The drone wraps around the sides using its own position variables, so the
 Scratch border limit never applies.
 
 ## Building

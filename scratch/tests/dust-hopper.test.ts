@@ -10,15 +10,18 @@ async function startRound(t: T, path: string) {
   return t.until(v => v.state === "flying", { max: 400, what: "the first round to start" });
 }
 
-// Flies straight down over the given x, using the arrow keys like a player: more throttle when falling
-// fast, less when falling slowly. The steering runs inside the page, one decision per frame.
-// Returns the variables at touchdown.
-async function autopilot(t: T, x: number): Promise<Vars> {
+// Flies straight down over the given x, using the keys like a player. The steering runs inside the page,
+// one decision per frame. Returns the variables at touchdown.
+//   "throttle" (tutorial): more throttle when falling fast, less when falling slowly.
+//   "burst" (game): hold Up while falling too fast, otherwise let gravity work.
+async function autopilot(t: T, x: number, style: "throttle" | "burst"): Promise<Vars> {
   await t.set("posX", x);
   await t.set("vx", 0);
   return t.until((v, w, memo) => {
     if (v.state === "flying") w.fuelBeforeTouchdown = v.fuelLeft;
-    const want = v.state !== "flying" ? "" : v.Descent > 6 ? "up arrow" : v.Descent < 3 ? "down arrow" : "";
+    const burst = !("Throttle" in v);
+    const want = v.state !== "flying" ? "" : burst ? (v.Descent > 5 ? "up arrow" : "")
+      : v.Descent > 6 ? "up arrow" : v.Descent < 3 ? "down arrow" : "";
     if (want !== (memo.held ?? "")) {
       if (memo.held) w.key(memo.held, false);
       if (want) w.key(want, true);
@@ -79,7 +82,7 @@ test("tutorial step 5: the drone wraps from the right edge to the left", async t
 // ---------------------------------------------------------------- landing rules
 test("tutorial step 6: gentle touchdown on the x2 pad is a perfect landing", async t => {
   await startRound(t, STEP(6));
-  const v = await autopilot(t, -115);
+  const v = await autopilot(t, -115, "throttle");
   t.expect(v.state === "good", `state ${v.state} at Descent ${v.Descent}`);
   t.expect(v.mult === 2, `mult ${v.mult}`);
   await t.frames(2);
@@ -99,7 +102,7 @@ test("tutorial step 6: falling onto a pad without throttle is a crash", async t 
 for (const [label, path] of [["tutorial step 7", STEP(7)], ["game", GAME]]) {
   test(`${label}: perfect landing on x2 scores 100 and adds 50 fuel, then a new round starts`, async t => {
     await startRound(t, path);
-    const v = await autopilot(t, -115);
+    const v = await autopilot(t, -115, path === GAME ? "burst" : "throttle");
     t.expect(v.state === "good", `state ${v.state} at Descent ${v.Descent}`);
     // The result is handled in the touchdown frame, so compare with the last frame in flight.
     const before = await t.page(w => w.fuelBeforeTouchdown as number);
@@ -131,7 +134,7 @@ test("game: setup shows the instructions before the first round", async t => {
   await t.load(GAME);
   await t.greenFlag();
   await t.frames(2);
-  t.expect((await t.sprite("Drone")).bubble.startsWith("Up/Down: throttle"), "instructions shown");
+  t.expect((await t.sprite("Drone")).bubble.startsWith("Up: thrust"), "instructions shown");
   t.expect((await t.get("state")) === "waiting", "not flying during setup");
 });
 
@@ -144,6 +147,48 @@ test("every tutorial checkpoint runs for 3 seconds without errors", async t => {
   }
 });
 
+// ---------------------------------------------------------------- game controls
+test("game: holding Up thrusts (1 fuel per frame); releasing lets gravity pull the drone down", async t => {
+  const start = await startRound(t, GAME);
+  await t.set("posY", 0);       // room to climb below the ceiling
+  await t.set("vy", 0);
+  await t.hold("up arrow");
+  await t.frames(30);
+  const up = await t.vars();
+  await t.release("up arrow");
+  await t.frames(30);
+  const down = await t.vars();
+  t.expect(up.vy > 0, `climbing after 1 s of thrust: vy ${up.vy}`);
+  t.near(start.fuelLeft - up.fuelLeft, 30, 1, "fuel used by 30 frames of thrust");
+  t.expect(down.vy < up.vy - 0.9, `falling again after release: vy ${down.vy}`);
+  t.expect(down.fuelLeft === up.fuelLeft, "no fuel used without thrust");
+});
+
+test("game: Space gives one boost kick per press, costs 30 fuel and recharges in 1 second", async t => {
+  await startRound(t, GAME);
+  await t.set("vx", 0);
+  await t.set("vy", 0);
+  const before = await t.vars();
+  await t.hold("space");
+  await t.frames(1);
+  const kicked = await t.vars();
+  t.near(kicked.vy, 2 - 0.035, 1e-6, "vy after one kick (2 up, minus one frame of gravity)");
+  t.near(before.fuelLeft - kicked.fuelLeft, 30, 1e-6, "fuel per kick");
+  t.expect((await t.sprite("Drone")).costume === "drone-boost", "big flame during the kick");
+  await t.frames(40);                       // keep holding: no second kick
+  t.expect((await t.get("fuelLeft")) === kicked.fuelLeft, "holding Space gives only one kick");
+  await t.release("space");
+  await t.frames(1);
+  await t.hold("space");
+  await t.frames(1);
+  t.near(kicked.fuelLeft - (await t.get("fuelLeft")), 30, 1e-6, "a new press after the recharge kicks again");
+  await t.release("space");
+  await t.frames(1);
+  await t.hold("space");
+  await t.frames(1);
+  t.near(kicked.fuelLeft - (await t.get("fuelLeft")), 30, 1e-6, "a press during the recharge does nothing");
+});
+
 // ---------------------------------------------------------------- particles (game only)
 const particleCount = (t: T) => t.page(w => w.vm.runtime.targets.filter((x: any) => x.sprite.name === "Particle" && !x.isOriginal).length as number);
 
@@ -154,21 +199,24 @@ test("game: the engine makes fire and smoke while thrusting, and they fade away"
   await t.frames(40);
   const thrusting = await particleCount(t);
   await t.release("up arrow");
-  await t.hold("down arrow");
+  await t.set("gravity", 0);   // hover, so the drone doesn't crash while the particles fade
+  await t.set("vy", 0);
   await t.frames(80);
-  await t.release("down arrow");
   const later = await particleCount(t);
   t.log({ thrusting, later });
   t.expect(thrusting >= 10, `particles while thrusting: ${thrusting}`);
   t.expect(later === 0, `particles left 80 frames after the engine stopped: ${later}`);
 });
 
-test("game: full boost stays well below the 300-clone limit", async t => {
+test("game: thrust plus repeated boost kicks stay well below the 300-clone limit", async t => {
   await startRound(t, GAME);
-  await t.hold("space");
+  await t.hold("up arrow");
   let most = 0;
-  for (let i = 0; i < 6; i++) { await t.frames(10); most = Math.max(most, await particleCount(t)); }
-  await t.release("space");
+  for (let i = 0; i < 6; i++) {
+    await t.hold("space"); await t.frames(2); await t.release("space");
+    for (let j = 0; j < 3; j++) { await t.frames(10); most = Math.max(most, await particleCount(t)); }
+  }
+  await t.release("up arrow");
   t.log({ most });
   t.expect(most > 20 && most < 150, `most particles at once: ${most}`);
 });

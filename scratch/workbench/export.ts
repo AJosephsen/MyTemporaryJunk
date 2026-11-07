@@ -55,12 +55,12 @@ kbd { font: 0.85em ui-monospace, monospace; border: 1px solid var(--line); borde
   <div id="status">Loading the Scratch runtime…</div>
   <div class="pad" aria-label="On-screen keys">
     <button type="button" data-key="ArrowLeft" aria-label="Tilt left">◀</button>
-    <button type="button" data-key="ArrowUp" aria-label="Throttle up">▲</button>
-    <button type="button" data-key="ArrowDown" aria-label="Throttle down">▼</button>
+    <button type="button" data-key="ArrowUp" aria-label="Thrust">▲</button>
+    <button type="button" data-key="ArrowDown" aria-label="Throttle down (tutorial)">▼</button>
     <button type="button" data-key="ArrowRight" aria-label="Tilt right">▶</button>
     <button type="button" data-key=" " aria-label="Boost">Boost</button>
   </div>
-  <p class="help">Click the stage, then use <kbd>↑</kbd> <kbd>↓</kbd> for throttle, <kbd>←</kbd> <kbd>→</kbd> to tilt and <kbd>Space</kbd> to boost. On a touch screen, hold the buttons. Land gently on a yellow pad.</p>
+  <p class="help">Click the stage, then hold <kbd>↑</kbd> for thrust, use <kbd>←</kbd> <kbd>→</kbd> to tilt and press <kbd>Space</kbd> for a boost kick. On a touch screen, use the buttons. Land gently on a yellow pad. (In the tutorial checkpoints, <kbd>↑</kbd> <kbd>↓</kbd> set a throttle instead.)</p>
 </div>
 <script src="${RUNTIME}"></script>
 <script>

@@ -36,7 +36,7 @@ export class Project {
   }
 
   // Assembles project.json and packs it with the costume files.
-  build(opts: { backdrop: any; sprites: any[]; listValues?: Record<string, (number | string)[]>; shown?: string[] }): Buffer {
+  build(opts: { backdrop: any; sprites: any[]; stage?: Blocks; listValues?: Record<string, (number | string)[]>; shown?: string[] }): Buffer {
     const shown = opts.shown ?? [];
     shown.forEach(n => this.varId(n));
     const project = {
@@ -46,7 +46,8 @@ export class Project {
           variables: Object.fromEntries(Object.entries(this.vars).map(([n, id]) => [id, [n, 0]])),
           lists: Object.fromEntries(Object.entries(this.lists).map(([n, id]) => [id, [n, opts.listValues?.[n] ?? []]])),
           broadcasts: Object.fromEntries(Object.entries(this.bcasts).map(([n, id]) => [id, n])),
-          blocks: {}, comments: {}, currentCostume: 0, costumes: [opts.backdrop], sounds: [], volume: 100,
+          blocks: opts.stage ? this.sprite("Stage", { blocks: opts.stage, costumes: [], layer: 0 }).blocks : {},
+          comments: {}, currentCostume: 0, costumes: [opts.backdrop], sounds: [], volume: 100,
           layerOrder: 0, tempo: 60, videoTransparency: 50, videoState: "on", textToSpeechLanguage: null,
         },
         ...opts.sprites,

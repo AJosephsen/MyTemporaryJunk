@@ -1,0 +1,14 @@
+{
+  "title": "Deep Dig",
+  "tagline": "Dig deep for gold and gems, and watch out for falling rocks.",
+  "project": "deep-dig.sb3",
+  "left": [
+    { "key": "ArrowLeft", "label": "◀", "name": "Dig left" },
+    { "key": "ArrowRight", "label": "▶", "name": "Dig right" }
+  ],
+  "right": [
+    { "key": "ArrowUp", "label": "▲", "name": "Dig up" },
+    { "key": "ArrowDown", "label": "▼", "name": "Dig down" }
+  ],
+  "keys": "Arrow keys to dig · push rocks sideways · take the ladder to go deeper"
+}

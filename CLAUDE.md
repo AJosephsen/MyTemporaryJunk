@@ -20,3 +20,8 @@ npm run check               # type check
 - A game's result handling often runs in the same frame as the event that caused it (for example the
   touchdown frame already includes the score change).
 - Games are original: classic games may be studied for mechanics, but names, characters and art are new.
+
+## Working with the user
+
+- The user often follows along on a phone. Share screenshots in the chat (SendUserFile), not only at the end:
+  also during development, whenever something visible changes (a new step, a fix, a page layout).

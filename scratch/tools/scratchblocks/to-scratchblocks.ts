@@ -30,6 +30,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       return `(${MENU[m] ?? m} v)`;
     }
     switch (v[0]) {
+      case 9: return `[${v[1]}]`;
       case 11: return `(${v[1]} v)`;
       case 12: case 13: return `(${v[1]})`;
       case 10: return isNum(v[1]) ? `(${v[1]})` : `[${v[1]}]`;
@@ -67,6 +68,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "motion_yposition": return "(y position)";
       case "sensing_keypressed": return `<key ${value(b, "KEY_OPTION")} pressed?>`;
       case "sensing_touchingobject": return `<touching ${value(b, "TOUCHINGOBJECTMENU")}?>`;
+      case "sensing_touchingcolor": return `<touching color ${value(b, "COLOR")}?>`;
       case "argument_reporter_string_number": return `(${field(b, "VALUE")} :: custom)`;
     }
     return `(${o} :: obsolete)`;
@@ -114,6 +116,10 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "data_deleteoflist": return [`delete ${value(b, "INDEX")} of [${field(b, "LIST")} v]`];
       case "pen_clear": return ["erase all"];
       case "pen_stamp": return ["stamp"];
+      case "pen_penDown": return ["pen down"];
+      case "pen_penUp": return ["pen up"];
+      case "pen_setPenSizeTo": return [`set pen size to ${value(b, "SIZE")}`];
+      case "pen_setPenColorToColor": return [`set pen color to ${value(b, "COLOR")}`];
       case "motion_ifonedgebounce": return ["if on edge, bounce"];
       case "motion_setx": return [`set x to ${value(b, "X")}`];
       case "motion_sety": return [`set y to ${value(b, "Y")}`];

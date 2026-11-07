@@ -162,12 +162,20 @@ export function dsl(B: Blocks) {
     replace: (list: string, idx: In, x: In) => B.add("data_replaceitemoflist", { INDEX: num(idx), ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     deleteOf: (list: string, idx: In) => B.add("data_deleteoflist", { INDEX: num(idx) }, { LIST: [list, P.listId(list)] }),
     contains: (list: string, x: In) => B.add("data_listcontainsitem", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
+    // touching color: a fixed colour "#rrggbb", or a reporter that gives a colour number
+    touchingColor: (c: Ref | string) => B.add("sensing_touchingcolor",
+      { COLOR: typeof c === "string" ? [1, [9, c]] : [3, c.id, [9, "#ff00ff"]] }),
     // touching a sprite whose name is worked out while the project runs, e.g. touchingNamed(join("Bubble", color))
     touchingNamed: (name: Ref | VarRef) => B.add("sensing_touchingobject", {
       TOUCHINGOBJECTMENU: [3, num(name)[1], B.shadow("sensing_touchingobjectmenu", { TOUCHINGOBJECTMENU: ["_mouse_", null] })] }),
     // Pen (the project must list "pen" in Project.extensions)
     penClear: () => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_clear"); },
     stamp: () => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_stamp"); },
+    penDown: () => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_penDown"); },
+    penUp: () => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_penUp"); },
+    penSize: (n: In) => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_setPenSizeTo", { SIZE: num(n) }); },
+    penColor: (hex: string) => { if (!P.extensions.includes("pen")) P.extensions.push("pen");
+      return B.add("pen_setPenColorToColor", { COLOR: [1, [9, hex]] }); },
     mouseDown: () => B.add("sensing_mousedown"),
     pointToMouse: () => B.add("motion_pointtowards", { TOWARDS: [1, B.shadow("motion_pointtowards_menu", { TOWARDS: ["_mouse_", null] })] }),
     cloneOf: (sprite: string) => B.add("control_create_clone_of", {

@@ -41,8 +41,9 @@ export interface T {
   mouse(x: number, y: number): Promise<void>;
   /** A quick click at a Stage position: button down and up again within the same frame. */
   click(x: number, y: number): Promise<void>;
-  /** Runs fn(w) inside the page, with w = the page's workbench object (w.vm is the Scratch VM). */
-  page<R>(fn: (w: any) => R): Promise<R>;
+  /** Runs fn(w, arg) inside the page, with w = the page's workbench object (w.vm is the Scratch VM);
+   *  arg is copied into the page (plain data only). */
+  page<R>(fn: (w: any, arg: any) => R, arg?: any): Promise<R>;
   screenshot(file: string): Promise<void>;
   expect(ok: boolean, message: string): void;
   near(actual: number, expected: number, tolerance: number, label: string): void;
@@ -93,7 +94,7 @@ export async function run(opts: { filter?: string; verbose?: boolean } = {}) {
       async place(name, x, y, d) { await wb((w, a) => w.place(a[0], a[1], a[2], a[3]), [name, x, y, d]); },
       async mouse(x, y) { await wb((w, a) => w.mouse(a[0], a[1]), [x, y]); },
       async click(x, y) { await wb((w, a) => { w.mouse(a[0], a[1], true); w.mouse(a[0], a[1], false); }, [x, y]); },
-      page: fn => wb(fn),
+      page: (fn, arg) => wb(fn, arg),
       async screenshot(file) { await wb(w => w.step(1)); await page.locator("#stage").screenshot({ path: file }); },
       expect(ok, message) { if (!ok) throw new Failure(message); },
       near(actual, expected, tol, label) {

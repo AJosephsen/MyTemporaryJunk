@@ -81,8 +81,7 @@ function bubbleScripts(): Blocks {
     ifThen, ifElse, whenFlag, whenReceive, whenCloned, cloneMyself, deleteClone, hide, show, goto, costumeTo,
     touching, define, call, changeY, changeSize, changeEffect, setEffect } = d;
   // touching color with a colour from a list, or a fixed colour
-  const touchingColor = (c: Ref | string) => B.add("sensing_touchingcolor",
-    { COLOR: typeof c === "string" ? [1, [9, c]] : [3, c.id, [9, "#ff00ff"]] });
+  const touchingColor = d.touchingColor;
 
   B.script(whenFlag(), [ifElse(eq(v("isClone"), 1), [deleteClone()], [hide(), set("isClone", 0)])], 20, 20);
 

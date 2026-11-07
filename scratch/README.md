@@ -27,6 +27,7 @@ All Scratch work lives here.
 |---|---|
 | [Dust Hopper](tutorials/dust-hopper/) | Build the landing game by hand in 8 steps, with a checkpoint file per step |
 | [Comet Rally](tutorials/comet-rally/) | For kids: a two-paddle rally game against a robot in 6 steps, with mouse control and aimed hits |
+| [Maze Maker](tutorials/maze-maker/) | For kids, 4 short steps: a mole digs a maze with the pen; one idea per step (pen, `touching color`, a block that calls itself, run without screen refresh) |
 
 ## Tools
 

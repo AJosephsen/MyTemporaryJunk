@@ -140,6 +140,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "looks_say": return [`say ${value(b, "MESSAGE")}`];
       case "looks_sayforsecs": return [`say ${value(b, "MESSAGE")} for ${value(b, "SECS")} seconds`];
       case "control_wait": return [`wait ${value(b, "DURATION")} seconds`];
+      case "control_wait_until": return [`wait until ${cond(b, "CONDITION")}`];
       case "control_stop": return [`stop [${field(b, "STOP_OPTION")} v]`];
       case "control_forever": return ["forever", ...sub(b, "SUBSTACK"), "end"];
       case "control_repeat": return [`repeat ${value(b, "TIMES")}`, ...sub(b, "SUBSTACK"), "end"];

@@ -247,6 +247,7 @@ export function dsl(B: Blocks) {
     ifElse: (c: Ref, a: Ref[], b: Ref[]) => B.add("control_if_else", { CONDITION: bool(c), SUBSTACK: sub(a), SUBSTACK2: sub(b) }),
     repeat: (n: In, a: Ref[]) => B.add("control_repeat", { TIMES: num(n), SUBSTACK: sub(a) }),
     until: (c: Ref, a: Ref[]) => B.add("control_repeat_until", { CONDITION: bool(c), SUBSTACK: sub(a) }),
+    waitUntil: (c: Ref) => B.add("control_wait_until", { CONDITION: bool(c) }),
     stopThis: () => B.add("control_stop", {}, { STOP_OPTION: ["this script", null] },
       { mutation: { tagName: "mutation", children: [], hasnext: "false" } }),
   };

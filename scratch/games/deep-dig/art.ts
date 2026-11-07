@@ -3,9 +3,11 @@ import type { Project } from "../../lib/sb3.ts";
 
 export const CELL = 32, COLS = 15, ROWS = 10;
 export const LEFT = -224, TOP = 124;           // centre of the top-left square; a 40-pixel bar above holds the score
-// Square codes in the list `world`. The tile costume for code n is costume n + 1.
-export const EMPTY = 0, DIRT = 1, ROCK = 2, WALL = 3, GOLD = 4, CRYSTAL = 5, RUBY = 6, DIAMOND = 7, LADDER = 8;
-export const VALUE = { [GOLD]: 10, [CRYSTAL]: 25, [RUBY]: 50, [DIAMOND]: 100 } as Record<number, number>;
+// Colours the scripts look for with `touching color`: only rocks use ROCK_GREY, only walls use WALL_COLOR.
+export const ROCK_GREY = "#8b8e97", WALL_COLOR = "#2e3140", SOIL_BROWN = "#7a4b2b";
+// (Gems sit in soil, so another gem is spotted by SOIL_BROWN while no dirt has been placed yet.)
+export const TREASURE = [{ name: "gold", value: 10 }, { name: "crystal", value: 25 }, { name: "ruby", value: 50 },
+  { name: "diamond", value: 100 }];
 
 const svg = (w: number, h: number, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
@@ -15,7 +17,7 @@ const dirt = `<rect width="32" height="32" fill="#7a4b2b"/>` +
     .map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r + 0.8}" ry="${r}" fill="#653c21"/>`).join("") +
   `<circle cx="9" cy="18" r="1" fill="#9a6a44"/><circle cx="24" cy="11" r="1" fill="#9a6a44"/>`;
 const rock = tunnel +
-  `<ellipse cx="16" cy="17" rx="13" ry="12" fill="#7d8089"/><ellipse cx="14" cy="14" rx="9" ry="7.5" fill="#9a9ea8"/>` +
+  `<ellipse cx="16" cy="17" rx="13" ry="12" fill="#5f626a"/><ellipse cx="15.5" cy="16" rx="12" ry="11" fill="${"#8b8e97"}"/>` +
   `<ellipse cx="11" cy="11" rx="3.5" ry="2.5" fill="#c3c7cf"/><path d="M20 22 q4 -1 6 -5" stroke="#5f626a" stroke-width="1.5" fill="none"/>`;
 const wall = `<rect width="32" height="32" fill="#2e3140"/>` +
   `<path d="M0 10.5 H32 M0 21.5 H32 M10 0 V10.5 M24 10.5 V21.5 M8 21.5 V32 M26 21.5 V32" stroke="#1f2130" stroke-width="2"/>` +
@@ -40,18 +42,28 @@ const miner = (flip: boolean) => svg(32, 32, `<g transform="${flip ? "translate(
   `<circle cx="16" cy="12" r="6.5" fill="#f2c9a0"/><circle cx="18.5" cy="12" r="1.2" fill="#2a1d14"/>` +  // face
   `<path d="M8.5 10 a7.5 7 0 0 1 15 0 z" fill="#f5c518"/><rect x="7.5" y="9" width="17" height="2.5" rx="1" fill="#d9a800"/>` +
   `<circle cx="23" cy="8.5" r="2.2" fill="#fffbe0" stroke="#d9a800"/>` +                                // helmet and lamp
-  `<path d="M22 19 l6 -6" stroke="#8a8f99" stroke-width="2"/><path d="M26 11 l4 4" stroke="#b8bdc6" stroke-width="2.5" stroke-linecap="round"/>` +
+  `<path d="M22 19 l6 -6" stroke="#8a5a2b" stroke-width="2"/><path d="M26 11 l4 4" stroke="#d9dde4" stroke-width="2.5" stroke-linecap="round"/>` +
   `</g>`);
 
-const backdrop = svg(480, 360, `<rect width="480" height="360" fill="#120d0a"/><rect width="480" height="40" fill="#241a14"/>` +
-  `<rect y="39" width="480" height="2" fill="#3a2a1e"/>`);
+// The backdrop: a score bar on top, the dark tunnel colour, and the walls around the mine (drawn, not sprites).
+const wallBlocks = (() => {
+  const out: string[] = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    if (r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1) out.push(`<g transform="translate(${c * CELL} ${40 + r * CELL})">${wall}</g>`);
+  return out.join("");
+})();
+const backdrop = svg(480, 360, `<rect width="480" height="360" fill="#1c140f"/><rect width="480" height="40" fill="#241a14"/>` +
+  `<rect y="38" width="480" height="2" fill="#3a2a1e"/>${wallBlocks}`);
 
 export function art(P: Project) {
-  const tiles = [["empty", tunnel], ["dirt", dirt], ["rock", rock], ["wall", wall], ["gold", gold], ["crystal", crystal],
-    ["ruby", ruby], ["diamond", diamond], ["ladder", ladder]]
-    .map(([name, body]) => P.costume(name, svg(32, 32, body), 16, 16));
+  // Squares are drawn 1 pixel smaller on every side, so neighbouring squares do not count as touching.
+  const tile = (name: string, body: string) =>
+    P.costume(name, svg(32, 32, `<g transform="translate(1 1) scale(0.9375)">${body}</g>`), 16, 16);
   return {
-    tiles,
+    dirt: [tile("dirt", dirt)],
+    rock: [tile("rock", rock)],
+    gems: [tile("gold", gold), tile("crystal", crystal), tile("ruby", ruby), tile("diamond", diamond)],
+    ladder: [tile("ladder", ladder)],
     miner: [P.costume("right", miner(false), 16, 16), P.costume("left", miner(true), 16, 16)],
     backdrop: P.costume("mine", backdrop, 240, 180),
   };

@@ -149,6 +149,17 @@ export function dsl(B: Blocks) {
     say: (m: In) => B.add("looks_say", { MESSAGE: txt(m) }),
     sayFor: (m: In, s: number) => B.add("looks_sayforsecs", { MESSAGE: txt(m), SECS: num(s) }),
     broadcast: (name: string) => B.add("event_broadcast", { BROADCAST_INPUT: [1, [11, name, P.bcastId(name)]] }),
+    broadcastWait: (name: string) => B.add("event_broadcastandwait", { BROADCAST_INPUT: [1, [11, name, P.bcastId(name)]] }),
+    forever: (a: Ref[]) => B.add("control_forever", { SUBSTACK: sub(a) }),
+    // Custom blocks without inputs. warp = "Run without screen refresh": loops inside do not pause between passes.
+    define: (proccode: string, stmts: Ref[], opts: { warp?: boolean; x?: number; y?: number } = {}) => {
+      const proto = B.add("procedures_prototype", {}, {}, { shadow: true, mutation: {
+        tagName: "mutation", children: [], proccode, argumentids: "[]", argumentnames: "[]", argumentdefaults: "[]",
+        warp: String(opts.warp ?? false) } });
+      B.script(B.add("procedures_definition", { custom_block: [1, proto.id] }), stmts, opts.x ?? 0, opts.y ?? 0);
+    },
+    call: (proccode: string) => B.add("procedures_call", {}, {}, { mutation: {
+      tagName: "mutation", children: [], proccode, argumentids: "[]", warp: "false" } }),
     whenFlag: () => B.add("event_whenflagclicked"),
     whenReceive: (name: string) => B.add("event_whenbroadcastreceived", {}, { BROADCAST_OPTION: [name, P.bcastId(name)] }),
     ifThen: (c: Ref, a: Ref[]) => B.add("control_if", { CONDITION: bool(c), SUBSTACK: sub(a) }),

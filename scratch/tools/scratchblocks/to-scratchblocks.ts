@@ -72,6 +72,9 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "event_whenflagclicked": return ["when flag clicked"];
       case "event_whenbroadcastreceived": return [`when I receive [${field(b, "BROADCAST_OPTION")} v]`];
       case "event_broadcast": return [`broadcast ${value(b, "BROADCAST_INPUT")}`];
+      case "event_broadcastandwait": return [`broadcast ${value(b, "BROADCAST_INPUT")} and wait`];
+      case "procedures_definition": return [`define ${get(b.inputs.custom_block[1]).mutation.proccode}`];
+      case "procedures_call": return [`${b.mutation.proccode} :: custom`];
       case "data_setvariableto": return [`set [${field(b, "VARIABLE")} v] to ${value(b, "VALUE")}`];
       case "data_changevariableby": return [`change [${field(b, "VARIABLE")} v] by ${value(b, "VALUE")}`];
       case "data_deletealloflist": return [`delete all of [${field(b, "LIST")} v]`];

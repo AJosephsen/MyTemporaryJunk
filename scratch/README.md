@@ -59,6 +59,7 @@ Node 22.6 or later is required.
 | `npm run build` | Runs every `build.ts` / `build-steps.ts` |
 | `npm test` | Runs all tests headlessly (about 25 s). `npm test -- landing` runs tests whose name contains "landing"; add `--verbose` for test logs |
 | `npm run check` | TypeScript type check |
+| `npm run export -- out.html [projects…]` | Writes one standalone, playable HTML page with the projects embedded (default: Dust Hopper and its checkpoints). The runtime loads from jsDelivr; the compiler is off so it works without `eval`. Output in `export/` is not committed |
 
 In VS Code, open the player in the built-in browser: *Command Palette › Simple Browser: Show* and enter the URL.
 Tasks for all commands are in `.vscode/tasks.json`, and `.vscode/launch.json` can debug a build script or the tests.

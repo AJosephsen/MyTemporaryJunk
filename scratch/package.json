@@ -10,7 +10,8 @@
     "dev": "node --experimental-strip-types --no-warnings workbench/dev.ts",
     "build": "node --experimental-strip-types --no-warnings workbench/build-all.ts",
     "test": "node --experimental-strip-types --no-warnings workbench/test.ts",
-    "check": "tsc -p ."
+    "check": "tsc -p .",
+    "export": "node --experimental-strip-types --no-warnings workbench/export.ts"
   },
   "dependencies": {
     "@turbowarp/scaffolding": "0.4.0"

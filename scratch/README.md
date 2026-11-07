@@ -60,7 +60,7 @@ Node 22.6 or later is required.
 | `npm test` | Runs all tests headlessly (about 25 s). `npm test -- landing` runs tests whose name contains "landing"; add `--verbose` for test logs |
 | `npm run check` | TypeScript type check |
 | `npm run export -- out.html [projects…]` | Writes one standalone, playable HTML page with the projects embedded (default: Dust Hopper and its checkpoints). The runtime loads from jsDelivr; the compiler is off so it works without `eval`. Output in `export/` is not committed |
-| `npm run export:game -- games/<name> [out.html]` | Writes the finished, publishable page for one game, described by `games/<name>/page.json` (title, tagline, project, on-screen buttons, keyboard hint). Landscape: stage at full height with buttons at the sides. Portrait: stage on top, buttons at the bottom. Full screen button with a fill-the-window fallback where real full screen is not allowed |
+| `npm run export:game -- games/<name> [out.html]` | Writes the finished, publishable page for one game, described by `games/<name>/page.json` (title, tagline, project, on-screen buttons, keyboard hint). Landscape: stage at full height with buttons at the sides. Portrait: stage on top, buttons at the bottom. Full screen button with a fill-the-window fallback where real full screen is not allowed; in full screen the stage fills the screen and the controls float over it |
 
 In VS Code, open the player in the built-in browser: *Command Palette › Simple Browser: Show* and enter the URL.
 Tasks for all commands are in `.vscode/tasks.json`, and `.vscode/launch.json` can debug a build script or the tests.

@@ -66,6 +66,21 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .padl, .padr { align-content: end; }
   .tools { flex-direction: row; align-items: flex-start; justify-content: flex-end; }
 }
+/* Full screen: the stage fills the screen and the controls float over it. */
+.app.immersive { display: block; padding: 0; background: #000; }
+.immersive .stagebox { position: absolute; inset: 0; container-type: size; }
+.immersive .stagewrap { width: min(100cqw, 100cqh * 4 / 3); }
+.immersive #stage { border: 0; border-radius: 0; }
+.immersive .brand h1, .immersive .tagline, .immersive .hint { display: none; }
+.immersive .brand, .immersive .tools, .immersive .padl, .immersive .padr { position: absolute; z-index: 2; }
+.immersive .brand { top: max(10px, env(safe-area-inset-top, 0px)); left: max(10px, env(safe-area-inset-left, 0px)); }
+.immersive .tools { top: max(10px, env(safe-area-inset-top, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); }
+.immersive .padl { bottom: max(14px, env(safe-area-inset-bottom, 0px)); left: max(14px, env(safe-area-inset-left, 0px)); width: clamp(120px, 20vw, 210px); }
+.immersive .padr { bottom: max(14px, env(safe-area-inset-bottom, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); width: clamp(100px, 16vw, 180px); }
+.immersive .brand button, .immersive .tools button, .immersive .key {
+  background: rgb(20 22 38 / 42%); border-color: rgb(255 255 255 / 22%); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.immersive .key.down { background: rgb(232 131 58 / 75%); border-color: var(--accent); }
+.immersive .brand button, .immersive .tools button { padding: 5px 10px; font-size: 0.85rem; }
 @media (pointer: fine) { .key { min-height: 44px; } .key.big { min-height: 64px; } }
 @media (pointer: coarse) { .hint { display: none; } }
 @media (prefers-reduced-motion: no-preference) { .key { transition: background 80ms; } }
@@ -134,7 +149,11 @@ for (const b of document.querySelectorAll(".key")) {
 
 // Full screen: real full screen where the browser allows it, otherwise fill the window.
 const fsButton = $("fullscreen");
-const setLabel = on => { fsButton.textContent = on ? "Exit full screen" : "Full screen"; fsButton.setAttribute("aria-pressed", String(on)); };
+const setLabel = on => {
+  fsButton.textContent = on ? "Exit full screen" : "Full screen";
+  fsButton.setAttribute("aria-pressed", String(on));
+  app.classList.toggle("immersive", on);
+};
 const relayout = () => requestAnimationFrame(() => scaffolding?.relayout());
 fsButton.addEventListener("click", async () => {
   if (document.fullscreenElement) { await document.exitFullscreen().catch(() => {}); return; }

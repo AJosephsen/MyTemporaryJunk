@@ -4,7 +4,7 @@
 // 0 = empty, 1-6 = colour). Odd rows are shifted half a bubble to the right and use only 7 columns.
 // Every grid cell is a clone of the Board sprite that shows its colour, so the board stays crisp at any size.
 //
-// Phases (broadcasts): setup (and wait) -> new level -> ready -> tick ... landed -> redraw,
+// Phases (broadcasts): setup (and wait) -> new level -> ready -> tick ... (the Board flies and settles the shot) -> redraw,
 // level clear -> new level, game over -> restart. The Stage broadcasts `tick` once per frame.
 // All loops that must finish within a frame live in custom blocks that run without screen refresh.
 //
@@ -35,12 +35,6 @@ const noteClicks = (B: Blocks, stage = false) => {
 
 // ---------------------------------------------------------------- helpers that build block expressions
 type D = ReturnType<typeof dsl>;
-const rowOf = (d: D, idx: In) => d.floor(d.div(d.sub(idx, 1), COLS));
-const colOf = (d: D, idx: In) => d.mod(d.sub(idx, 1), COLS);
-const cellX = (d: D, row: In, col: In) => d.add(d.add(GEOM.left + D / 2, d.mul(col, D)), d.mul(d.mod(row, 2), D / 2));
-const cellY = (d: D, row: In) => d.sub(d.sub(d.v("topY"), D / 2), d.mul(row, ROW_H));
-const gte = (d: D, a: In, b: In) => d.not(d.lt(a, b));
-const lte = (d: D, a: In, b: In) => d.not(d.gt(a, b));
 
 // ---------------------------------------------------------------- Stage: the clock
 function stageScripts(): Blocks {
@@ -55,34 +49,44 @@ function stageScripts(): Blocks {
   return B;
 }
 
-// ---------------------------------------------------------------- Board: grid logic, and one clone per cell
+// ---------------------------------------------------------------- Board: grid logic, the flying shot, and one clone per cell
+// All grid work goes through two shared custom blocks:
+//   locate      cell ci -> its row cr, column cc and position cx, cy
+//   neighbours  cell ci -> the list nbrs of the (up to 6) cells around it
 function boardScripts(): Blocks {
-  const B = new Blocks(P).local("idx", "myRow", "myCol", "isClone");
+  const B = new Blocks(P).local("idx", "myRow", "myX", "isClone");
   const d = dsl(B);
-  const { v, add, sub, mul, lt, gt, eq, and, or, not, floor, random, item, length, set, change, replace, addTo,
+  const { v, add, sub, mul, lt, gt, eq, and, or, not, floor, mod, random, item, length, set, change, replace, addTo,
     deleteAll, deleteOf, repeat, until, ifThen, ifElse, define, call, whenReceive, whenCloned, cloneMyself,
     deleteClone, hide, show, goto, costumeTo, broadcast } = d;
+  const rowY = (row: In) => sub(sub(v("topY"), D / 2), mul(row, ROW_H));
+  // Runs `body` once for every cell, with ci = 1, 2, ... CELLS.
+  const forEachCell = (body: Ref[]) => [set("ci", 1), repeat(CELLS, [...body, change("ci", 1)])];
+  // Runs `body` for every neighbour n of cell ci.
+  const forEachNeighbour = (body: Ref[]) => [
+    call("neighbours"), set("k", 1),
+    repeat(length("nbrs"), [set("n", item("nbrs", v("k"))), ...body, change("k", 1)]),
+  ];
+  const clearList = (list: string, count: number) => [deleteAll(list), repeat(count, [addTo(list, 0)])];
 
-  // ---- setup: make one clone per cell
+  // ---- setup: one clone per cell, each knowing its row and x
   B.script(whenReceive("setup"), [
     ifElse(eq(v("isClone"), 1), [deleteClone()], [hide(), call("make cells")]),
   ], 20, 20);
   define("make cells", [
     set("idx", 1),
     repeat(CELLS, [
-      set("myRow", rowOf(d, v("idx"))), set("myCol", colOf(d, v("idx"))),
+      set("ci", v("idx")), call("locate"), set("myRow", v("cr")), set("myX", v("cx")),
       cloneMyself(), change("idx", 1),
     ]),
   ], { warp: true, x: 20, y: 160 });
   B.script(whenCloned(), [set("isClone", 1), hide()], 20, 320);
 
-  // ---- each cell shows its colour at its place below the ceiling
+  // ---- each cell shows its colour; its height follows the ceiling
   B.script(whenReceive("redraw"), [
     ifThen(eq(v("isClone"), 1), [
       ifElse(gt(item("grid", v("idx")), 0), [
-        costumeTo(item("grid", v("idx"))),
-        goto(cellX(d, v("myRow"), v("myCol")), cellY(d, v("myRow"))),
-        show(),
+        costumeTo(item("grid", v("idx"))), goto(v("myX"), rowY(v("myRow"))), show(),
       ], [hide()]),
     ]),
   ], 20, 420);
@@ -91,114 +95,148 @@ function boardScripts(): Blocks {
   B.script(whenReceive("new level"), [
     ifThen(eq(v("isClone"), 0), [
       set("topY", GEOM.top),
-      set("ceilingShots", sub(9, v("level"))),
-      ifThen(lt(v("ceilingShots"), 4), [set("ceilingShots", 4)]),
+      set("ceilingShots", sub(9, v("level"))), ifThen(lt(v("ceilingShots"), 4), [set("ceilingShots", 4)]),
       set("shotsLeft", v("ceilingShots")),
       call("fill level"),
-      call("pick next"), set("shotColor", v("nextColor")),
-      call("pick next"),
+      call("pick next"), set("shotColor", v("nextColor")), call("pick next"),
       set("state", "ready"),
       broadcast("redraw"), broadcast("ready"),
     ]),
   ], 20, 640);
 
-  // ---- a shot has landed (Shooter set landIdx and shotColor)
-  B.script(whenReceive("landed"), [ifThen(eq(v("isClone"), 0), [call("settle")])], 20, 980);
+  // ---- the shot flies on every tick (the Shooter sets state "fly", shotX/Y and vx/vy)
+  B.script(whenReceive("tick"), [ifThen(and(eq(v("isClone"), 0), eq(v("state"), "fly")), [call("fly")])], 20, 900);
 
-  // ---------------------------------------------------------------- custom blocks (run without screen refresh)
-  // Fills the top rows with a left-right symmetric pattern. Colours often repeat their left neighbour,
-  // so the board has clusters to aim for.
-  define("fill level", [
-    deleteAll("grid"), repeat(CELLS, [addTo("grid", 0)]),
-    deleteAll("colorCount"), repeat(6, [addTo("colorCount", 0)]),
-    set("colors", add(3, floor(d.div(v("level"), 2)))), ifThen(gt(v("colors"), 6), [set("colors", 6)]),
-    set("fillRows", add(4, v("level"))), ifThen(gt(v("fillRows"), 10), [set("fillRows", 10)]),
-    set("tr", 0),
-    repeat(v("fillRows"), [
-      set("tc", 0), set("prevColor", random(1, v("colors"))),
-      repeat(COLS, [
-        // mirror column: 7 - c on even rows, 6 - c on odd rows (7 cells)
-        set("mc", sub(sub(COLS - 1, d.mod(v("tr"), 2)), v("tc"))),
-        ifThen(and(not(gt(v("tc"), v("mc"))), not(and(eq(d.mod(v("tr"), 2), 1), eq(v("tc"), COLS - 1)))), [
-          // half the time a new colour, otherwise the same as the bubble to the left
-          ifThen(eq(random(1, 2), 1), [set("prevColor", random(1, v("colors")))]),
-          replace("grid", add(add(mul(v("tr"), COLS), v("tc")), 1), v("prevColor")),
-          replace("grid", add(add(mul(v("tr"), COLS), v("mc")), 1), v("prevColor")),
-        ]),
-        change("tc", 1),
-      ]),
-      change("tr", 1),
-    ]),
-    call("count colours"),
+  // ---------------------------------------------------------------- shared blocks
+  define("locate", [
+    set("cr", floor(d.div(sub(v("ci"), 1), COLS))), set("cc", mod(sub(v("ci"), 1), COLS)),
+    set("cx", add(add(GEOM.left + D / 2, mul(v("cc"), D)), mul(mod(v("cr"), 2), D / 2))),
+    set("cy", rowY(v("cr"))),
   ], { warp: true, x: 520, y: 20 });
 
+  // A cell exists if it is on the board; odd rows (shifted right) have only 7 cells.
+  define("check cell", [
+    set("ok", 0),
+    ifThen(and(and(not(lt(v("tr"), 0)), lt(v("tr"), ROWS)), and(not(lt(v("tc"), 0)), lt(v("tc"), COLS))), [
+      ifThen(not(and(eq(mod(v("tr"), 2), 1), eq(v("tc"), COLS - 1))), [set("ok", 1)]),
+    ]),
+  ], { warp: true, x: 520, y: 260 });
+
+  define("neighbours", [
+    deleteAll("nbrs"), call("locate"),
+    // same row: c-1 and c+1; rows above and below: (c-1, c) on even rows, (c, c+1) on odd rows
+    set("shift", mod(v("cr"), 2)),
+    ...[[0, -1, 0], [0, 1, 0], [-1, -1, 1], [-1, 0, 1], [1, -1, 1], [1, 0, 1]].flatMap(([dr, dc, useShift]) => [
+      set("tr", add(v("cr"), dr)),
+      set("tc", useShift ? add(add(v("cc"), v("shift")), dc) : add(v("cc"), dc)),
+      call("check cell"),
+      ifThen(eq(v("ok"), 1), [addTo("nbrs", add(add(mul(v("tr"), COLS), v("tc")), 1))]),
+    ]),
+  ], { warp: true, x: 520, y: 480 });
+
+  // ---------------------------------------------------------------- level
+  // Fills the top rows with a left-right symmetric pattern; colours often repeat their left neighbour.
+  define("fill level", [
+    ...clearList("grid", CELLS),
+    set("colors", add(3, floor(d.div(v("level"), 2)))), ifThen(gt(v("colors"), 6), [set("colors", 6)]),
+    set("fillRows", add(4, v("level"))), ifThen(gt(v("fillRows"), 10), [set("fillRows", 10)]),
+    ...forEachCell([
+      call("locate"),
+      // mirror column: 7 - c on even rows, 6 - c on odd rows
+      set("tr", v("cr")), set("tc", sub(sub(COLS - 1, mod(v("cr"), 2)), v("cc"))),
+      call("check cell"),
+      ifThen(and(and(lt(v("cr"), v("fillRows")), eq(v("ok"), 1)), not(gt(v("cc"), v("tc")))), [
+        ifThen(or(eq(v("cc"), 0), eq(random(1, 2), 1)), [set("prevColor", random(1, v("colors")))]),
+        replace("grid", v("ci"), v("prevColor")),
+        replace("grid", add(add(mul(v("tr"), COLS), v("tc")), 1), v("prevColor")),
+      ]),
+    ]),
+    call("count colours"),
+  ], { warp: true, x: 1000, y: 20 });
+
   define("count colours", [
-    deleteAll("colorCount"), repeat(6, [addTo("colorCount", 0)]),
-    set("ci", 1),
-    repeat(CELLS, [
+    ...clearList("colorCount", 6),
+    ...forEachCell([
       ifThen(gt(item("grid", v("ci")), 0), [
         replace("colorCount", item("grid", v("ci")), add(item("colorCount", item("grid", v("ci"))), 1)),
       ]),
-      change("ci", 1),
     ]),
-  ], { warp: true, x: 520, y: 600 });
+  ], { warp: true, x: 1000, y: 520 });
 
-  // Picks the next shot colour from the colours still on the board.
+  // The next shot colour is one of the colours still on the board.
   define("pick next", [
     set("nextColor", random(1, 6)), set("tries", 0),
     until(or(gt(item("colorCount", v("nextColor")), 0), gt(v("tries"), 60)), [
       set("nextColor", random(1, 6)), change("tries", 1),
     ]),
     ifThen(eq(item("colorCount", v("nextColor")), 0), [set("nextColor", random(1, v("colors")))]),
-  ], { warp: true, x: 520, y: 760 });
+  ], { warp: true, x: 1000, y: 720 });
 
-  // Neighbours of cell ci on the hex grid -> list nbrs.
-  define("neighbours", [
-    deleteAll("nbrs"),
-    set("nr", rowOf(d, v("ci"))), set("nc", colOf(d, v("ci"))),
-    // the row above and below use columns (c-1, c) on even rows and (c, c+1) on odd rows
-    set("shift", d.mod(v("nr"), 2)),
-    set("tr", v("nr")), set("tc", sub(v("nc"), 1)), call("try cell"),
-    set("tc", add(v("nc"), 1)), call("try cell"),
-    set("tr", sub(v("nr"), 1)), set("tc", sub(add(v("nc"), v("shift")), 1)), call("try cell"),
-    set("tc", add(v("nc"), v("shift"))), call("try cell"),
-    set("tr", add(v("nr"), 1)), set("tc", sub(add(v("nc"), v("shift")), 1)), call("try cell"),
-    set("tc", add(v("nc"), v("shift"))), call("try cell"),
-  ], { warp: true, x: 1000, y: 20 });
-  define("try cell", [
-    ifThen(and(and(gte(d, v("tr"), 0), lt(v("tr"), ROWS)), and(gte(d, v("tc"), 0), lt(v("tc"), COLS))), [
-      ifThen(not(and(eq(d.mod(v("tr"), 2), 1), eq(v("tc"), COLS - 1))), [
-        addTo("nbrs", add(add(mul(v("tr"), COLS), v("tc")), 1)),
+  // ---------------------------------------------------------------- flight
+  // Small steps; bounce off the side walls; stop at the ceiling or next to a bubble.
+  define("fly", [
+    repeat(SUBSTEPS, [
+      ifThen(eq(v("state"), "fly"), [
+        change("shotX", v("vx")), change("shotY", v("vy")),
+        ifThen(gt(v("shotX"), WALL), [set("shotX", sub(2 * WALL, v("shotX"))), set("vx", mul(v("vx"), -1))]),
+        ifThen(lt(v("shotX"), -WALL), [set("shotX", sub(-2 * WALL, v("shotX"))), set("vx", mul(v("vx"), -1))]),
+        ifElse(gt(v("shotY"), sub(v("topY"), D / 2)), [call("land")], [
+          ...forEachCell([
+            ifThen(and(eq(v("state"), "fly"), gt(item("grid", v("ci")), 0)), [
+              call("distance"), ifThen(lt(v("dist"), HIT * HIT), [call("land")]),
+            ]),
+          ]),
+        ]),
       ]),
     ]),
-  ], { warp: true, x: 1000, y: 420 });
+  ], { warp: true, x: 1500, y: 20 });
 
+  // dist = squared distance from the shot to cell ci
+  define("distance", [
+    call("locate"),
+    set("dist", add(mul(sub(v("shotX"), v("cx")), sub(v("shotX"), v("cx"))), mul(sub(v("shotY"), v("cy")), sub(v("shotY"), v("cy"))))),
+  ], { warp: true, x: 1500, y: 420 });
+
+  // Snaps to the nearest empty cell that touches the ceiling or a bubble, then settles the board.
+  define("land", [
+    set("bestD", 1e9), set("landIdx", 0),
+    ...forEachCell([
+      set("tr", floor(d.div(sub(v("ci"), 1), COLS))), set("tc", mod(sub(v("ci"), 1), COLS)), call("check cell"),
+      ifThen(and(eq(item("grid", v("ci")), 0), eq(v("ok"), 1)), [
+        call("distance"),
+        ifThen(lt(v("dist"), v("bestD")), [
+          set("attached", 0),
+          ifThen(eq(v("cr"), 0), [set("attached", 1)]),
+          ...forEachNeighbour([ifThen(gt(item("grid", v("n")), 0), [set("attached", 1)])]),
+          ifThen(eq(v("attached"), 1), [set("bestD", v("dist")), set("landIdx", v("ci"))]),
+        ]),
+      ]),
+    ]),
+    set("state", "settle"),
+    call("settle"),
+  ], { warp: true, x: 1500, y: 620 });
+
+  // ---------------------------------------------------------------- settle
   // Places the shot, pops a group of 3+, drops loose bubbles, moves the ceiling, then decides what's next.
   define("settle", [
     replace("grid", v("landIdx"), v("shotColor")),
-    // 1. the group of the same colour, by flood fill
-    deleteAll("seen"), repeat(CELLS, [addTo("seen", 0)]),
-    deleteAll("queue"), deleteAll("group"),
+    // 1. the group of the same colour, by flood fill from the new bubble
+    ...clearList("seen", CELLS), deleteAll("queue"), deleteAll("group"),
     addTo("queue", v("landIdx")), replace("seen", v("landIdx"), 1),
     until(eq(length("queue"), 0), [
       set("ci", item("queue", 1)), deleteOf("queue", 1), addTo("group", v("ci")),
-      call("neighbours"),
-      set("k", 1),
-      repeat(length("nbrs"), [
-        set("n", item("nbrs", v("k"))),
+      ...forEachNeighbour([
         ifThen(and(eq(item("seen", v("n")), 0), eq(item("grid", v("n")), v("shotColor"))), [
           replace("seen", v("n"), 1), addTo("queue", v("n")),
         ]),
-        change("k", 1),
       ]),
     ]),
     set("popped", 0), set("dropped", 0),
     ifThen(gt(length("group"), 2), [
-      set("k", 1),
+      set("k2", 1),
       repeat(length("group"), [
-        set("ci", item("group", v("k"))),
-        set("fxKind", "pop"), call("queue fx"),
-        replace("grid", v("ci"), 0), change("popped", 1), change("k", 1),
+        set("ci", item("group", v("k2"))), set("fxKind", "pop"), call("queue fx"),
+        replace("grid", v("ci"), 0), change("popped", 1), change("k2", 1),
       ]),
       call("drop loose"),
     ]),
@@ -208,14 +246,11 @@ function boardScripts(): Blocks {
     change("shotsLeft", -1),
     ifThen(lt(v("shotsLeft"), 1), [change("topY", -ROW_H), set("shotsLeft", v("ceilingShots"))]),
     // 3. win, lose or carry on
-    set("left", 0), set("lowest", 999), set("ci", 1),
-    repeat(CELLS, [
+    set("left", 0), set("lowest", 999),
+    ...forEachCell([
       ifThen(gt(item("grid", v("ci")), 0), [
-        change("left", 1),
-        set("cy", cellY(d, rowOf(d, v("ci")))),
-        ifThen(lt(v("cy"), v("lowest")), [set("lowest", v("cy"))]),
+        change("left", 1), call("locate"), ifThen(lt(v("cy"), v("lowest")), [set("lowest", v("cy"))]),
       ]),
-      change("ci", 1),
     ]),
     ifElse(eq(v("left"), 0), [
       change("score", 500), set("state", "clear"), broadcast("redraw"), broadcast("level clear"),
@@ -229,12 +264,11 @@ function boardScripts(): Blocks {
         set("state", "aim"), broadcast("redraw"),
       ]),
     ]),
-  ], { warp: true, x: 1500, y: 20 });
+  ], { warp: true, x: 2000, y: 20 });
 
   // Every bubble that no longer hangs from the ceiling (through other bubbles) falls.
   define("drop loose", [
-    deleteAll("seen"), repeat(CELLS, [addTo("seen", 0)]),
-    deleteAll("queue"),
+    ...clearList("seen", CELLS), deleteAll("queue"),
     set("ci", 1),
     repeat(COLS, [
       ifThen(gt(item("grid", v("ci")), 0), [addTo("queue", v("ci")), replace("seen", v("ci"), 1)]),
@@ -242,45 +276,35 @@ function boardScripts(): Blocks {
     ]),
     until(eq(length("queue"), 0), [
       set("ci", item("queue", 1)), deleteOf("queue", 1),
-      call("neighbours"),
-      set("k", 1),
-      repeat(length("nbrs"), [
-        set("n", item("nbrs", v("k"))),
+      ...forEachNeighbour([
         ifThen(and(eq(item("seen", v("n")), 0), gt(item("grid", v("n")), 0)), [
           replace("seen", v("n"), 1), addTo("queue", v("n")),
         ]),
-        change("k", 1),
       ]),
     ]),
-    set("ci", 1),
-    repeat(CELLS, [
+    ...forEachCell([
       ifThen(and(gt(item("grid", v("ci")), 0), eq(item("seen", v("ci")), 0)), [
-        set("fxKind", "fall"), call("queue fx"),
-        replace("grid", v("ci"), 0), change("dropped", 1),
+        set("fxKind", "fall"), call("queue fx"), replace("grid", v("ci"), 0), change("dropped", 1),
       ]),
-      change("ci", 1),
     ]),
-  ], { warp: true, x: 1500, y: 1400 });
+  ], { warp: true, x: 2000, y: 1300 });
 
-  // Adds an effect request for cell ci; the Fx sprite turns requests into clones on the next tick.
+  // Adds an effect request for cell ci; the Fx sprite turns requests into clones on its tick.
   define("queue fx", [
-    addTo("fxKind", v("fxKind")),
-    addTo("fxX", cellX(d, rowOf(d, v("ci")), colOf(d, v("ci")))),
-    addTo("fxY", cellY(d, rowOf(d, v("ci")))),
-    addTo("fxColor", item("grid", v("ci"))),
-  ], { warp: true, x: 1000, y: 700 });
+    call("locate"),
+    addTo("fxKind", v("fxKind")), addTo("fxX", v("cx")), addTo("fxY", v("cy")), addTo("fxColor", item("grid", v("ci"))),
+  ], { warp: true, x: 1000, y: 900 });
 
   noteClicks(B);
   return B;
 }
 
-// ---------------------------------------------------------------- Shooter: aims, fires and flies
+// ---------------------------------------------------------------- Shooter: aims and fires; shows the shot
 function shooterScripts(): Blocks {
   const B = new Blocks(P);
   const d = dsl(B);
-  const { v, add, sub, mul, div, lt, gt, eq, and, or, not, sin, cos, abs, sqrt, atan, set, change, item, repeat,
-    ifThen, ifElse, define, call, whenReceive, key, mouseDown, mouseX, mouseY, goto, costumeTo, show, hide,
-    broadcast, front, setSize, xPos, yPos } = d;
+  const { v, sub, mul, div, lt, gt, eq, or, not, sin, cos, atan, set, change, ifThen, ifElse, define, call,
+    whenReceive, key, mouseX, mouseY, goto, costumeTo, show, hide, broadcast, front, setSize } = d;
 
   B.script(whenReceive("setup"), [hide(), set("aimDir", 0), set("clicked", 0), set("fireWas", 0)], 20, 20);
   B.script(whenReceive("new level"), [goto(GEOM.launchX, GEOM.launchY), setSize(100), show(), front()], 20, 160);
@@ -288,27 +312,24 @@ function shooterScripts(): Blocks {
   B.script(whenReceive("tick"), [
     call("read input"),
     ifThen(eq(v("state"), "aim"), [call("aim")]),
-    ifThen(or(eq(v("state"), "aim"), eq(v("state"), "ready")), [
-      goto(GEOM.launchX, GEOM.launchY), costumeTo(v("shotColor")), show(),
-    ]),
-    ifThen(eq(v("state"), "fly"), [call("fly")]),
-    ifThen(eq(v("state"), "over"), [ifThen(eq(v("fire"), 1), [set("state", "wait"), hide(), broadcast("restart")])]),
+    ifThen(or(eq(v("state"), "aim"), eq(v("state"), "ready")), [goto(GEOM.launchX, GEOM.launchY), costumeTo(v("shotColor")), show()]),
+    ifThen(eq(v("state"), "fly"), [goto(v("shotX"), v("shotY")), show()]),
+    ifThen(not(or(or(eq(v("state"), "aim"), eq(v("state"), "ready")), eq(v("state"), "fly"))), [hide()]),
+    ifThen(and_(d, eq(v("state"), "over"), eq(v("fire"), 1)), [set("state", "wait"), broadcast("restart")]),
   ], 20, 300);
 
   // fire = 1 on the frame after a click, or when Space or Up is pressed (not while held)
   define("read input", [
     set("fire", 0),
     ifThen(eq(v("clicked"), 1), [set("fire", 1), set("clicked", 0)]),
-    ifThen(and(or(key("space"), key("up arrow")), eq(v("fireWas"), 0)), [set("fire", 1)]),
+    ifThen(and_(d, or(key("space"), key("up arrow")), eq(v("fireWas"), 0)), [set("fire", 1)]),
     ifElse(or(key("space"), key("up arrow")), [set("fireWas", 1)], [set("fireWas", 0)]),
   ], { warp: true, x: 520, y: 20 });
 
   define("aim", [
-    // The mouse aims when it moves (or is pressed); the arrow keys turn the aim.
+    // The mouse aims when it moves or clicks; pointing at or below the launcher aims as far to that side as allowed.
     ifThen(or(or(not(eq(mouseX(), v("lastMX"))), not(eq(mouseY(), v("lastMY")))), eq(v("fire"), 1)), [
-      // Pointing at or below the launcher still aims, as far to that side as the limit allows.
-      set("aimDY", sub(mouseY(), GEOM.launchY)),
-      ifThen(lt(v("aimDY"), 8), [set("aimDY", 8)]),
+      set("aimDY", sub(mouseY(), GEOM.launchY)), ifThen(lt(v("aimDY"), 8), [set("aimDY", 8)]),
       set("aimDir", atan(div(sub(mouseX(), GEOM.launchX), v("aimDY")))),
     ]),
     set("lastMX", mouseX()), set("lastMY", mouseY()),
@@ -324,73 +345,10 @@ function shooterScripts(): Blocks {
     ]),
   ], { warp: true, x: 520, y: 400 });
 
-  // Moves in small steps; bounces off the side walls; stops at the ceiling or next to a bubble.
-  define("fly", [
-    set("step", 0),
-    repeat(SUBSTEPS, [
-      ifThen(eq(v("state"), "fly"), [
-        change("shotX", v("vx")), change("shotY", v("vy")),
-        ifThen(gt(v("shotX"), WALL), [set("shotX", sub(2 * WALL, v("shotX"))), set("vx", mul(v("vx"), -1))]),
-        ifThen(lt(v("shotX"), -WALL), [set("shotX", sub(-2 * WALL, v("shotX"))), set("vx", mul(v("vx"), -1))]),
-        ifElse(gt(v("shotY"), sub(v("topY"), D / 2)), [call("land")], [call("check hit")]),
-      ]),
-    ]),
-    goto(v("shotX"), v("shotY")),
-  ], { warp: true, x: 1000, y: 20 });
-
-  define("check hit", [
-    set("ci", 1),
-    repeat(CELLS, [
-      ifThen(and(eq(v("state"), "fly"), gt(item("grid", v("ci")), 0)), [
-        set("dx", sub(v("shotX"), cellX(d, rowOf(d, v("ci")), colOf(d, v("ci"))))),
-        set("dy", sub(v("shotY"), cellY(d, rowOf(d, v("ci"))))),
-        ifThen(lt(add(mul(v("dx"), v("dx")), mul(v("dy"), v("dy"))), HIT * HIT), [call("land")]),
-      ]),
-      change("ci", 1),
-    ]),
-  ], { warp: true, x: 1000, y: 500 });
-
-  // Snaps to the nearest empty cell that touches the ceiling or another bubble.
-  define("land", [
-    set("bestD", 1e9), set("landIdx", 0), set("ci", 1),
-    repeat(CELLS, [
-      set("tr", rowOf(d, v("ci"))),
-      ifThen(and(eq(item("grid", v("ci")), 0), not(and(eq(d.mod(v("tr"), 2), 1), eq(colOf(d, v("ci")), COLS - 1)))), [
-        set("dx", sub(v("shotX"), cellX(d, v("tr"), colOf(d, v("ci"))))),
-        set("dy", sub(v("shotY"), cellY(d, v("tr")))),
-        set("dist", add(mul(v("dx"), v("dx")), mul(v("dy"), v("dy")))),
-        ifThen(lt(v("dist"), v("bestD")), [
-          set("attached", 0),
-          ifElse(eq(v("tr"), 0), [set("attached", 1)], [
-            set("tci", v("ci")), call("neighbours of tci"),
-          ]),
-          ifThen(eq(v("attached"), 1), [set("bestD", v("dist")), set("landIdx", v("ci"))]),
-        ]),
-      ]),
-      change("ci", 1),
-    ]),
-    hide(),
-    set("state", "settle"),
-    broadcast("landed"),
-  ], { warp: true, x: 1500, y: 20 });
-
-  // attached = 1 if cell tci has a bubble next to it (same neighbour rules as the Board).
-  define("neighbours of tci", [
-    set("nr", rowOf(d, v("tci"))), set("nc", colOf(d, v("tci"))), set("shift", d.mod(v("nr"), 2)),
-    ...[[0, -1, 0], [0, 1, 0], [-1, -1, 1], [-1, 0, 1], [1, -1, 1], [1, 0, 1]].map(([dr, dc, useShift]) => {
-      const r = add(v("nr"), dr);
-      const c = useShift ? add(add(v("nc"), v("shift")), dc) : add(v("nc"), dc);
-      return ifThen(and(and(gte(d, r, 0), lt(add(v("nr"), dr), ROWS)),
-        and(gte(d, useShift ? add(add(v("nc"), v("shift")), dc) : add(v("nc"), dc), 0),
-          lt(useShift ? add(add(v("nc"), v("shift")), dc) : add(v("nc"), dc), COLS))), [
-        ifThen(gt(item("grid", add(add(mul(add(v("nr"), dr), COLS), c), 1)), 0), [set("attached", 1)]),
-      ]);
-    }),
-  ], { warp: true, x: 1500, y: 900 });
-
   noteClicks(B);
   return B;
 }
+const and_ = (d: D, a: Ref, b: Ref) => d.and(a, b);
 
 // ---------------------------------------------------------------- Aim guide, next bubble, ceiling
 function guideScripts(): Blocks {

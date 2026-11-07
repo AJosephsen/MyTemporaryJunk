@@ -26,8 +26,11 @@ comes down every few shots; clear the board to reach the next level.
   columns (c−1, c) on even rows and (c, c+1) on odd rows.
 - **Drawing:** one clone of the Board sprite per cell shows that cell's colour. Clones stay sharp at any size,
   unlike pen stamps, which are drawn at the Stage's 480 × 360 resolution.
+- **Shared blocks:** the Board does all grid work through two custom blocks, `locate` (cell → row, column, x, y)
+  and `neighbours` (cell → the cells around it). Flight, landing, popping, dropping and effects all use them.
+  Custom blocks belong to one sprite, so the Board also flies the shot; the Shooter only aims, fires and draws it.
 - **Flight:** the shot moves in 4 small steps per frame, bounces off the side walls, and stops at the ceiling or
-  within 27 px of a bubble. It snaps to the nearest empty cell touching the ceiling or a bubble.
+  within 23 px of a bubble. It snaps to the nearest empty cell touching the ceiling or a bubble.
 - **Popping and dropping:** flood fills over the hex neighbours, inside custom blocks that run without screen
   refresh, so they finish within one frame.
 - **Phases:** `setup`, `new level`, `ready`, `tick` (every frame), `landed`, `redraw`, `level clear`, `game over`,

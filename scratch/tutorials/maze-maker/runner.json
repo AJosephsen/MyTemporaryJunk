@@ -1,0 +1,11 @@
+{
+  "title": "Maze Maker Runner",
+  "heading": "Maze Maker",
+  "help": "Pick a step, click Green flag and watch the mole. Click Green flag again for a new try.",
+  "steps": {
+    "1": { "name": "Dig tunnels", "note": "The pen draws a tunnel wherever the mole moves. The tunnels run into each other." },
+    "2": { "name": "Look before you dig", "note": "touching color: the mole steps back from tunnels that are already dug, until it gets stuck." },
+    "3": { "name": "Go back and try again", "note": "try calls itself. When the mole is stuck, the call ends and the one before carries on. Takes about 15 seconds." },
+    "4": { "name": "Instant maze", "note": "The same blocks as step 3, with Run without screen refresh ticked on define try (the blocks look the same)." }
+  }
+}

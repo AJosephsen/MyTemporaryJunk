@@ -20,6 +20,9 @@ less than 75 % of the frame time has been used).
 
 So the frame that `broadcast and wait` costs in a game is spent by the *sender* waiting, not by the receivers.
 
+The same-frame resume with nothing moving is fragile: with 4 extra clones in the project, `broadcast and wait`
+resumed in the next frame even though nothing moved. Do not rely on it; plan for one frame.
+
 ## Request and response
 
 The Sender broadcasts `request`; 5 responders (a sprite and 4 clones) each change a counter `direct` and broadcast

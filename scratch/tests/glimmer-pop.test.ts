@@ -12,7 +12,7 @@ async function ready(t: T): Promise<Vars> {
 
 // Replaces the board with the given cells ({ index: colour }) and sets the colour counts to match.
 async function board(t: T, cells: Record<number, number>) {
-  const grid = Array(96).fill(0), counts = Array(6).fill(0);
+  const grid = Array(112).fill(0), counts = Array(6).fill(0);
   for (const [i, c] of Object.entries(cells)) { grid[Number(i) - 1] = c; counts[c - 1]++; }
   await t.set("grid", grid);
   await t.set("colorCount", counts);
@@ -33,14 +33,14 @@ const filled = (v: Vars) => v.grid.map(Number).map((c: number, i: number) => c ?
 test("glimmer pop: a new game fills a symmetric board and makes one clone per cell", async t => {
   const v = await ready(t);
   const g = v.grid.map(Number);
-  for (let r = 0; r < 12; r++) for (let c = 0; c < 8; c++) {
+  for (let r = 0; r < 14; r++) for (let c = 0; c < 8; c++) {
     const mirror = (r % 2 ? 6 : 7) - c;
     if (mirror >= 0) t.expect(g[idx(r, c) - 1] === g[idx(r, mirror) - 1], `row ${r} is not symmetric`);
   }
   t.expect(g.slice(idx(5, 0) - 1).every((c: number) => c === 0), "level 1 fills 5 rows");
   t.expect(g.slice(0, 8).every((c: number) => c > 0), "the top row is full");
   const cells = await t.page(w => w.vm.runtime.targets.filter((x: any) => x.sprite.name === "Board" && !x.isOriginal).length);
-  t.expect(cells === 96, `cell clones: ${cells}`);
+  t.expect(cells === 112, `cell clones: ${cells}`);
 });
 
 test("glimmer pop: three of a colour pop, and a bubble left hanging falls", async t => {
@@ -88,7 +88,7 @@ test("glimmer pop: shots bounce off the side walls", async t => {
   }, { max: 300 });
   const { minX, bounced } = await t.page(w => ({ minX: w.minX, bounced: w.bounced }));
   t.expect(bounced, "the shot turned at the left wall");
-  t.expect(minX >= -105.001, `the shot stayed inside the wall: ${minX}`);
+  t.expect(minX >= -91.001, `the shot stayed inside the wall: ${minX}`);
   t.expect(v.state === "aim", `state ${v.state}`);
 });
 
@@ -98,16 +98,16 @@ test("glimmer pop: the ceiling comes down after the last shot of the countdown",
   await t.set("shotsLeft", 1);
   const before = await t.get("topY");
   const v = await shoot(t, 0, 100, 1);
-  t.expect(v.topY === before - 26, `topY ${v.topY}`);
+  t.expect(v.topY === before - 22.5, `topY ${v.topY}`);
   t.expect(v.shotsLeft === v.ceilingShots, `countdown restarted: ${v.shotsLeft} of ${v.ceilingShots}`);
   await t.frames(1);
-  t.near((await t.sprite("Ceiling")).y, before - 26, 0.01, "ceiling bar position");
+  t.near((await t.sprite("Ceiling")).y, before - 22.5, 0.01, "ceiling bar position");
 });
 
 test("glimmer pop: a bubble below the danger line ends the game; Space starts a new one", async t => {
   await ready(t);
   await board(t, { [idx(0, 2)]: 2, [idx(1, 2)]: 3, [idx(2, 2)]: 2, [idx(3, 2)]: 3, [idx(4, 2)]: 2, [idx(5, 2)]: 3 });
-  await t.set("topY", 159 - 26 * 4);      // the column now reaches past the danger line once it grows
+  await t.set("topY", 168 - 22.5 * 7);    // the column now reaches past the danger line once it grows
   const v = await shoot(t, -45, 0, 1);
   t.expect(v.state === "over", `state ${v.state}`);
   await t.frames(20);

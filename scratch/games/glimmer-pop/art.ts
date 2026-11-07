@@ -3,15 +3,20 @@ import type { Project } from "../../lib/sb3.ts";
 
 // Board geometry, in Stage coordinates. Shared with the game script.
 export const GEOM = {
-  cols: 8, rows: 12, d: 30, rowH: 26,
-  left: -120, right: 120, top: 159,   // playfield edges; top = bottom of the ceiling bar at the start of a level
-  danger: -112,                        // a bubble whose bottom crosses this line ends the game
-  launchX: 0, launchY: -148,
+  // A tall, narrow well: 8 bubbles of 26 px across, and room for 13 rows above the danger line.
+  cols: 8, rows: 14, d: 26, rowH: 22.5,
+  left: -104, right: 104, top: 168,   // playfield edges; top = bottom of the ceiling bar at the start of a level
+  danger: -128,                        // a bubble whose bottom crosses this line ends the game
+  launchX: 0, launchY: -156,
+  next: { x: 172, y: 108 },            // the next-bubble window in the right panel
 };
 
 const svg = (w: number, h: number, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
 const sx = (x: number) => x + 240, sy = (y: number) => 180 - y;
+// An SVG drawn on a w x h canvas but shown at width x height (vector art stays sharp).
+const svgScaled = (width: number, height: number, w: number, h: number, body: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
 const FONT = `font-family="Arial Rounded MT Bold, Helvetica Neue, Arial, sans-serif" font-weight="bold"`;
 
 // ---------------------------------------------------------------- bubbles
@@ -34,7 +39,7 @@ const SYMBOLS = [
 ];
 const bubble = (i: number) => {
   const c = COLORS[i];
-  return svg(30, 30,
+  return svgScaled(GEOM.d, GEOM.d, 30, 30,
     `<defs><radialGradient id="b" cx="0.38" cy="0.32" r="0.75"><stop offset="0" stop-color="${c.light}"/>` +
     `<stop offset="0.45" stop-color="${c.base}"/><stop offset="1" stop-color="${c.dark}"/></radialGradient></defs>` +
     `<circle cx="15" cy="15" r="14.3" fill="url(#b)"/>` +
@@ -58,7 +63,10 @@ const panel = (x: number, y: number, w: number, h: number) =>
   `<path d="M${x + 12} ${y + 1.5} H${x + w - 12}" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round"/>`;
 const label = (x: number, y: number, text: string, size = 11) =>
   `<text x="${x}" y="${y}" ${FONT} font-size="${size}" fill="#ffffff" fill-opacity="0.7" letter-spacing="1.5" text-anchor="middle">${text}</text>`;
-const pf = { x: sx(GEOM.left) - 6, y: 6, w: GEOM.right - GEOM.left + 12, h: 340 };
+const pf = { x: sx(GEOM.left) - 6, y: 4, w: GEOM.right - GEOM.left + 12, h: 352 };
+// Side panels fill the space beside the well.
+const LX = 12, LW = pf.x - 22, LC = LX + LW / 2;          // left panel x, width, centre
+const RX = pf.x + pf.w + 10, RW = 468 - RX, RC = RX + RW / 2;
 const backdrop = svg(480, 360,
   `<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1240"/>` +
   `<stop offset="0.55" stop-color="#4b2a6b"/><stop offset="1" stop-color="#c7607a"/></linearGradient>` +
@@ -90,20 +98,20 @@ const backdrop = svg(480, 360,
   `<circle cx="${sx(GEOM.launchX)}" cy="${sy(GEOM.launchY)}" r="18" fill="#120a2c" stroke="url(#gold)" stroke-width="2.5"/>` +
   `<path d="M${sx(GEOM.launchX) - 26} ${sy(GEOM.launchY) - 4} A27 27 0 0 1 ${sx(GEOM.launchX) - 8} ${sy(GEOM.launchY) - 20}" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>` +
   // left panel: score and level
-  panel(14, 20, 96, 66) + label(62, 40, "SCORE") +
-  panel(14, 100, 96, 66) + label(62, 120, "LEVEL") +
+  panel(LX, 20, LW, 66) + label(LC, 40, "SCORE") +
+  panel(LX, 100, LW, 66) + label(LC, 120, "LEVEL") +
   `<g ${FONT} text-anchor="middle" stroke="#1c1240" stroke-width="5" stroke-linejoin="round" paint-order="stroke">` +
-  `<text x="62" y="214" font-size="23" fill="url(#logo)">Glimmer</text>` +
-  `<text x="62" y="250" font-size="36" fill="url(#logo2)">Pop</text></g>` +
-  `<circle cx="20" cy="190" r="5" fill="#ff4d6d" opacity="0.9"/><circle cx="18.6" cy="188.4" r="1.6" fill="#fff" opacity="0.8"/>` +
-  `<circle cx="104" cy="230" r="6.5" fill="#2ec4f1" opacity="0.9"/><circle cx="102.4" cy="228.2" r="2" fill="#fff" opacity="0.8"/>` +
-  `<circle cx="96" cy="194" r="3.5" fill="#ffb627" opacity="0.9"/>` +
+  `<text x="${LC}" y="214" font-size="25" fill="url(#logo)">Glimmer</text>` +
+  `<text x="${LC}" y="252" font-size="40" fill="url(#logo2)">Pop</text></g>` +
+  `<circle cx="${LC - 50}" cy="188" r="5" fill="#ff4d6d" opacity="0.9"/><circle cx="${LC - 51.4}" cy="186.4" r="1.6" fill="#fff" opacity="0.8"/>` +
+  `<circle cx="${LC + 48}" cy="232" r="6.5" fill="#2ec4f1" opacity="0.9"/><circle cx="${LC + 46.4}" cy="230.2" r="2" fill="#fff" opacity="0.8"/>` +
+  `<circle cx="${LC + 40}" cy="192" r="3.5" fill="#ffb627" opacity="0.9"/>` +
   // right panel: next bubble, ceiling and controls
-  panel(370, 20, 96, 86) + label(418, 40, "NEXT") +
-  `<circle cx="418" cy="72" r="20" fill="#000" fill-opacity="0.2" stroke="#fff" stroke-opacity="0.25"/>` +
-  panel(370, 120, 96, 50) + label(418, 140, "CEILING") +
-  label(418, 268, "AIM", 10) + label(418, 284, "mouse or ← →", 10) +
-  label(418, 312, "SHOOT", 10) + label(418, 328, "click or Space", 10));
+  panel(RX, 20, RW, 86) + label(RC, 40, "NEXT") +
+  `<circle cx="${sx(GEOM.next.x)}" cy="${sy(GEOM.next.y)}" r="20" fill="#000" fill-opacity="0.2" stroke="#fff" stroke-opacity="0.25"/>` +
+  panel(RX, 120, RW, 50) + label(RC, 140, "CEILING") +
+  label(RC, 268, "AIM", 10) + label(RC, 284, "mouse or ← →", 10) +
+  label(RC, 312, "SHOOT", 10) + label(RC, 328, "click or Space", 10));
 
 // ---------------------------------------------------------------- other costumes
 const digit = (n: number) => svg(20, 28,
@@ -117,16 +125,17 @@ const guide = svg(16, 170,
   `<path d="M8 0 L14 10 L8 7 L2 10Z" fill="#ffffff" opacity="0.6"/>`);
 // The ceiling: a grooved plate that fills the space above the bar, so it reads as pushing down when it moves.
 const PLATE = 240;
-const ceiling = svg(252, PLATE + 22,
+const CW = GEOM.right - GEOM.left + 12;   // plate width: the well plus its frame
+const ceiling = svg(CW, PLATE + 22,
   `<defs><linearGradient id="m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3ecff"/><stop offset="0.45" stop-color="#b9a2ea"/><stop offset="1" stop-color="#5d4296"/></linearGradient>` +
   `<linearGradient id="plate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d1238"/><stop offset="1" stop-color="#3b2770"/></linearGradient>` +
   `<linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs>` +
-  `<rect x="2" y="0" width="248" height="${PLATE + 4}" fill="url(#plate)"/>` +
-  Array.from({ length: 9 }, (_, i) => `<rect x="${14 + i * 27}" y="0" width="3" height="${PLATE}" fill="#000" opacity="0.18"/><rect x="${17 + i * 27}" y="0" width="1" height="${PLATE}" fill="#fff" opacity="0.06"/>`).join("") +
-  `<rect x="4" y="${PLATE + 14}" width="244" height="8" fill="url(#sh)"/>` +
-  `<rect x="0.75" y="${PLATE + 0.75}" width="250.5" height="14.5" rx="5" fill="url(#m)" stroke="#2a1d4d" stroke-width="1.5"/>` +
-  `<path d="M6 ${PLATE + 3.5} H246" stroke="#ffffff" stroke-opacity="0.7" stroke-width="1.2" stroke-linecap="round"/>` +
-  Array.from({ length: 9 }, (_, i) => `<circle cx="${18 + i * 27}" cy="${PLATE + 8.5}" r="2.2" fill="#3b2770"/><circle cx="${17.4 + i * 27}" cy="${PLATE + 7.9}" r="0.8" fill="#fff" opacity="0.6"/>`).join(""));
+  `<rect x="2" y="0" width="${CW - 4}" height="${PLATE + 4}" fill="url(#plate)"/>` +
+  Array.from({ length: 8 }, (_, i) => `<rect x="${12 + i * 27}" y="0" width="3" height="${PLATE}" fill="#000" opacity="0.18"/><rect x="${15 + i * 27}" y="0" width="1" height="${PLATE}" fill="#fff" opacity="0.06"/>`).join("") +
+  `<rect x="4" y="${PLATE + 14}" width="${CW - 8}" height="8" fill="url(#sh)"/>` +
+  `<rect x="0.75" y="${PLATE + 0.75}" width="${CW - 1.5}" height="14.5" rx="5" fill="url(#m)" stroke="#2a1d4d" stroke-width="1.5"/>` +
+  `<path d="M6 ${PLATE + 3.5} H${CW - 6}" stroke="#ffffff" stroke-opacity="0.7" stroke-width="1.2" stroke-linecap="round"/>` +
+  Array.from({ length: 8 }, (_, i) => `<circle cx="${16 + i * 27}" cy="${PLATE + 8.5}" r="2.2" fill="#3b2770"/><circle cx="${15.4 + i * 27}" cy="${PLATE + 7.9}" r="0.8" fill="#fff" opacity="0.6"/>`).join(""));
 const ring = svg(40, 40, `<circle cx="20" cy="20" r="17" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.9"/>`);
 const spark = svg(12, 12, `<path d="M6 0 L7.4 4.6 L12 6 L7.4 7.4 L6 12 L4.6 7.4 L0 6 L4.6 4.6Z" fill="#fff6d8"/>`);
 const sparkle = (x: number, y: number, r: number, c: string) =>
@@ -142,7 +151,7 @@ const banner = (title: string, sub: string, accent: string, accent2: string) => 
   sparkle(22, 10, 9, accent) + sparkle(302, 108, 8, accent2) + sparkle(296, 18, 4.5, "#ffffff"));
 
 export function art(P: Project) {
-  const bubbles = COLORS.map((c, i) => P.costume(c.name, bubble(i), 15, 15));
+  const bubbles = COLORS.map((c, i) => P.costume(c.name, bubble(i), GEOM.d / 2, GEOM.d / 2));
   return {
     backdrop: P.costume("twilight", backdrop, 240, 180),
     bubbles,
@@ -150,7 +159,7 @@ export function art(P: Project) {
     hud: [...Array.from({ length: 10 }, (_, n) => P.costume(`digit ${n}`, digit(n), 10, 14)),
       P.costume("pip off", pip(false), 6, 6), P.costume("pip on", pip(true), 6, 6)],
     guide: [P.costume("guide", guide, 8, 170)],
-    ceiling: [P.costume("ceiling", ceiling, 126, PLATE + 15)],   // centre at the bar's bottom edge
+    ceiling: [P.costume("ceiling", ceiling, CW / 2, PLATE + 15)],   // centre at the bar's bottom edge
     fx: [...bubbles, P.costume("ring", ring, 20, 20), P.costume("spark", spark, 6, 6)],
     banner: [
       P.costume("ready", banner("Ready?", "Match 3 or more to pop them!", "#fff1c2", "#ffb347"), 160, 63),

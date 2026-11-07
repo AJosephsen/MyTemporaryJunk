@@ -19,9 +19,11 @@ const CELLS = COLS * ROWS;
 const WALL = GEOM.right - D / 2;     // the shot's centre bounces at +-105
 const SHOT_SPEED = 14;               // pixels per frame
 const SUBSTEPS = 4;                  // collision checks per frame
-const HIT = 27;                      // centre distance that counts as touching a bubble
+const HIT = Math.round(GEOM.d * 0.9); // centre distance that counts as touching a bubble
 const AIM_LIMIT = 78;                // degrees either side of straight up
-const NEXT = { x: 178, y: 108 };
+const NEXT = GEOM.next;
+const LEFT_CENTRE = Math.round((-228 + GEOM.left - 10) / 2);   // centre of the left panels
+const SCORE_RIGHT = GEOM.left - 32;                            // the score's last digit
 
 // ---------------------------------------------------------------- clicks
 // A quick click or tap can start and end between two frames, so "mouse down?" can miss it. Click events
@@ -110,7 +112,7 @@ function boardScripts(): Blocks {
     deleteAll("grid"), repeat(CELLS, [addTo("grid", 0)]),
     deleteAll("colorCount"), repeat(6, [addTo("colorCount", 0)]),
     set("colors", add(3, floor(d.div(v("level"), 2)))), ifThen(gt(v("colors"), 6), [set("colors", 6)]),
-    set("fillRows", add(4, v("level"))), ifThen(gt(v("fillRows"), 8), [set("fillRows", 8)]),
+    set("fillRows", add(4, v("level"))), ifThen(gt(v("fillRows"), 10), [set("fillRows", 10)]),
     set("tr", 0),
     repeat(v("fillRows"), [
       set("tc", 0), set("prevColor", random(1, v("colors"))),
@@ -447,20 +449,20 @@ function hudScripts(): Blocks {
       set("text", round(v("shownScore"))),
       ifElse(not(gt(v("slot"), textLength(v("text")))), [
         costumeTo(add(letterOf(add(sub(textLength(v("text")), v("slot")), 1), v("text")), 1)),
-        goto(sub(-150, mul(sub(v("slot"), 1), 18)), 112), show(),
+        goto(sub(SCORE_RIGHT, mul(sub(v("slot"), 1), 18)), 112), show(),
       ], [hide()]),
     ]),
     ifThen(eq(v("kind"), "level"), [
       set("text", v("level")),
       ifElse(not(gt(v("slot"), textLength(v("text")))), [
         costumeTo(add(letterOf(v("slot"), v("text")), 1)),
-        goto(add(sub(-178, mul(sub(textLength(v("text")), 1), 9)), mul(sub(v("slot"), 1), 18)), 32), show(),
+        goto(add(sub(LEFT_CENTRE, mul(sub(textLength(v("text")), 1), 9)), mul(sub(v("slot"), 1), 18)), 32), show(),
       ], [hide()]),
     ]),
     ifThen(eq(v("kind"), "pip"), [
       ifElse(not(gt(v("slot"), v("ceilingShots"))), [
         ifElse(not(gt(v("slot"), v("shotsLeft"))), [costume("pip on")], [costume("pip off")]),
-        goto(add(sub(178, mul(sub(v("ceilingShots"), 1), 5.5)), mul(sub(v("slot"), 1), 11)), 24), show(),
+        goto(add(sub(NEXT.x, mul(sub(v("ceilingShots"), 1), 5.5)), mul(sub(v("slot"), 1), 11)), 24), show(),
       ], [hide()]),
     ]),
   ], { warp: true, x: 520, y: 20 });
@@ -494,7 +496,7 @@ function fxScripts(): Blocks {
       ifElse(eq(item("fxKind", 1), "pop"), [
         set("kind", "pop"), set("life", 9), cloneMyself(),
         // rings and sparks are extras: skipped when many effects are already running (Scratch allows 300 clones)
-        ifThen(lt(v("fxCount"), 160), [
+        ifThen(lt(v("fxCount"), 140), [
           set("kind", "ring"), set("life", 10), cloneMyself(),
           set("kind", "spark"),
           repeat(3, [

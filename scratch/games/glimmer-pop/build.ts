@@ -320,8 +320,8 @@ function shooterScripts(): Blocks {
 
   // fire = 1 on the frame after a click, or when Space or Up is pressed (not while held)
   define("read input", [
-    set("fire", 0),
-    ifThen(eq(v("clicked"), 1), [set("fire", 1), set("clicked", 0)]),
+    set("fire", 0), set("fireByClick", 0),
+    ifThen(eq(v("clicked"), 1), [set("fire", 1), set("fireByClick", 1), set("clicked", 0)]),
     ifThen(and_(d, or(key("space"), key("up arrow")), eq(v("fireWas"), 0)), [set("fire", 1)]),
     ifElse(or(key("space"), key("up arrow")), [set("fireWas", 1)], [set("fireWas", 0)]),
   ], { warp: true, x: 520, y: 20 });
@@ -331,7 +331,8 @@ function shooterScripts(): Blocks {
     // Off the Stage, Scratch reports the mouse at the Stage's edge; that never aims.
     set("mouseOn", 0),
     ifThen(d.and(lt(d.abs(mouseX()), 239.5), lt(d.abs(mouseY()), 179.5)), [set("mouseOn", 1)]),
-    ifThen(d.and(eq(v("mouseOn"), 1), or(or(not(eq(mouseX(), v("lastMX"))), not(eq(mouseY(), v("lastMY")))), eq(v("fire"), 1))), [
+    // A click aims at the clicked spot before it shoots; Space, Up and the Shoot button keep the current aim.
+    ifThen(d.and(eq(v("mouseOn"), 1), or(or(not(eq(mouseX(), v("lastMX"))), not(eq(mouseY(), v("lastMY")))), eq(v("fireByClick"), 1))), [
       set("aimDY", sub(mouseY(), GEOM.launchY)), ifThen(lt(v("aimDY"), 8), [set("aimDY", 8)]),
       set("aimDir", atan(div(sub(mouseX(), GEOM.launchX), v("aimDY")))),
     ]),

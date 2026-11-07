@@ -180,3 +180,15 @@ test("glimmer pop: the mouse leaving the Stage does not change the aim", async t
   t.expect(aimed === 25, `aim after 10 frames of the right arrow: ${aimed}`);
   t.expect((await t.get("aimDir")) === aimed, `aim after the mouse left the Stage: ${await t.get("aimDir")}`);
 });
+
+test("glimmer pop: Space (and the Shoot button) fires in the current aim, without re-aiming at the mouse", async t => {
+  await ready(t);
+  await t.mouse(0, 100);                     // the mouse rests straight above the launcher
+  await t.frames(1);
+  await t.hold("left arrow"); await t.frames(12); await t.release("left arrow");
+  const aimed = await t.get("aimDir");
+  await t.hold("space"); await t.frames(1); await t.release("space");
+  const v = await t.until(v => v.state === "fly", { max: 3 });
+  t.expect(aimed === -30, `aim after 12 frames of the left arrow: ${aimed}`);
+  t.expect(v.aimDir === aimed && v.vx < 0, `shot fired at ${v.aimDir}, vx ${v.vx}`);
+});

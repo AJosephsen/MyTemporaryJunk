@@ -80,7 +80,7 @@ function scripts(step: number, stage: Blocks, ground: Blocks, pads: Blocks, dron
     "move", "place on screen", "update displays", "check touchdown",
     ...when(8, () => ["show flame"]),
   ];
-  drone.script(whenReceive("tick"), [ifThen(eq(v("state"), "flying"), work.map(call))]);
+  drone.script(whenReceive("tick"), [ifThen(eq(v("state"), "flying"), work.map(n => call(n)))]);
 
   if (at(6)) drone.script(whenReceive("round over"), [
     ifThen(eq(v("state"), "good"), [

@@ -26,7 +26,7 @@ async function shoot(t: T, x: number, y: number, color: number): Promise<{ v: Va
   await t.until(v => v.phase === "probe", { max: 600, what: "the shot to land" });
   // The search runs in the frame the probe is asked; measure how long that frame really took to run.
   let probeFrames = 0, probeMs = 0;
-  while ((await t.get("phase")) === "probe" && probeFrames < 10) {
+  while ((await t.get("phase")) === "probe" && probeFrames < 600) {
     await t.frames(1); probeFrames++;
     probeMs = Math.max(probeMs, await t.page(w => w.lastStepMs as number));
   }
@@ -66,8 +66,10 @@ test("bubble probe: two of a colour stay", async t => {
   t.expect(v.markedCount === 2 && (await balls(t)).length === 3, `matched ${v.markedCount}`);
 });
 
-test("bubble probe: on random boards, the probe finds exactly what a grid flood fill finds", async t => {
+// method: "queue" (breadth-first with a queue), "recursive" (the default) or "slow" (recursion with screen refresh).
+async function randomBoards(t: T, method: string) {
   await t.load(DEMO);
+  await t.set("method", method);
   await t.set("layout", Array.from({ length: 96 }, (_, i) => {
     const row = Math.floor(i / 8), col = i % 8;
     return row < 5 && !(row % 2 === 1 && col === 7) ? 1 + ((i * 7 + row * 3) % 4) : 0;
@@ -90,7 +92,22 @@ test("bubble probe: on random boards, the probe finds exactly what a grid flood 
       `shot ${shot}: after ${a.length}, expected ${b.length}\n  missing ${b.filter(k => !a.includes(k))}\n  extra ${a.filter(k => !b.includes(k))}`);
     compared++;
   }
-  t.log({ compared, popped, maxFramesForSearch: maxFrames, slowestSearchMs: slowest });
+  t.log({ method, compared, popped, maxFramesForSearch: maxFrames, slowestSearchMs: Math.round(slowest * 10) / 10 });
   t.expect(popped >= 3, `only ${popped} of ${compared} shots popped anything`);
-  t.expect(maxFrames <= 1, `the search took up to ${maxFrames} frames`);
+  return maxFrames;
+}
+
+test("bubble probe: on random boards, the queue search finds exactly what a grid flood fill finds, in one frame", async t => {
+  const frames = await randomBoards(t, "queue");
+  t.expect(frames <= 1, `the search took up to ${frames} frames`);
+});
+
+test("bubble probe: on random boards, the recursive search finds the same, in one frame", async t => {
+  const frames = await randomBoards(t, "recursive");
+  t.expect(frames <= 1, `the search took up to ${frames} frames`);
+});
+
+test("bubble probe: recursion with screen refresh finds the same, but over many frames", async t => {
+  const frames = await randomBoards(t, "slow");
+  t.expect(frames > 5, `the search took only ${frames} frames`);
 });

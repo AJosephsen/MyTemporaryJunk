@@ -130,10 +130,21 @@ function probeScripts(): Blocks {
   B.script(whenFlag(), [setEffect("GHOST", 100), show()], 20, 20);
 
   // Runs the search for the bubble that just landed (the Shooter sets newX, newY, newColor).
-  B.script(whenReceive("probe"), [
-    call("find matches"),
+  // `method` picks the search: "queue", "slow" (recursion with screen refresh) or anything else: recursion.
+  const recursive = (blocks: string) => [
+    deleteAll("seen"), deleteAll("matchKeys"), call(`match${blocks} at %s %s`, v("newX"), v("newY")),
     deleteAll("anchoredKeys"),
-    ifThen(gt(length("matchKeys"), 2), [call("find anchored")]),
+    ifThen(gt(length("matchKeys"), 2), [
+      deleteAll("seen"), set("ax", LEFT + D / 2),
+      repeat(COLS, [call(`anchor${blocks} at %s %s`, v("ax"), TOP_ROW_Y), change("ax", D)]),
+    ]),
+  ];
+  B.script(whenReceive("probe"), [
+    d.ifElse(eq(v("method"), "queue"), [
+      call("find matches"),
+      deleteAll("anchoredKeys"),
+      ifThen(gt(length("matchKeys"), 2), [call("find anchored")]),
+    ], [d.ifElse(eq(v("method"), "slow"), [call("search slowly")], [call("search recursively")])]),
     deleteAll("popKeys"),
     ifThen(gt(length("matchKeys"), 2), [set("k", 1), repeat(length("matchKeys"), [addTo("popKeys", item("matchKeys", v("k"))), change("k", 1)])]),
   ], 20, 120);
@@ -176,6 +187,29 @@ function probeScripts(): Blocks {
       ifThen(anyBubble(), [addTo("qx", v("px")), addTo("qy", v("py")), addTo("anchoredKeys", v("pk"))]),
     ]),
   ], { warp: true, x: 1000, y: 400 });
+  // The same two searches, recursive: a slot that matches visits its six neighbours by calling itself.
+  // x and y are inputs, so every call keeps its own slot; only `seen` and the result lists are shared.
+  const inBounds = (x: In, y: In) => and(not(gt(abs(x), WALL + 1)), not(gt(y, TOP_ROW_Y + 1)));
+  const recurse = (proc: string) => NEIGHBOURS.map(([dx, dy]) => call(proc, add(d.arg("x"), dx), add(d.arg("y"), dy)));
+  for (const [suffix, warp, x] of [["", true, 1480], [" slowly", false, 1960]] as const) {
+    const match = `match${suffix} at %s %s`, anchor = `anchor${suffix} at %s %s`;
+    // The starter runs without screen refresh too, or its loop over the top row would pause after each pass.
+    define(suffix ? "search slowly" : "search recursively", recursive(suffix), { warp, x, y: -300 });
+    define(match, [
+      set("pk", keyOf(d, d.arg("x"), d.arg("y"))),
+      ifThen(and(inBounds(d.arg("x"), d.arg("y")), not(contains("seen", v("pk")))), [
+        addTo("seen", v("pk")), goto(d.arg("x"), d.arg("y")),
+        ifThen(touchingNamed(join("Bubble", v("newColor"))), [addTo("matchKeys", v("pk")), ...recurse(match)]),
+      ]),
+    ], { warp, x, y: 20, args: ["x", "y"] });
+    define(anchor, [
+      set("pk", keyOf(d, d.arg("x"), d.arg("y"))),
+      ifThen(and(and(inBounds(d.arg("x"), d.arg("y")), not(contains("seen", v("pk")))), not(contains("matchKeys", v("pk")))), [
+        addTo("seen", v("pk")), goto(d.arg("x"), d.arg("y")),
+        ifThen(anyBubble(), [addTo("anchoredKeys", v("pk")), ...recurse(anchor)]),
+      ]),
+    ], { warp, x, y: 500, args: ["x", "y"] });
+  }
   void lt;
   return B;
 }

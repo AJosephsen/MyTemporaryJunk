@@ -176,6 +176,17 @@ td:first-child { font-weight: 700; }
     <div class="blocks-panel"><div class="label">Shooter</div><!--script:Shooter:when stage clicked--></div>
   </section>
 
+  <section class="part" id="recursion">
+    <div class="part-head"><div class="num">8</div><h2>The same search with recursion</h2></div>
+    <p>A custom block may call itself, and its inputs belong to each call separately. That makes the queue unnecessary: <code>match at (x) (y)</code> checks one slot and, if it holds a bubble of the right colour, calls itself for the six neighbours. Each call keeps its own <code>x</code> and <code>y</code>; only <code>seen</code> and <code>matchKeys</code> are shared.</p>
+    <div class="blocks-panel"><div class="label">Probe <span class="warp">· run without screen refresh</span></div><!--script:Probe:define match at (x :: custom) (y :: custom)--></div>
+    <p>The anchor search changes the same way, and one more block starts both searches. The variable <code>method</code> chooses the version: <code>queue</code>, <code>slow</code>, or anything else for recursion, the default.</p>
+    <div class="blocks-panel"><div class="label">Probe <span class="warp">· run without screen refresh</span></div><!--script:Probe:define anchor at (x :: custom) (y :: custom)--></div>
+    <div class="blocks-panel"><div class="label">Probe <span class="warp">· run without screen refresh</span></div><!--script:Probe:define search recursively--></div>
+    <p class="note"><b>Screen refresh matters even more here.</b> Without the tick, Scratch pauses until the next frame every time a block calls itself. The <code>slow</code> version, identical apart from the tick, needed up to 63 frames for one search. The starter block also needs the tick: in a plain script its <code>repeat 8</code> over the top row paused after each pass, and a search took 7 frames.</p>
+    <p>Both versions give exactly the same results. The recursive one is shorter and easier to read; the queue version shows the order of the search more plainly and never grows deep.</p>
+  </section>
+
   <section class="stack" id="results">
     <h2>How well does it work?</h2>
     <p>Automated tests fire 25 shots at random boards and compare the result with an exact flood fill on a grid. Every shot matched. The search always finished within the frame the shot landed in, and the slowest of those frames took about 4 ms of real time; a Scratch frame lasts 33 ms.</p>
@@ -183,7 +194,7 @@ td:first-child { font-weight: 700; }
       <thead><tr><th></th><th>Bubble Chain</th><th>Bubble Probe</th></tr></thead>
       <tbody>
         <tr><td>How the chain is found</td><td>Glowing rings spread from bubble to bubble with <code>touching color</code></td><td>An invisible Probe visits neighbour slots with <code>touching sprite</code></td></tr>
-        <tr><td>Time</td><td>One frame per ring of bubbles</td><td>One frame</td></tr>
+        <tr><td>Time</td><td>One frame per ring of bubbles</td><td>One frame (queue or recursion)</td></tr>
         <tr><td>Extra art</td><td>Ring costumes in special detector colours</td><td>None</td></tr>
         <tr><td>Sprites</td><td>One Bubble sprite with colour costumes</td><td>One sprite per colour</td></tr>
         <tr><td>Best for</td><td>Seeing the chain spread</td><td>Instant, exact results</td></tr>

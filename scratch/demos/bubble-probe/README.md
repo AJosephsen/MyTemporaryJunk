@@ -18,6 +18,16 @@ A step-by-step explanation with the real blocks is in [tutorial.html](tutorial.h
 - **resolve:** the results are lists of keys (`popKeys`, `anchoredKeys`). Each clone checks its own `myKey`
   against them and pops, falls or stays.
 
+## Recursion
+
+The same searches also exist as recursive custom blocks with inputs: `match at (x) (y)` checks one slot and, on a
+hit, calls itself for the six neighbours. Inputs belong to each call, so no queue is needed. The variable `method`
+picks the version: `queue`, `slow` (recursion with screen refresh) or anything else for recursion (the default).
+
+- With "Run without screen refresh", recursion takes 1 frame, like the queue, with identical results.
+- Without it, Scratch pauses for a frame on every call that calls itself: up to 63 frames per search.
+- The block that starts the search needs the tick as well; its `repeat 8` in a plain script cost 7 frames.
+
 ## Result
 
 - The test bot fires 25 shots at random boards and compares the result with an exact grid flood fill: all match.

@@ -67,6 +67,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "motion_yposition": return "(y position)";
       case "sensing_keypressed": return `<key ${value(b, "KEY_OPTION")} pressed?>`;
       case "sensing_touchingobject": return `<touching ${value(b, "TOUCHINGOBJECTMENU")}?>`;
+      case "argument_reporter_string_number": return `(${field(b, "VALUE")} :: custom)`;
     }
     return `(${o} :: obsolete)`;
   }
@@ -88,8 +89,16 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "event_whenbroadcastreceived": return [`when I receive [${field(b, "BROADCAST_OPTION")} v]`];
       case "event_broadcast": return [`broadcast ${value(b, "BROADCAST_INPUT")}`];
       case "event_broadcastandwait": return [`broadcast ${value(b, "BROADCAST_INPUT")} and wait`];
-      case "procedures_definition": return [`define ${get(b.inputs.custom_block[1]).mutation.proccode}`];
-      case "procedures_call": return [`${b.mutation.proccode} :: custom`];
+      case "procedures_definition": {
+        const m = get(b.inputs.custom_block[1]).mutation, names: string[] = JSON.parse(m.argumentnames ?? "[]");
+        let i = 0;
+        return [`define ${m.proccode.replace(/%s/g, () => `(${names[i++]} :: custom)`)}`];
+      }
+      case "procedures_call": {
+        const ids: string[] = JSON.parse(b.mutation.argumentids ?? "[]");
+        let i = 0;
+        return [`${b.mutation.proccode.replace(/%s/g, () => value(b, ids[i++]))} :: custom`];
+      }
       case "data_setvariableto": return [`set [${field(b, "VARIABLE")} v] to ${value(b, "VALUE")}`];
       case "data_changevariableby": return [`change [${field(b, "VARIABLE")} v] by ${value(b, "VALUE")}`];
       case "data_deletealloflist": return [`delete all of [${field(b, "LIST")} v]`];

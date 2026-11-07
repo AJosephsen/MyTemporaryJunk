@@ -213,15 +213,24 @@ export function dsl(B: Blocks) {
     broadcast: (name: string) => B.add("event_broadcast", { BROADCAST_INPUT: [1, [11, name, P.bcastId(name)]] }),
     broadcastWait: (name: string) => B.add("event_broadcastandwait", { BROADCAST_INPUT: [1, [11, name, P.bcastId(name)]] }),
     forever: (a: Ref[]) => B.add("control_forever", { SUBSTACK: sub(a) }),
-    // Custom blocks without inputs. warp = "Run without screen refresh": loops inside do not pause between passes.
-    define: (proccode: string, stmts: Ref[], opts: { warp?: boolean; x?: number; y?: number } = {}) => {
-      const proto = B.add("procedures_prototype", {}, {}, { shadow: true, mutation: {
-        tagName: "mutation", children: [], proccode, argumentids: "[]", argumentnames: "[]", argumentdefaults: "[]",
-        warp: String(opts.warp ?? false) } });
+    // Custom blocks. warp = "Run without screen refresh": loops inside do not pause between passes.
+    // Inputs: write %s in the proccode for each one and name them in args, e.g. define("visit %s %s", ..., { args: ["x", "y"] });
+    // read them with arg("x"). Input ids are a0, a1, ... in order, so calls can be built before the definition.
+    define: (proccode: string, stmts: Ref[], opts: { warp?: boolean; x?: number; y?: number; args?: string[] } = {}) => {
+      const names = opts.args ?? [];
+      if (names.length !== (proccode.match(/%s/g) ?? []).length) throw new Error(`${proccode}: ${names.length} args for its %s inputs`);
+      const ids = names.map((_, i) => `a${i}`);
+      const inputs = Object.fromEntries(names.map((n, i) => [ids[i], [1, B.shadow("argument_reporter_string_number", { VALUE: [n, null] })]]));
+      const proto = B.add("procedures_prototype", inputs, {}, { shadow: true, mutation: {
+        tagName: "mutation", children: [], proccode, argumentids: JSON.stringify(ids), argumentnames: JSON.stringify(names),
+        argumentdefaults: JSON.stringify(names.map(() => "")), warp: String(opts.warp ?? false) } });
       B.script(B.add("procedures_definition", { custom_block: [1, proto.id] }), stmts, opts.x ?? 0, opts.y ?? 0);
     },
-    call: (proccode: string) => B.add("procedures_call", {}, {}, { mutation: {
-      tagName: "mutation", children: [], proccode, argumentids: "[]", warp: "false" } }),
+    call: (proccode: string, ...values: In[]) => B.add("procedures_call",
+      Object.fromEntries(values.map((v, i) => [`a${i}`, txt(v)])), {}, { mutation: {
+        tagName: "mutation", children: [], proccode, argumentids: JSON.stringify(values.map((_, i) => `a${i}`)), warp: "false" } }),
+    // The value of a custom block's input, inside its definition.
+    arg: (name: string) => B.add("argument_reporter_string_number", {}, { VALUE: [name, null] }),
     whenFlag: () => B.add("event_whenflagclicked"),
     whenClicked: () => B.add("event_whenthisspriteclicked"),
     whenStageClicked: () => B.add("event_whenstageclicked"),

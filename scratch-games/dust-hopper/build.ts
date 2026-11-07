@@ -196,7 +196,7 @@ function droneScripts(): Blocks {
   B.script(whenFlag(), [
     set("gravity", 0.035), set("Score", 0), set("fuelLeft", 1000), set("Fuel", 1000),
     set("Throttle", 0), set("Drift", 0), set("Descent", 0),
-    goto(-200, 150), point(90), costume("drone"), show(), front(),
+    goto(-60, 150), point(90), costume("drone"), show(), front(),
     sayFor("Up/Down: throttle. Left/Right: tilt. Space: boost. Land gently on a yellow pad!", 4),
     broadcast("new round"),
   ], 20, 20);
@@ -253,7 +253,7 @@ function droneScripts(): Blocks {
   ];
 
   B.script(whenReceive("new round"), [
-    set("posX", -200), set("posY", 150), set("vx", 1.2), set("vy", 0),
+    set("posX", -60), set("posY", 150), set("vx", 1.2), set("vy", 0),
     set("Throttle", 0), set("cooldown", 0), set("state", "flying"),
     point(90), costume("drone"), show(), front(),
     until(not(eq(v("state"), "flying")), frame),
@@ -311,7 +311,7 @@ const project = {
       ...sprite("Drone", droneB, [
         costume("drone", drone, 20, 20), costume("drone-flame", droneFlame, 20, 20),
         costume("drone-boost", droneBoost, 20, 20), costume("boom", boom, 20, 20)], 3),
-      x: -200, y: 150,
+      x: -60, y: 150,
     },
   ],
   monitors: SHOWN.map((n, i) => ({

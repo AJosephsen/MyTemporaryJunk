@@ -66,3 +66,20 @@ export function buildTutorial(dir: URL, last: number, build: (step: number) => B
   console.log(`index.html written${missing ? `, ${missing} placeholders missing` : ""}`);
   if (missing) process.exit(1);
 }
+
+/**
+ * Fills a single-page explainer: in the template, <!--script:Sprite:first line--> becomes that sprite's script
+ * (the one whose first line matches exactly), drawn as blocks. Fails the build if a script is missing or ambiguous.
+ */
+export function buildExplainer(template: URL, out: URL, sb3: Buffer) {
+  const all = projectScripts(projectJson(sb3));
+  let errors = 0;
+  const page = readFileSync(template, "utf8").replace(/<!--script:([^:]+):(.+?)-->/g, (_, sprite: string, head: string) => {
+    const found = (all[sprite] ?? []).filter(s => s.split("\n")[0] === head);
+    if (found.length !== 1) { console.error(`${sprite}: ${found.length} scripts start with "${head}"`); errors++; return ""; }
+    return `<pre class="blocks">${esc(found[0])}</pre>`;
+  });
+  writeFileSync(out, page);
+  console.log(`${out.pathname.split("/").pop()} written${errors ? `, ${errors} scripts missing` : ""}`);
+  if (errors) process.exit(1);
+}

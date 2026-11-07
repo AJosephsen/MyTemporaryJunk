@@ -3,6 +3,8 @@
 Can the colour chain of [Bubble Chain](../bubble-chain/) be found in **one frame** instead of round by round?
 Yes: one invisible Probe sprite walks the chain inside a custom block that runs without screen refresh.
 
+A step-by-step explanation with the real blocks is in [tutorial.html](tutorial.html) (generated from `tutorial.template.html`).
+
 ## How it works
 
 - **One sprite per colour** (`Bubble1` … `Bubble6`). Every stuck bubble is a clone of the sprite of its colour,

@@ -1,0 +1,208 @@
+<title>Bubble Probe Tutorial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: one reading column; each part of the approach is a numbered section with its real blocks. */
+:root {
+  --bg: #f2f6f8; --surface: #ffffff; --fg: #17242c; --muted: #52646e; --line: #d6e1e6;
+  --accent: #0d7d8c; --accent-soft: #dcf0f2; --warm: #c2410c; --code-bg: #f5f9fa;
+  --b1: #e8456b; --b2: #3fa94d; --b3: #2f9fd8; --b4: #f0a020;
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1a20; --surface: #16252d; --fg: #e6eff3; --muted: #9db0ba; --line: #29404b;
+  --accent: #5cc8d6; --accent-soft: #173a42; --warm: #f59e66; --code-bg: #1c2e37; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f1a20; --surface: #16252d; --fg: #e6eff3; --muted: #9db0ba; --line: #29404b;
+  --accent: #5cc8d6; --accent-soft: #173a42; --warm: #f59e66; --code-bg: #1c2e37; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 17px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 48px; }
+main > *, .part > *, .stack > *, .intro > * { min-width: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 6vw, 2.9rem); }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p, ul, ol { margin: 0; max-width: 66ch; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+a { color: var(--accent); }
+code { font: 0.88em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.eyebrow { font: 600 0.78rem var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--warm); }
+.intro { display: grid; gap: 14px; }
+.intro p.lead { color: var(--muted); font-size: 1.1rem; }
+.stack { display: grid; gap: 14px; }
+
+.ingredients { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.ingredients div { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+.ingredients b { font-family: var(--display); font-weight: 500; font-size: 1.05rem; color: var(--accent); }
+.ingredients span { color: var(--muted); font-size: 0.95rem; }
+
+.part { display: grid; gap: 18px; border-top: 2px solid var(--line); padding-top: 32px; }
+.part-head { display: flex; align-items: center; gap: 14px; }
+.num { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--surface); font: 600 1.3rem var(--display); }
+
+.blocks-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; overflow-x: auto; }
+.blocks-panel .label { font: 700 0.78rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.blocks-panel .label .warp { color: var(--warm); text-transform: none; letter-spacing: 0; font-weight: 400; }
+pre.blocks { margin: 0; font: 13px var(--mono); white-space: pre; }
+
+.note { border-left: 3px solid var(--warm); padding: 2px 0 2px 14px; max-width: 66ch; }
+.note b { color: var(--warm); }
+figure { margin: 0; display: grid; gap: 8px; justify-items: center; }
+figure svg { width: 100%; max-width: 360px; height: auto; }
+figcaption { font-size: 0.9rem; color: var(--muted); max-width: 60ch; text-align: center; }
+svg text { font: 13px var(--mono); fill: var(--fg); }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 700; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; }
+td:first-child { font-weight: 700; }
+.links { display: flex; flex-wrap: wrap; gap: 10px; }
+.links a { background: var(--accent); color: var(--surface); text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; }
+.links a.quiet { background: var(--accent-soft); color: var(--accent); }
+.links a:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
+</style>
+
+<main>
+  <header class="intro">
+    <div class="eyebrow">Scratch demo · tutorial</div>
+    <h1>Bubble Probe: finding a colour chain in one frame</h1>
+    <p class="lead">In a bubble shooter, the bubble you fire joins a group of the same colour. If the group has three or more, it pops, and anything left hanging falls. This tutorial shows how to find that group in Scratch, using touching blocks instead of a grid list, and how to make the whole search happen between two screen refreshes.</p>
+    <div class="links">
+      <a href="bubble-probe.sb3">Download bubble-probe.sb3</a>
+      <a class="quiet" href="https://claude.ai/artifact/6s2EQQNp3zY4wCXT8ZTzyb">Play the demo</a>
+    </div>
+  </header>
+
+  <section class="stack">
+    <h2>The idea</h2>
+    <p>The earlier <i>Bubble Chain</i> demo let the chain spread visibly: each round, bubbles touching a glowing ring put on a ring of their own. It works, but it takes one frame per ring of bubbles. Bubble Probe gets the same answer at once by combining three things:</p>
+    <div class="ingredients">
+      <div><b>One sprite per colour</b><span><code>Bubble1</code> … <code>Bubble6</code>. Asking <code>touching Bubble3?</code> means "is a blue bubble here?".</span></div>
+      <div><b>An invisible Probe</b><span>A tiny dot that jumps to a slot and asks that question. It never shows on screen.</span></div>
+      <div><b>Run without screen refresh</b><span>The Probe's custom blocks finish all their loops before Scratch draws the next frame.</span></div>
+    </div>
+  </section>
+
+  <section class="part" id="board">
+    <div class="part-head"><div class="num">1</div><h2>A honeycomb board made of clones</h2></div>
+    <p>The board has 12 rows of 8 slots. Odd rows are shifted half a bubble to the right and hold 7 bubbles. Bubbles are 26 pixels wide and rows are 22.5 pixels apart, so a slot's centre is:</p>
+    <ul>
+      <li><code>x = -91 + col × 26 + (row mod 2) × 13</code></li>
+      <li><code>y = 147 − row × 22.5</code></li>
+    </ul>
+    <p>The starting board is the list <code>layout</code>: 96 items, one per slot, holding a colour number or 0 for empty. When the list is empty the Stage fills it with a random board first.</p>
+    <div class="blocks-panel"><div class="label">Stage</div><!--script:Stage:when flag clicked--></div>
+    <div class="blocks-panel"><div class="label">Stage <span class="warp">· run without screen refresh</span></div><!--script:Stage:define random layout--></div>
+    <p>Each colour sprite walks the list and makes a clone of itself on every slot of its own colour. The six sprites are identical apart from the colour number they look for; here is <code>Bubble1</code>:</p>
+    <div class="blocks-panel"><div class="label">Bubble1</div><!--script:Bubble1:when flag clicked--></div>
+    <div class="blocks-panel"><div class="label">Bubble1</div><!--script:Bubble1:when I receive [fill board v]--></div>
+    <div class="blocks-panel"><div class="label">Bubble1 <span class="warp">· run without screen refresh</span></div><!--script:Bubble1:define fill--></div>
+    <p class="note"><b>Why a custom block?</b> All six sprites receive <code>fill board</code> together and share the counter <code>i</code>. A normal <code>repeat</code> loop pauses after every pass to let the other scripts run, so the six loops kept changing each other's <code>i</code> and no clones were made. A custom block that runs without screen refresh finishes its whole loop before any other script gets a turn.</p>
+  </section>
+
+  <section class="part" id="keys">
+    <div class="part-head"><div class="num">2</div><h2>A name for every slot</h2></div>
+    <p>The search needs to remember which slots it has already visited, and each clone needs to know whether it was chosen. Both use a <b>key</b>: the slot's x and twice its y, rounded and joined with a comma, for example <code>-13,294</code>. Twice y keeps the half pixels of the 22.5 row height, so every slot gets its own key. Each clone works out its key once, when it starts, in its local variable <code>myKey</code>.</p>
+    <div class="blocks-panel"><div class="label">Bubble1</div><!--script:Bubble1:when I start as a clone--></div>
+    <p>When a shot lands, the Shooter snaps it to the nearest slot and asks the sprite of that colour for a new clone there:</p>
+    <div class="blocks-panel"><div class="label">Bubble1</div><!--script:Bubble1:when I receive [add bubble v]--></div>
+  </section>
+
+  <section class="part" id="probe">
+    <div class="part-head"><div class="num">3</div><h2>The Probe: look at the six neighbours</h2></div>
+    <p>The Probe is a 4 × 4 pixel dot. It is shown, but with the ghost effect at 100, so it is invisible yet still counts for <code>touching</code>. A hidden sprite never touches anything.</p>
+    <div class="blocks-panel"><div class="label">Probe</div><!--script:Probe:when flag clicked--></div>
+    <figure>
+      <svg viewBox="0 0 300 190" role="img" aria-label="A bubble and its six neighbour slots with their offsets">
+        <g stroke="var(--line)" stroke-width="2" fill="var(--surface)">
+          <circle cx="124" cy="50" r="24"/><circle cx="176" cy="50" r="24"/>
+          <circle cx="98" cy="95" r="24"/><circle cx="202" cy="95" r="24"/>
+          <circle cx="124" cy="140" r="24"/><circle cx="176" cy="140" r="24"/>
+        </g>
+        <circle cx="150" cy="95" r="24" fill="var(--b3)"/>
+        <g fill="var(--warm)"><rect x="122" y="48" width="4" height="4"/><rect x="174" y="48" width="4" height="4"/>
+          <rect x="96" y="93" width="4" height="4"/><rect x="200" y="93" width="4" height="4"/>
+          <rect x="122" y="138" width="4" height="4"/><rect x="174" y="138" width="4" height="4"/></g>
+        <text x="132" y="16" text-anchor="end">−13, +22.5</text><text x="168" y="16">+13, +22.5</text>
+        <text x="70" y="99" text-anchor="end">−26, 0</text><text x="230" y="99">+26, 0</text>
+        <text x="132" y="182" text-anchor="end">−13, −22.5</text><text x="168" y="182">+13, −22.5</text>
+      </svg>
+      <figcaption>Every slot has six neighbours. The Probe (orange dot) visits each one by adding these offsets to the slot it is checking.</figcaption>
+    </figure>
+    <p>The visit is one custom block. It skips slots outside the walls and above the ceiling, and slots already in <code>seen</code>. Otherwise it records the slot as seen, moves there and asks <code>touching (join "Bubble" newColor)?</code>. If the answer is yes, the slot joins the match and goes into the queue so its own neighbours are checked later.</p>
+    <div class="blocks-panel"><div class="label">Probe <span class="warp">· run without screen refresh</span></div><!--script:Probe:define visit for match--></div>
+  </section>
+
+  <section class="part" id="queue">
+    <div class="part-head"><div class="num">4</div><h2>Walk the whole chain with a queue</h2></div>
+    <p>A queue is a to-do list of slots whose neighbours still need checking. Scratch has no list of pairs, so the queue is two lists side by side: <code>qx</code> and <code>qy</code>. The search:</p>
+    <ol>
+      <li>Starts with the bubble that just landed: its key goes into <code>seen</code> and <code>matchKeys</code>, its position into the queue.</li>
+      <li>Takes the first slot out of the queue.</li>
+      <li>Visits its six neighbours. Matching ones join the queue.</li>
+      <li>Repeats until the queue is empty.</li>
+    </ol>
+    <p>Programmers call this a breadth-first search, or a flood fill. At the end, <code>matchKeys</code> lists every bubble in the group.</p>
+    <div class="blocks-panel"><div class="label">Probe <span class="warp">· run without screen refresh</span></div><!--script:Probe:define find matches--></div>
+    <p class="note"><b>Tick the box.</b> In the Scratch editor, right-click the <code>define</code> block, choose <i>Edit</i>, and tick <i>Run without screen refresh</i> for <code>find matches</code>, <code>visit for match</code>, <code>find anchored</code> and <code>visit for anchor</code>. Without it, every pass of <code>repeat until</code> waits for the next frame and the search takes many frames, like Bubble Chain. The block pictures cannot show the tick, so the panels say so in their labels.</p>
+  </section>
+
+  <section class="part" id="anchor">
+    <div class="part-head"><div class="num">5</div><h2>Which bubbles still hang from the ceiling?</h2></div>
+    <p>If the group pops, some bubbles may lose their connection to the ceiling. The same search finds the ones that keep it. This time it starts from all eight slots of the top row, accepts a bubble of any colour, and skips the bubbles that are about to pop. Every key it reaches goes into <code>anchoredKeys</code>; bubbles not in that list will fall.</p>
+    <div class="blocks-panel"><div class="label">Probe <span class="warp">· run without screen refresh</span></div><!--script:Probe:define find anchored--></div>
+    <div class="blocks-panel"><div class="label">Probe <span class="warp">· run without screen refresh</span></div><!--script:Probe:define visit for anchor--></div>
+    <p>The <code>probe</code> message runs both searches. It only looks for anchored bubbles when something pops, and copies the match into <code>popKeys</code> only when it has three or more bubbles.</p>
+    <div class="blocks-panel"><div class="label">Probe</div><!--script:Probe:when I receive [probe v]--></div>
+  </section>
+
+  <section class="part" id="resolve">
+    <div class="part-head"><div class="num">6</div><h2>Every clone checks its own key</h2></div>
+    <p>The Probe only produces lists. The clones act on them: each one asks whether <code>popKeys</code> contains its <code>myKey</code> (pop), or whether something popped and <code>anchoredKeys</code> does not contain it (fall). Everyone else stays. The pop and fall animations are normal loops, so they play over the next frames while the search itself is already finished.</p>
+    <div class="blocks-panel"><div class="label">Bubble1</div><!--script:Bubble1:when I receive [resolve v]--></div>
+  </section>
+
+  <section class="part" id="shooter">
+    <div class="part-head"><div class="num">7</div><h2>The Shooter ties it together</h2></div>
+    <p>The Shooter aims at the mouse, flies until it touches any bubble or the ceiling, and snaps to the nearest slot. Then it runs the phases in order, each with <code>broadcast and wait</code>: <code>add bubble</code>, <code>probe</code>, <code>resolve</code>. The variable <code>phase</code> shows where the game is (<code>aim</code>, <code>fly</code>, <code>probe</code>, <code>resolve</code>).</p>
+    <div class="blocks-panel"><div class="label">Shooter</div><!--script:Shooter:when I receive [play v]--></div>
+    <div class="blocks-panel"><div class="label">Shooter</div><!--script:Shooter:when stage clicked--></div>
+  </section>
+
+  <section class="stack" id="results">
+    <h2>How well does it work?</h2>
+    <p>Automated tests fire 25 shots at random boards and compare the result with an exact flood fill on a grid. Every shot matched. The search always finished within the frame the shot landed in, and the slowest of those frames took about 4 ms of real time; a Scratch frame lasts 33 ms.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>Bubble Chain</th><th>Bubble Probe</th></tr></thead>
+      <tbody>
+        <tr><td>How the chain is found</td><td>Glowing rings spread from bubble to bubble with <code>touching color</code></td><td>An invisible Probe visits neighbour slots with <code>touching sprite</code></td></tr>
+        <tr><td>Time</td><td>One frame per ring of bubbles</td><td>One frame</td></tr>
+        <tr><td>Extra art</td><td>Ring costumes in special detector colours</td><td>None</td></tr>
+        <tr><td>Sprites</td><td>One Bubble sprite with colour costumes</td><td>One sprite per colour</td></tr>
+        <tr><td>Best for</td><td>Seeing the chain spread</td><td>Instant, exact results</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="stack" id="pitfalls">
+    <h2>Things that went wrong on the way</h2>
+    <ul>
+      <li><b>Hidden sprites touch nothing.</b> Use the ghost effect at 100 to make the Probe invisible.</li>
+      <li><b>Shared counters in normal loops get mixed up.</b> Scripts that run at the same time take turns after every loop pass. Put such loops in a custom block that runs without screen refresh, or give each sprite its own variables.</li>
+      <li><b>Probe from the slot centre, not the shot's position.</b> The shot stops wherever it first touches a bubble; snap it to a slot before searching, or the neighbour offsets miss.</li>
+      <li><b>Keep the result in its own phase.</b> Separating <code>probe</code> from <code>resolve</code> made it possible to measure the search on its own, without the pop animation.</li>
+    </ul>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/scratchblocks@3.6.4/build/scratchblocks.min.js"></script>
+<script>
+  scratchblocks.renderMatching("pre.blocks", { style: "scratch3", languages: ["en"], scale: 0.75 });
+</script>

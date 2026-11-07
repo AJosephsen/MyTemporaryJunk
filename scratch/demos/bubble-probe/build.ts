@@ -13,6 +13,7 @@
 // Run: node --experimental-strip-types --no-warnings build.ts
 import { writeFileSync } from "node:fs";
 import { Project, Blocks, dsl, type Ref, type In } from "../../lib/sb3.ts";
+import { buildExplainer } from "../../lib/tutorial.ts";
 import { COLORS, bubbleBody } from "../../games/glimmer-pop/art.ts";
 
 const P = new Project();
@@ -247,3 +248,4 @@ const sb3 = P.build({
 });
 writeFileSync(new URL("bubble-probe.sb3", import.meta.url), sb3);
 console.log(`bubble-probe.sb3: ${sb3.length} bytes`);
+buildExplainer(new URL("tutorial.template.html", import.meta.url), new URL("tutorial.html", import.meta.url), sb3);

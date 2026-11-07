@@ -25,6 +25,9 @@ export class Project {
   }
 
   sprite(name: string, opts: { blocks?: Blocks; costumes: any[]; layer: number; x?: number; y?: number }) {
+    // A block with no parent that does not start a script was created but never placed.
+    const strays = Object.values(opts.blocks?.map ?? {}).filter((b: any) => b.parent === null && !b.topLevel);
+    if (strays.length) throw new Error(`${name}: ${strays.length} stray blocks (${strays.map((b: any) => b.opcode).join(", ")})`);
     return {
       isStage: false, name, variables: {}, lists: {}, broadcasts: {}, blocks: opts.blocks?.map ?? {}, comments: {},
       currentCostume: 0, costumes: opts.costumes, sounds: [], volume: 100, layerOrder: opts.layer, visible: true,
@@ -135,6 +138,9 @@ export function dsl(B: Blocks) {
     goto: (x: In, y: In) => B.add("motion_gotoxy", { X: num(x), Y: num(y) }),
     point: (d: number) => B.add("motion_pointindirection", { DIRECTION: [1, [8, String(d)]] }),
     turn: (d: number) => B.add("motion_turnright", { DEGREES: num(d) }),
+    turnLeft: (d: number) => B.add("motion_turnleft", { DEGREES: num(d) }),
+    deleteAll: (list: string) => B.add("data_deletealloflist", {}, { LIST: [list, P.listId(list)] }),
+    addTo: (list: string, x: In) => B.add("data_addtolist", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     costume: (name: string) => B.add("looks_switchcostumeto", { COSTUME: [1, B.shadow("looks_costume", { COSTUME: [name, null] })] }),
     show: () => B.add("looks_show"),
     hide: () => B.add("looks_hide"),

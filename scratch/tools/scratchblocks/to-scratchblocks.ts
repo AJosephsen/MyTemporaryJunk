@@ -1,0 +1,118 @@
+// Converts the scripts of a Scratch 3 project.json into scratchblocks text,
+// the syntax used by the scratchblocks library and the Scratch Wiki to draw blocks.
+// CLI: node --experimental-strip-types --no-warnings to-scratchblocks.ts <project.json>
+// Covers the blocks used in this repository; unknown opcodes are written as obsolete blocks.
+import { readFileSync } from "node:fs";
+
+type Block = { opcode: string; next: string | null; inputs: Record<string, any[]>; fields: Record<string, any[]>;
+  topLevel: boolean; shadow: boolean; mutation?: any };
+
+const isNum = (s: unknown) => typeof s === "number" || (typeof s === "string" && s.trim() !== "" && !isNaN(Number(s)));
+const BIN: Record<string, string> = {
+  operator_add: "+", operator_subtract: "-", operator_multiply: "*", operator_divide: "/", operator_mod: "mod",
+};
+const CMP: Record<string, string> = { operator_lt: "<", operator_gt: ">", operator_equals: "=" };
+
+export function scripts(blocks: Record<string, Block | any[]>): string[] {
+  const get = (id: string) => blocks[id] as Block;
+  const field = (b: Block, name: string) => String(b.fields[name]?.[0] ?? "");
+
+  // A value slot: literal, variable, menu shadow or reporter block.
+  function value(b: Block, name: string, empty = "()"): string {
+    const slot = b.inputs[name];
+    if (!slot || slot[1] === null) return empty;
+    const v = slot[1];
+    if (typeof v === "string") {
+      const r = get(v);
+      return r.shadow ? `(${String(Object.values(r.fields)[0][0])} v)` : reporter(r);
+    }
+    switch (v[0]) {
+      case 11: return `(${v[1]} v)`;
+      case 12: case 13: return `(${v[1]})`;
+      case 10: return isNum(v[1]) ? `(${v[1]})` : `[${v[1]}]`;
+      default: return `(${v[1]})`;
+    }
+  }
+  const cond = (b: Block, name: string) => value(b, name, "<>");
+
+  function reporter(b: Block): string {
+    const o = b.opcode;
+    if (BIN[o]) return `(${value(b, "NUM1")} ${BIN[o]} ${value(b, "NUM2")})`;
+    if (CMP[o]) return `<${value(b, "OPERAND1")} ${CMP[o]} ${value(b, "OPERAND2")}>`;
+    switch (o) {
+      case "operator_and": return `<${cond(b, "OPERAND1")} and ${cond(b, "OPERAND2")}>`;
+      case "operator_or": return `<${cond(b, "OPERAND1")} or ${cond(b, "OPERAND2")}>`;
+      case "operator_not": return `<not ${cond(b, "OPERAND")}>`;
+      case "operator_round": return `(round ${value(b, "NUM")})`;
+      case "operator_mathop": return `([${field(b, "OPERATOR")} v] of ${value(b, "NUM")})`;
+      case "operator_join": return `(join ${value(b, "STRING1")} ${value(b, "STRING2")})`;
+      case "operator_random": return `(pick random ${value(b, "FROM")} to ${value(b, "TO")})`;
+      case "data_itemoflist": return `(item ${value(b, "INDEX")} of [${field(b, "LIST")} v])`;
+      case "data_lengthoflist": return `(length of [${field(b, "LIST")} v])`;
+      case "motion_direction": return "(direction)";
+      case "motion_xposition": return "(x position)";
+      case "motion_yposition": return "(y position)";
+      case "sensing_keypressed": return `<key ${value(b, "KEY_OPTION")} pressed?>`;
+      case "sensing_touchingobject": return `<touching ${value(b, "TOUCHINGOBJECTMENU")}?>`;
+    }
+    return `(${o} :: obsolete)`;
+  }
+
+  const indent = (lines: string[]) => lines.map(l => "  " + l);
+
+  function stack(id: string | null): string[] {
+    const out: string[] = [];
+    for (; id; id = get(id).next) out.push(...statement(get(id)));
+    return out;
+  }
+  const sub = (b: Block, name: string) => indent(stack(b.inputs[name]?.[1] ?? null));
+
+  function statement(b: Block): string[] {
+    switch (b.opcode) {
+      case "event_whenflagclicked": return ["when flag clicked"];
+      case "event_whenbroadcastreceived": return [`when I receive [${field(b, "BROADCAST_OPTION")} v]`];
+      case "event_broadcast": return [`broadcast ${value(b, "BROADCAST_INPUT")}`];
+      case "data_setvariableto": return [`set [${field(b, "VARIABLE")} v] to ${value(b, "VALUE")}`];
+      case "data_changevariableby": return [`change [${field(b, "VARIABLE")} v] by ${value(b, "VALUE")}`];
+      case "data_deletealloflist": return [`delete all of [${field(b, "LIST")} v]`];
+      case "data_addtolist": return [`add ${value(b, "ITEM")} to [${field(b, "LIST")} v]`];
+      case "motion_gotoxy": return [`go to x: ${value(b, "X")} y: ${value(b, "Y")}`];
+      case "motion_pointindirection": return [`point in direction ${value(b, "DIRECTION")}`];
+      case "motion_turnright": return [`turn right ${value(b, "DEGREES")} degrees`];
+      case "motion_turnleft": return [`turn left ${value(b, "DEGREES")} degrees`];
+      case "looks_switchcostumeto": return [`switch costume to ${value(b, "COSTUME")}`];
+      case "looks_show": return ["show"];
+      case "looks_hide": return ["hide"];
+      case "looks_gotofrontback": return [`go to [${field(b, "FRONT_BACK")} v] layer`];
+      case "looks_say": return [`say ${value(b, "MESSAGE")}`];
+      case "looks_sayforsecs": return [`say ${value(b, "MESSAGE")} for ${value(b, "SECS")} seconds`];
+      case "control_wait": return [`wait ${value(b, "DURATION")} seconds`];
+      case "control_stop": return [`stop [${field(b, "STOP_OPTION")} v]`];
+      case "control_forever": return ["forever", ...sub(b, "SUBSTACK"), "end"];
+      case "control_repeat": return [`repeat ${value(b, "TIMES")}`, ...sub(b, "SUBSTACK"), "end"];
+      case "control_repeat_until": return [`repeat until ${cond(b, "CONDITION")}`, ...sub(b, "SUBSTACK"), "end"];
+      case "control_if": return [`if ${cond(b, "CONDITION")} then`, ...sub(b, "SUBSTACK"), "end"];
+      case "control_if_else":
+        return [`if ${cond(b, "CONDITION")} then`, ...sub(b, "SUBSTACK"), "else", ...sub(b, "SUBSTACK2"), "end"];
+    }
+    return [`${b.opcode} :: obsolete`];
+  }
+
+  return Object.entries(blocks)
+    .filter(([, b]) => !Array.isArray(b) && b.topLevel && !b.shadow)
+    .map(([id]) => stack(id).join("\n"));
+}
+
+// Scripts of every sprite, keyed by sprite name.
+export function projectScripts(project: any): Record<string, string[]> {
+  return Object.fromEntries(project.targets.map((t: any) => [t.name, scripts(t.blocks)]));
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const project = JSON.parse(readFileSync(process.argv[2], "utf8"));
+  for (const [name, list] of Object.entries(projectScripts(project))) {
+    if (!list.length) continue;
+    console.log(`// ${name}`);
+    for (const s of list) console.log(s + "\n");
+  }
+}

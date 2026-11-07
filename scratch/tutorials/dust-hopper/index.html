@@ -377,7 +377,7 @@ change [posY v] by (vy)</pre></div>
     <h3>How it works</h3>
     <ul class="do">
       <li><b>The tick</b> now calls <b>read controls</b> and <b>run engine</b> before <b>move</b>, so each frame reads the keys, works out the force, then moves.</li>
-      <li><b>read controls</b> raises or lowers the throttle by one step. The tick comes about 30 times a second, so holding a key would race to 15 almost at once. <b>cooldown</b> fixes that: after each step it is set to 3, and the keys are only read again once it has counted back down to 0. That gives about 10 steps per second while a key is held.</li>
+      <li><b>read controls</b> raises or lowers the throttle by one step. The tick comes about 30 times a second, so holding a key would race to 15 almost at once. <b>cooldown</b> fixes that: after each step it is set to 3, and the keys are only read again once it has counted back down to 0, three frames later. That gives one step every 4 frames, about 7 steps per second, while a key is held.</li>
       <li><b>move</b> now uses <b>change vy by (force − gravity)</b>: the same gravity rule, with the engine pushing back.</li>
     </ul>
     <p class="note"><b>Flying too high?</b> If you climb for a long time the drone sticks at the top edge of the Stage. Step 5 fixes this.</p>

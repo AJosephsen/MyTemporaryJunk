@@ -1,0 +1,23 @@
+{
+  "name": "scratch-workbench",
+  "private": true,
+  "type": "module",
+  "description": "Generate, play and test Scratch projects locally.",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "dev": "node --experimental-strip-types --no-warnings workbench/dev.ts",
+    "build": "node --experimental-strip-types --no-warnings workbench/build-all.ts",
+    "test": "node --experimental-strip-types --no-warnings workbench/test.ts",
+    "check": "tsc -p ."
+  },
+  "dependencies": {
+    "@turbowarp/scaffolding": "0.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "playwright": "1.63.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Scratch: dev server (live reload)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/scratch" },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "scratch",
+        "pattern": { "regexp": "^__never__$" },
+        "background": { "activesBegin": true, "beginsPattern": "Built all projects|Build failed", "endsPattern": "Scratch workbench: http" }
+      }
+    },
+    {
+      "label": "Scratch: build all",
+      "type": "shell",
+      "command": "npm run build",
+      "options": { "cwd": "${workspaceFolder}/scratch" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Scratch: test",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}/scratch" },
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Scratch: type check",
+      "type": "shell",
+      "command": "npm run check",
+      "options": { "cwd": "${workspaceFolder}/scratch" },
+      "problemMatcher": "$tsc"
+    }
+  ]
+}

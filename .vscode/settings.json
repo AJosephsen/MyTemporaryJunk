@@ -1,0 +1,5 @@
+{
+  "typescript.tsdk": "scratch/node_modules/typescript/lib",
+  "files.exclude": { "**/node_modules": true },
+  "search.exclude": { "**/*.sb3": true, "scratch/tutorials/*/blocks.json": true }
+}

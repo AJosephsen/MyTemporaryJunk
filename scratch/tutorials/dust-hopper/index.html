@@ -49,7 +49,6 @@ ol.do { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 66ch
 
 .blocks-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; overflow-x: auto; }
 .blocks-panel .label { font: 700 0.78rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-.sprites { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 pre.blocks { margin: 0; font: 13px var(--mono); white-space: pre; }
 
 .note { border-left: 3px solid var(--drone); padding: 2px 0 2px 14px; color: var(--fg); }
@@ -72,6 +71,16 @@ th { font-size: 0.82rem; color: var(--muted); font-weight: 700; }
 .btn:hover, .btn:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 1px; }
 .try { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
 svg.coords text { font: 11px var(--body); fill: var(--muted); }
+.scripts { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.scripts .blocks-panel { flex: 0 1 auto; max-width: 100%; min-width: 0; }
+.tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; padding: 1px 7px; border-radius: 999px; margin-left: 6px; }
+.tag.new { background: var(--accent); color: var(--surface); }
+.tag.changed { border: 1px solid var(--drone); color: var(--drone); }
+.flow { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; counter-reset: none; }
+.flow li { display: grid; gap: 2px; padding: 10px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line);
+  flex: 1 1 130px; min-width: 0; position: relative; }
+.flow li b { font: 600 1.05rem var(--display); color: var(--accent); }
+.flow li span { font-size: 0.85rem; color: var(--muted); }
 footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--line); padding-top: 24px; }
 </style>
 
@@ -79,15 +88,15 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
   <header class="intro">
     <span class="eyebrow">Scratch tutorial · 8 steps · about 3–4 hours</span>
     <h1>Build Dust Hopper</h1>
-    <p>Dust Hopper is a landing game. You fly a small survey drone over an asteroid and set it down gently on a landing pad. Along the way you will learn how real game physics work: speed, gravity, thrust and angles.</p>
+    <p>Dust Hopper is a landing game. You fly a small survey drone over an asteroid and set it down gently on a landing pad. Along the way you will learn how real game physics work, with speed, gravity, thrust and angles, and how to organise a game into small, named pieces.</p>
     <p>You need the free Scratch editor at <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>. Each step ends with a checkpoint file, so you can compare your project or catch up.</p>
   </header>
 
   <section class="stack" aria-label="Steps">
     <h3>The plan</h3>
     <ol class="plan">
-      <li><a href="#step-1"><span class="name">Set the scene</span></a><span class="what">Backdrop, ground, pads and drone in place</span></li>
-      <li><a href="#step-2"><span class="name">Gravity</span></a><span class="what">The drone falls faster and faster, and stops on the ground</span></li>
+      <li><a href="#step-1"><span class="name">Set the scene</span></a><span class="what">Artwork in place, and a setup phase that prepares every sprite</span></li>
+      <li><a href="#step-2"><span class="name">Gravity and the tick</span></a><span class="what">A clock that ticks every frame; the drone falls faster and faster</span></li>
       <li><a href="#step-3"><span class="name">Engine</span></a><span class="what">Throttle with Up and Down, thrust against gravity</span></li>
       <li><a href="#step-4"><span class="name">Tilting</span></a><span class="what">Rotate, and split thrust into sideways and upward parts</span></li>
       <li><a href="#step-5"><span class="name">Screen edges</span></a><span class="what">Fly off one side and come back on the other</span></li>
@@ -97,10 +106,28 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     </ol>
   </section>
 
+  <section class="stack" id="organised">
+    <h2>How the game is organised</h2>
+    <p>Many Scratch games put everything in one big <b>forever</b> loop. Dust Hopper doesn’t. Instead it uses two tools that keep every script short:</p>
+    <ul class="do">
+      <li><b>Messages for phases.</b> The game moves through named phases. Each phase is a message (a broadcast), and any sprite can react to it with <b>when I receive</b>.</li>
+      <li><b>My Blocks for jobs.</b> The work the drone does in every frame is split into custom blocks with names like <b>move</b> and <b>check touchdown</b>. Each one does one job.</li>
+    </ul>
+    <ol class="flow" aria-label="Game phases in order">
+      <li><b>setup</b><span>once, when the green flag is clicked</span></li>
+      <li><b>new round</b><span>the drone gets ready at the top</span></li>
+      <li><b>tick</b><span>every frame, about 30 times a second</span></li>
+      <li><b>round over</b><span>landed or crashed: show the result</span></li>
+      <li><b>game over</b><span>when the fuel is gone</span></li>
+    </ol>
+    <p>After <b>round over</b> the game goes back to <b>new round</b> until the fuel runs out. The only loop in the whole game is on the Stage: it sends <b>tick</b> again and again.</p>
+    <p class="note"><b>One thing at a time.</b> Scratch never really runs two scripts at once. In each frame it gives every running script a turn, one after another. You can’t rely on which script goes first, so work that must happen in a fixed order goes into one script, as a list of My Blocks.</p>
+  </section>
+
   <!-- ============================================================ STEP 1 -->
   <section class="step" id="step-1">
     <div class="step-head"><span class="num">1</span><h2>Set the scene</h2></div>
-    <p>A game needs a world before it needs rules. In this step you load the artwork and make sure every sprite starts in the same place each time you click the green flag.</p>
+    <p>A game needs a world before it needs rules. In this step you load the artwork and add the <b>setup</b> phase, which puts every sprite in its starting place.</p>
 
     <h3>Get the artwork</h3>
     <ol class="do">
@@ -129,42 +156,56 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
       <text x="228" y="46" style="fill:var(--drone)">drone start (-60, 150)</text>
     </svg>
 
-    <h3>Add the code</h3>
-    <p>Click each sprite in the sprite list and drag in these blocks. The <b>go to</b> blocks put things back where they belong, even if you dragged a sprite by accident. <b>point in direction 90</b> means “stand up straight”: in Scratch, direction 90 shows a costume exactly as it was drawn.</p>
-    <div class="sprites">
-      <div class="blocks-panel"><div class="label">Ground</div>
+    <h3>Make the setup message</h3>
+    <ol class="do">
+      <li>Click the <b>Stage</b> (bottom right). From Events, drag in <b>when flag clicked</b> and <b>broadcast and wait</b>.</li>
+      <li>Open the menu on <b>broadcast and wait</b>, choose <b>New message</b>, and call it <code>setup</code>.</li>
+      <li>Give each sprite a <b>when I receive setup</b> script, as shown below.</li>
+    </ol>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Stage <span class="tag new">new</span></div>
 <pre class="blocks">when flag clicked
+broadcast (setup v) and wait</pre></div>
+<div class="blocks-panel"><div class="label">Ground <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [setup v]
 go to x: (0) y: (0)</pre></div>
-      <div class="blocks-panel"><div class="label">Pads</div>
-<pre class="blocks">when flag clicked
+<div class="blocks-panel"><div class="label">Pads <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [setup v]
 go to x: (0) y: (0)</pre></div>
-      <div class="blocks-panel"><div class="label">Drone</div>
-<pre class="blocks">when flag clicked
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [setup v]
 go to x: (-60) y: (150)
 point in direction (90)</pre></div>
-    </div>
+</div>
+
+    <h3>How it works</h3>
+    <ul class="do">
+      <li><b>The Stage is in charge.</b> Only the Stage reacts to the green flag. It sends <b>setup</b> to everyone.</li>
+      <li><b>broadcast and wait</b> waits until every <b>when I receive setup</b> script has finished. So when the next block runs (in step 2), every sprite is guaranteed to be ready.</li>
+      <li><b>point in direction 90</b> means “stand up straight”: in Scratch, direction 90 shows a costume exactly as it was drawn.</li>
+    </ul>
 
     <h3>Check it</h3>
-    <p>Click the green flag. The drone should hang in the sky above the rocks. Nothing moves yet; that comes next.</p>
+    <p>Click the green flag. The drone should hang in the sky above the rocks. Nothing moves yet.</p>
     <figure>
       <img src="step1.png" alt="The Stage after step 1: a starry sky with a ringed planet, purple rocks with three yellow landing pads marked x2, x5 and x3, and the drone near the top." width="992" height="744" loading="lazy">
-      <figcaption>End of step 1. The drone waits near the top of the Stage.</figcaption>
+      <figcaption>End of step 1. Everything is in its starting place.</figcaption>
     </figure>
     <div class="checkpoint">
-      <p>Checkpoint: the project as it should look at the end of step 1.</p>
+      <p>Checkpoint: the project at the end of step 1.</p>
       <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/dust-hopper/step1.sb3">Download step1.sb3</a>
     </div>
   </section>
 
   <!-- ============================================================ STEP 2 -->
   <section class="step" id="step-2">
-    <div class="step-head"><span class="num">2</span><h2>Gravity</h2></div>
-    <p>Things do not fall at a steady speed. They start slowly and get faster. Games copy this with two simple rules, repeated in every frame (Scratch draws about 30 frames each second):</p>
+    <div class="step-head"><span class="num">2</span><h2>Gravity and the tick</h2></div>
+    <p>Things do not fall at a steady speed. They start slowly and get faster. Games copy this with two simple rules, repeated in every frame:</p>
     <ol class="do">
       <li><b>Gravity changes the speed:</b> the falling speed grows a little.</li>
       <li><b>Speed changes the position:</b> the drone moves by its current speed.</li>
     </ol>
-    <p>Because the speed keeps growing, each move is a bit bigger than the last. Here are the numbers from the code below, frame by frame:</p>
+    <p>Because the speed keeps growing, each move is a bit bigger than the last:</p>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Frame</th><th>Time</th><th>Speed <code>vy</code></th><th>Height <code>posY</code></th><th>Descent display</th></tr></thead>
@@ -181,55 +222,86 @@ point in direction (90)</pre></div>
     </div>
     <p>In the first second the drone drops about 16 pixels. In the third second it drops almost 80. That is gravity.</p>
 
-    <h3>Make the variables</h3>
-    <ol class="do">
-      <li>Go to the <b>Variables</b> category and click <b>Make a Variable</b>. Create <code>gravity</code>, <code>posX</code>, <code>posY</code>, <code>vy</code> and <code>Descent</code>, each <b>For all sprites</b>.</li>
-      <li>Untick the checkbox next to every variable except <code>Descent</code>, so only Descent shows on the Stage.</li>
-    </ol>
-    <p class="note"><b>Why posX and posY?</b> Scratch already knows where the sprite is, but it will not let a sprite leave the Stage. Keeping the position in our own variables means the numbers are always exactly what our code says, and in step 5 it lets the drone fly off one edge and come back on the other.</p>
+    <h3>The tick</h3>
+    <p>“In every frame” needs a clock. The Stage gets a <b>forever</b> loop that sends a <b>tick</b> message, once per frame. Anything that should happen every frame goes in a <b>when I receive tick</b> script.</p>
+    <p class="note"><b>The tick rule:</b> a tick script must finish straight away. No <b>wait</b>, no <b>say … for … seconds</b>, no <b>glide</b>. If a tick script is still busy when the next tick arrives, Scratch starts it again from the top. Notice the plain <b>broadcast tick</b>, not <b>broadcast and wait</b>: waiting would cost an extra frame every time and make the game run at half speed.</p>
 
-    <h3>Add the code</h3>
-    <p>Replace the Drone’s script from step 1 with this one. Leave the Ground and Pads scripts as they are.</p>
-    <div class="blocks-panel"><div class="label">Drone</div>
+    <h3>Make the pieces</h3>
+    <ol class="do">
+      <li><b>Messages:</b> <code>new round</code> and <code>tick</code>.</li>
+      <li><b>Variables</b> (For all sprites): <code>gravity</code>, <code>posX</code>, <code>posY</code>, <code>vy</code>, <code>state</code> and <code>Descent</code>. Untick all of them except <code>Descent</code>, so only Descent shows on the Stage.</li>
+      <li><b>My Blocks:</b> on the Drone, click <b>Make a Block</b> four times and name the blocks <code>move</code>, <code>place on screen</code>, <code>update displays</code> and <code>check touchdown</code>. Each one gives you a pink <b>define</b> hat to build under, and a block you can use in other scripts.</li>
+    </ol>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Stage <span class="tag changed">changed</span></div>
 <pre class="blocks">when flag clicked
+broadcast (setup v) and wait
+broadcast (new round v)
+forever
+  broadcast (tick v)
+end</pre></div>
+<div class="blocks-panel"><div class="label">Stage <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [setup v]
 set [gravity v] to (0.035)
+set [state v] to [waiting]</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [new round v]
 set [posX v] to (-60)
 set [posY v] to (150)
 set [vy v] to (0)
 point in direction (90)
 go to x: (posX) y: (posY)
-repeat until &lt;&lt;touching (Ground v)?&gt; or &lt;touching (Pads v)?&gt;&gt;
-  change [vy v] by ((0) - (gravity))
-  change [posY v] by (vy)
-  go to x: (posX) y: (posY)
-  set [Descent v] to (round ((vy) * (-10)))
-end
-say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
+set [state v] to [flying]</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [tick v]
+if &lt;(state) = [flying]&gt; then
+  move :: custom
+  place on screen :: custom
+  update displays :: custom
+  check touchdown :: custom
+end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">define move
+change [vy v] by ((0) - (gravity))
+change [posY v] by (vy)</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">define place on screen
+go to x: (posX) y: (posY)</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">define update displays
+set [Descent v] to (round ((vy) * (-10)))</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">define check touchdown
+if &lt;&lt;touching (Ground v)?&gt; or &lt;touching (Pads v)?&gt;&gt; then
+  set [state v] to [landed]
+  say (join [Touchdown! Descent: ] (Descent))
+end</pre></div>
+</div>
 
     <h3>How it works</h3>
     <ul class="do">
-      <li><b>The four set blocks</b> reset everything, so each run starts the same way.</li>
-      <li><b>repeat until</b> runs its inside once per frame, until the drone touches the rocks or a pad.</li>
-      <li><b>change vy by (0 − gravity)</b> makes the speed more negative each frame. Negative speed means moving down. Scratch has no “minus” block for a variable, so we subtract it from 0.</li>
-      <li><b>change posY by vy</b> moves the drone by its speed, then <b>go to</b> shows it at the new place.</li>
-      <li><b>Descent</b> turns the speed into a friendly number: it is positive while falling and ten times the speed, rounded. Later, Descent decides whether a landing is gentle or a crash.</li>
+      <li><b>The Stage’s flag script</b> now runs the phases in order: <b>setup</b> (and wait), then <b>new round</b>, then the tick forever.</li>
+      <li><b>state</b> says what the drone is doing. Setup makes it <code>waiting</code>; <b>new round</b> makes it <code>flying</code> as its very last block. The tick script only does anything while the drone is flying.</li>
+      <li><b>move</b> is the gravity rule: <b>change vy by (0 − gravity)</b> makes the speed more negative each frame (negative means down), and <b>change posY by vy</b> moves by the speed. Scratch has no “minus” block for a variable, so we subtract it from 0.</li>
+      <li><b>place on screen</b> shows the drone where posX and posY say. We keep the position in our own variables because Scratch will not let a sprite leave the Stage; in step 5 that lets the drone fly off one edge and come back on the other.</li>
+      <li><b>update displays</b> turns the speed into a friendly number: Descent is ten times the falling speed, rounded.</li>
+      <li><b>check touchdown</b> stops the drone when it touches the rocks or a pad. It uses <b>say</b>, not <b>say for 2 seconds</b>, because of the tick rule.</li>
     </ul>
 
     <h3>Check it</h3>
     <p>Click the green flag. The drone falls, gets faster, and stops on the rocks with a message. With the starting values it lands at a Descent of about 38.</p>
     <figure>
-      <img src="step2.png" alt="The Stage after step 2: the drone has landed on a rocky slope and says Touchdown! Descent: 38. The Descent display in the corner shows 38." width="992" height="744" loading="lazy">
-      <figcaption>End of step 2. The drone hits the rocks at Descent 38, far too fast for a safe landing.</figcaption>
+      <img src="step2.png" alt="The Stage after step 2: the drone has landed on a rocky slope and says Touchdown! with its descent value, which also shows in the Descent display." width="992" height="744" loading="lazy">
+      <figcaption>End of step 2. The drone hits the rocks far too fast for a safe landing.</figcaption>
     </figure>
-
     <h3>Try this</h3>
     <ul class="try">
       <li>Set <code>gravity</code> to <code>0.01</code>. The drone floats down slowly, like on a small moon. What Descent do you get?</li>
       <li>Set <code>gravity</code> to <code>0.1</code>. How much faster is the touchdown?</li>
-      <li>Set the starting <code>posX</code> to <code>-115</code> (in both places). The drone now lands on the ×2 pad.</li>
+      <li>In <b>new round</b>, set <code>posX</code> to <code>-115</code>. The drone now lands on the ×2 pad.</li>
     </ul>
     <div class="checkpoint">
-      <p>Checkpoint: the project as it should look at the end of step 2.</p>
+      <p>Checkpoint: the project at the end of step 2.</p>
       <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/dust-hopper/step2.sb3">Download step2.sb3</a>
     </div>
   </section>
@@ -239,10 +311,10 @@ say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
     <div class="step-head"><span class="num">3</span><h2>Engine</h2></div>
     <p>Now the drone gets an engine. The engine pushes upwards with a <b>force</b>, and gravity still pulls down. Whichever is bigger wins. You control the force with a throttle from 0 (off) to 15 (full power).</p>
 
-    <h3>Make the variables</h3>
+    <h3>Make the pieces</h3>
     <ol class="do">
-      <li>Create <code>Throttle</code>, <code>force</code> and <code>cooldown</code>, each <b>For all sprites</b>.</li>
-      <li>Keep <code>Throttle</code> ticked so it shows on the Stage. Untick the other two.</li>
+      <li><b>Variables:</b> <code>Throttle</code> (keep it ticked), <code>force</code> and <code>cooldown</code> (untick both).</li>
+      <li><b>My Blocks:</b> <code>read controls</code> and <code>run engine</code>.</li>
     </ol>
 
     <h3>How strong is the engine?</h3>
@@ -258,12 +330,9 @@ say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
         </tbody>
       </table>
     </div>
-
-    <h3>Add the code</h3>
-    <p>Here is the whole Drone script after this step. The new parts are the two <b>set</b> blocks at the start for <code>Throttle</code> and <code>cooldown</code>, the big <b>if … else</b> for the keys, the <b>set force</b> block, and the gravity line, which now reads <b>change vy by (force − gravity)</b>.</p>
-    <div class="blocks-panel"><div class="label">Drone</div>
-<pre class="blocks">when flag clicked
-set [gravity v] to (0.035)
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [new round v]
 set [posX v] to (-60)
 set [posY v] to (150)
 set [vy v] to (0)
@@ -271,39 +340,52 @@ set [Throttle v] to (0)
 set [cooldown v] to (0)
 point in direction (90)
 go to x: (posX) y: (posY)
-repeat until &lt;&lt;touching (Ground v)?&gt; or &lt;touching (Pads v)?&gt;&gt;
-  if &lt;(cooldown) &gt; (0)&gt; then
-    change [cooldown v] by (-1)
-  else
-    if &lt;&lt;key (up arrow v) pressed?&gt; and &lt;(Throttle) &lt; (15)&gt;&gt; then
-      change [Throttle v] by (1)
-      set [cooldown v] to (3)
-    end
-    if &lt;&lt;key (down arrow v) pressed?&gt; and &lt;(Throttle) &gt; (0)&gt;&gt; then
-      change [Throttle v] by (-1)
-      set [cooldown v] to (3)
-    end
+set [state v] to [flying]</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [tick v]
+if &lt;(state) = [flying]&gt; then
+  read controls :: custom
+  run engine :: custom
+  move :: custom
+  place on screen :: custom
+  update displays :: custom
+  check touchdown :: custom
+end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">define read controls
+if &lt;(cooldown) &gt; (0)&gt; then
+  change [cooldown v] by (-1)
+else
+  if &lt;&lt;key (up arrow v) pressed?&gt; and &lt;(Throttle) &lt; (15)&gt;&gt; then
+    change [Throttle v] by (1)
+    set [cooldown v] to (3)
   end
-  set [force v] to ((Throttle) * (0.004))
-  change [vy v] by ((force) - (gravity))
-  change [posY v] by (vy)
-  go to x: (posX) y: (posY)
-  set [Descent v] to (round ((vy) * (-10)))
-end
-say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
+  if &lt;&lt;key (down arrow v) pressed?&gt; and &lt;(Throttle) &gt; (0)&gt;&gt; then
+    change [Throttle v] by (-1)
+    set [cooldown v] to (3)
+  end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">define run engine
+set [force v] to ((Throttle) * (0.004))</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define move
+change [vy v] by ((force) - (gravity))
+change [posY v] by (vy)</pre></div>
+</div>
 
     <h3>How it works</h3>
     <ul class="do">
-      <li><b>The key checks</b> raise or lower the throttle by one step. The loop runs about 30 times a second, so holding a key would race to 15 almost at once.</li>
-      <li><b>cooldown</b> fixes that. After each step it is set to 3, and the keys are only read again once it has counted back down to 0. That gives about 10 steps per second while a key is held.</li>
-      <li><b>change vy by (force − gravity)</b> is the same gravity rule as before, with the engine pushing back.</li>
+      <li><b>The tick</b> now calls <b>read controls</b> and <b>run engine</b> before <b>move</b>, so each frame reads the keys, works out the force, then moves.</li>
+      <li><b>read controls</b> raises or lowers the throttle by one step. The tick comes about 30 times a second, so holding a key would race to 15 almost at once. <b>cooldown</b> fixes that: after each step it is set to 3, and the keys are only read again once it has counted back down to 0. That gives about 10 steps per second while a key is held.</li>
+      <li><b>move</b> now uses <b>change vy by (force − gravity)</b>: the same gravity rule, with the engine pushing back.</li>
     </ul>
     <p class="note"><b>Flying too high?</b> If you climb for a long time the drone sticks at the top edge of the Stage. Step 5 fixes this.</p>
 
     <h3>Check it</h3>
     <p>Click the green flag, then hold the Up arrow. The fall slows down. Find the throttle where the drone almost hovers.</p>
     <figure>
-      <img src="step3.png" alt="The drone falling with the throttle at 5, and the Throttle and Descent displays in the corner." width="992" height="744" loading="lazy">
+      <img src="step3.png" alt="The drone falling with some throttle, and the Throttle and Descent displays in the corner." width="992" height="744" loading="lazy">
       <figcaption>End of step 3. With some throttle the drone falls more slowly.</figcaption>
     </figure>
     <h3>Try this</h3>
@@ -322,10 +404,9 @@ say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
     <div class="step-head"><span class="num">4</span><h2>Tilting</h2></div>
     <p>A real lander steers by tilting. When it leans, its engine pushes partly sideways. In this step the drone also arrives with some sideways speed, just like in the 1979 arcade game, so you have to tilt to stop it drifting.</p>
 
-    <h3>Make the variables</h3>
+    <h3>Make the pieces</h3>
     <ol class="do">
-      <li>Create <code>vx</code>, <code>angle</code> and <code>Drift</code>, each <b>For all sprites</b>.</li>
-      <li>Keep <code>Drift</code> ticked; untick the other two. Drift shows the sideways speed the same way Descent shows the falling speed.</li>
+      <li><b>Variables:</b> <code>vx</code> and <code>angle</code> (untick both), and <code>Drift</code> (keep it ticked). Drift shows the sideways speed the same way Descent shows the falling speed.</li>
     </ol>
 
     <h3>Splitting the push</h3>
@@ -355,12 +436,9 @@ say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
       </table>
     </div>
     <p>One tap of an arrow key turns the drone 11.25°, so 32 taps make a full circle, the same as the 1979 game.</p>
-
-    <h3>Add the code</h3>
-    <p>New parts: <b>set vx to 1.2</b> at the start (the drift), the Right and Left arrow checks, the <b>angle</b> blocks, the two <b>change vx / change vy</b> blocks using sin and cos, <b>change posX by vx</b>, and the Drift display.</p>
-    <div class="blocks-panel"><div class="label">Drone</div>
-<pre class="blocks">when flag clicked
-set [gravity v] to (0.035)
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [new round v]
 set [posX v] to (-60)
 set [posY v] to (150)
 set [vx v] to (1.2)
@@ -369,47 +447,51 @@ set [Throttle v] to (0)
 set [cooldown v] to (0)
 point in direction (90)
 go to x: (posX) y: (posY)
-repeat until &lt;&lt;touching (Ground v)?&gt; or &lt;touching (Pads v)?&gt;&gt;
-  if &lt;(cooldown) &gt; (0)&gt; then
-    change [cooldown v] by (-1)
-  else
-    if &lt;&lt;key (up arrow v) pressed?&gt; and &lt;(Throttle) &lt; (15)&gt;&gt; then
-      change [Throttle v] by (1)
-      set [cooldown v] to (3)
-    end
-    if &lt;&lt;key (down arrow v) pressed?&gt; and &lt;(Throttle) &gt; (0)&gt;&gt; then
-      change [Throttle v] by (-1)
-      set [cooldown v] to (3)
-    end
-    if &lt;key (right arrow v) pressed?&gt; then
-      turn right (11.25) degrees
-      set [cooldown v] to (4)
-    end
-    if &lt;key (left arrow v) pressed?&gt; then
-      turn left (11.25) degrees
-      set [cooldown v] to (4)
-    end
+set [state v] to [flying]</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define read controls
+if &lt;(cooldown) &gt; (0)&gt; then
+  change [cooldown v] by (-1)
+else
+  if &lt;&lt;key (up arrow v) pressed?&gt; and &lt;(Throttle) &lt; (15)&gt;&gt; then
+    change [Throttle v] by (1)
+    set [cooldown v] to (3)
   end
-  set [force v] to ((Throttle) * (0.004))
-  set [angle v] to ((direction) - (90))
-  if &lt;(angle) &lt; (-180)&gt; then
-    change [angle v] by (360)
+  if &lt;&lt;key (down arrow v) pressed?&gt; and &lt;(Throttle) &gt; (0)&gt;&gt; then
+    change [Throttle v] by (-1)
+    set [cooldown v] to (3)
   end
-  change [vx v] by ((force) * ([sin v] of (angle)))
-  change [vy v] by (((force) * ([cos v] of (angle))) - (gravity))
-  change [posX v] by (vx)
-  change [posY v] by (vy)
-  go to x: (posX) y: (posY)
-  set [Descent v] to (round ((vy) * (-10)))
-  set [Drift v] to (round ((vx) * (10)))
+  if &lt;key (right arrow v) pressed?&gt; then
+    turn right (11.25) degrees
+    set [cooldown v] to (4)
+  end
+  if &lt;key (left arrow v) pressed?&gt; then
+    turn left (11.25) degrees
+    set [cooldown v] to (4)
+  end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define move
+set [angle v] to ((direction) - (90))
+if &lt;(angle) &lt; (-180)&gt; then
+  change [angle v] by (360)
 end
-say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
+change [vx v] by ((force) * ([sin v] of (angle)))
+change [vy v] by (((force) * ([cos v] of (angle))) - (gravity))
+change [posX v] by (vx)
+change [posY v] by (vy)</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define update displays
+set [Drift v] to (round ((vx) * (10)))
+set [Descent v] to (round ((vy) * (-10)))</pre></div>
+</div>
 
     <h3>How it works</h3>
     <ul class="do">
-      <li><b>angle</b> is the tilt away from upright. Scratch’s direction 90 means upright, so <code>angle = direction − 90</code>. Tilted right gives a positive angle, tilted left a negative one.</li>
-      <li><b>The if after it</b> fixes one corner case. Scratch directions run from −180 to 180, so a drone pointing down and to the left would give an angle below −180. Adding 360 turns it into the same tilt measured the other way.</li>
-      <li><b>sin and cos</b> are in the <b>( [abs v] of () )</b> block in Operators: choose sin or cos from its menu.</li>
+      <li><b>new round</b> gives the drone a sideways speed: <b>set vx to 1.2</b>.</li>
+      <li><b>read controls</b> turns the drone with the Left and Right arrows.</li>
+      <li><b>move</b> works out <b>angle</b>, the tilt away from upright. Scratch’s direction 90 means upright, so <code>angle = direction − 90</code>. Tilted right gives a positive angle, tilted left a negative one. The <b>if</b> after it fixes one corner case: a drone pointing down and to the left would give an angle below −180, and adding 360 turns it into the same tilt measured the other way.</li>
+      <li><b>sin</b> and <b>cos</b> are in the <b>abs of</b> block in Operators: choose them from its menu.</li>
     </ul>
 
     <h3>Check it</h3>
@@ -442,67 +524,24 @@ say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
       <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--muted)"/></marker></defs>
       <text x="260" y="112" text-anchor="middle">past 230: subtract 460 and appear on the left</text>
     </svg>
-
-    <h3>Add the code</h3>
-    <p>New parts: three <b>if</b> blocks just before <b>go to x: (posX) y: (posY)</b>.</p>
-    <div class="blocks-panel"><div class="label">Drone</div>
-<pre class="blocks">when flag clicked
-set [gravity v] to (0.035)
-set [posX v] to (-60)
-set [posY v] to (150)
-set [vx v] to (1.2)
-set [vy v] to (0)
-set [Throttle v] to (0)
-set [cooldown v] to (0)
-point in direction (90)
-go to x: (posX) y: (posY)
-repeat until &lt;&lt;touching (Ground v)?&gt; or &lt;touching (Pads v)?&gt;&gt;
-  if &lt;(cooldown) &gt; (0)&gt; then
-    change [cooldown v] by (-1)
-  else
-    if &lt;&lt;key (up arrow v) pressed?&gt; and &lt;(Throttle) &lt; (15)&gt;&gt; then
-      change [Throttle v] by (1)
-      set [cooldown v] to (3)
-    end
-    if &lt;&lt;key (down arrow v) pressed?&gt; and &lt;(Throttle) &gt; (0)&gt;&gt; then
-      change [Throttle v] by (-1)
-      set [cooldown v] to (3)
-    end
-    if &lt;key (right arrow v) pressed?&gt; then
-      turn right (11.25) degrees
-      set [cooldown v] to (4)
-    end
-    if &lt;key (left arrow v) pressed?&gt; then
-      turn left (11.25) degrees
-      set [cooldown v] to (4)
-    end
-  end
-  set [force v] to ((Throttle) * (0.004))
-  set [angle v] to ((direction) - (90))
-  if &lt;(angle) &lt; (-180)&gt; then
-    change [angle v] by (360)
-  end
-  change [vx v] by ((force) * ([sin v] of (angle)))
-  change [vy v] by (((force) * ([cos v] of (angle))) - (gravity))
-  change [posX v] by (vx)
-  change [posY v] by (vy)
-  if &lt;(posX) &gt; (230)&gt; then
-    change [posX v] by (-460)
-  end
-  if &lt;(posX) &lt; (-230)&gt; then
-    change [posX v] by (460)
-  end
-  if &lt;(posY) &gt; (165)&gt; then
-    set [posY v] to (165)
-    if &lt;(vy) &gt; (0)&gt; then
-      set [vy v] to (0)
-    end
-  end
-  go to x: (posX) y: (posY)
-  set [Descent v] to (round ((vy) * (-10)))
-  set [Drift v] to (round ((vx) * (10)))
+    <p>This is where the My Blocks pay off: the whole step is one change, inside <b>place on screen</b>.</p>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define place on screen
+if &lt;(posX) &gt; (230)&gt; then
+  change [posX v] by (-460)
 end
-say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
+if &lt;(posX) &lt; (-230)&gt; then
+  change [posX v] by (460)
+end
+if &lt;(posY) &gt; (165)&gt; then
+  set [posY v] to (165)
+  if &lt;(vy) &gt; (0)&gt; then
+    set [vy v] to (0)
+  end
+end
+go to x: (posX) y: (posY)</pre></div>
+</div>
 
     <h3>How it works</h3>
     <ul class="do">
@@ -521,7 +560,7 @@ say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
   <!-- ============================================================ STEP 6 -->
   <section class="step" id="step-6">
     <div class="step-head"><span class="num">6</span><h2>Landing</h2></div>
-    <p>Until now, every touchdown ends the same way. Now the game judges your landing, using the same kind of rules as the 1979 game:</p>
+    <p>Until now, every touchdown ends the same way. Now the game judges your landing, using the same kind of rules as the 1979 game, and adds the <b>round over</b> phase:</p>
     <div class="table-wrap">
       <table>
         <thead><tr><th>When the drone touches down…</th><th>Result</th></tr></thead>
@@ -537,7 +576,7 @@ say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
     </div>
 
     <h3>Lists for the pads</h3>
-    <p>The game needs to know where each pad is and what it is worth. Three lists hold that, one row per pad:</p>
+    <p>The game needs to know where each pad is and what it is worth. Three lists hold that, one row per pad. The Pads sprite fills them during <b>setup</b>, because the pads know about themselves.</p>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Pad</th><th><code>padLeft</code></th><th><code>padRight</code></th><th><code>padMult</code></th></tr></thead>
@@ -548,15 +587,18 @@ say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
         </tbody>
       </table>
     </div>
-    <ol class="do">
-      <li>In Variables, click <b>Make a List</b> and create <code>padLeft</code>, <code>padRight</code> and <code>padMult</code>, each <b>For all sprites</b>. Untick them so they don’t cover the Stage.</li>
-      <li>Create the variables <code>state</code>, <code>mult</code> and <code>i</code>, and untick them too.</li>
-    </ol>
 
-    <h3>Add the code</h3>
-    <p>New parts: the list blocks at the very start; <b>set state to flying</b>, <b>switch costume to drone</b> and <b>show</b>; the loop now repeats until <b>state</b> is no longer “flying”; the <b>touching</b> checks with the landing rules at the end of the loop; and the three result messages after the loop.</p>
-    <div class="blocks-panel"><div class="label">Drone</div>
-<pre class="blocks">when flag clicked
+    <h3>Make the pieces</h3>
+    <ol class="do">
+      <li><b>Lists</b> (Variables › Make a List, For all sprites): <code>padLeft</code>, <code>padRight</code> and <code>padMult</code>. Untick them so they don’t cover the Stage.</li>
+      <li><b>Variables:</b> <code>mult</code> and <code>i</code> (untick both).</li>
+      <li><b>Message:</b> <code>round over</code>.</li>
+      <li><b>My Block:</b> <code>judge landing</code>. In the Make a Block window, open <b>Options</b> and tick <b>Run without screen refresh</b>. The next section explains why.</li>
+    </ol>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Pads <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [setup v]
+go to x: (0) y: (0)
 delete all of [padLeft v]
 delete all of [padRight v]
 delete all of [padMult v]
@@ -568,92 +610,22 @@ add (68) to [padRight v]
 add (5) to [padMult v]
 add (140) to [padLeft v]
 add (185) to [padRight v]
-add (3) to [padMult v]
-set [gravity v] to (0.035)
+add (3) to [padMult v]</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [new round v]
 set [posX v] to (-60)
 set [posY v] to (150)
 set [vx v] to (1.2)
 set [vy v] to (0)
 set [Throttle v] to (0)
 set [cooldown v] to (0)
-set [state v] to [flying]
+point in direction (90)
 switch costume to (drone v)
 show
-point in direction (90)
 go to x: (posX) y: (posY)
-repeat until &lt;not &lt;(state) = [flying]&gt;&gt;
-  if &lt;(cooldown) &gt; (0)&gt; then
-    change [cooldown v] by (-1)
-  else
-    if &lt;&lt;key (up arrow v) pressed?&gt; and &lt;(Throttle) &lt; (15)&gt;&gt; then
-      change [Throttle v] by (1)
-      set [cooldown v] to (3)
-    end
-    if &lt;&lt;key (down arrow v) pressed?&gt; and &lt;(Throttle) &gt; (0)&gt;&gt; then
-      change [Throttle v] by (-1)
-      set [cooldown v] to (3)
-    end
-    if &lt;key (right arrow v) pressed?&gt; then
-      turn right (11.25) degrees
-      set [cooldown v] to (4)
-    end
-    if &lt;key (left arrow v) pressed?&gt; then
-      turn left (11.25) degrees
-      set [cooldown v] to (4)
-    end
-  end
-  set [force v] to ((Throttle) * (0.004))
-  set [angle v] to ((direction) - (90))
-  if &lt;(angle) &lt; (-180)&gt; then
-    change [angle v] by (360)
-  end
-  change [vx v] by ((force) * ([sin v] of (angle)))
-  change [vy v] by (((force) * ([cos v] of (angle))) - (gravity))
-  change [posX v] by (vx)
-  change [posY v] by (vy)
-  if &lt;(posX) &gt; (230)&gt; then
-    change [posX v] by (-460)
-  end
-  if &lt;(posX) &lt; (-230)&gt; then
-    change [posX v] by (460)
-  end
-  if &lt;(posY) &gt; (165)&gt; then
-    set [posY v] to (165)
-    if &lt;(vy) &gt; (0)&gt; then
-      set [vy v] to (0)
-    end
-  end
-  go to x: (posX) y: (posY)
-  set [Descent v] to (round ((vy) * (-10)))
-  set [Drift v] to (round ((vx) * (10)))
-  if &lt;touching (Pads v)?&gt; then
-    set [mult v] to (0)
-    set [i v] to (1)
-    repeat (length of [padLeft v])
-      if &lt;&lt;(posX) &gt; (item (i) of [padLeft v])&gt; and &lt;(posX) &lt; (item (i) of [padRight v])&gt;&gt; then
-        set [mult v] to (item (i) of [padMult v])
-      end
-      change [i v] by (1)
-    end
-    if &lt;&lt;&lt;(mult) = (0)&gt; or &lt;([abs v] of (angle)) &gt; (12)&gt;&gt; or &lt;([abs v] of (Drift)) &gt; (10)&gt;&gt; then
-      set [state v] to [crash]
-    else
-      if &lt;(Descent) &lt; (10)&gt; then
-        set [state v] to [good]
-      else
-        if &lt;(Descent) &lt; (18)&gt; then
-          set [state v] to [hard]
-        else
-          set [state v] to [crash]
-        end
-      end
-    end
-  else
-    if &lt;touching (Ground v)?&gt; then
-      set [state v] to [crash]
-    end
-  end
-end
+set [state v] to [flying]</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [round over v]
 if &lt;(state) = [good]&gt; then
   say (join [Perfect landing! x] (mult)) for (2) seconds
 end
@@ -663,14 +635,51 @@ end
 if &lt;(state) = [crash]&gt; then
   switch costume to (boom v)
   say [Crashed!] for (2) seconds
+end
+broadcast (new round v)</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define check touchdown
+if &lt;touching (Pads v)?&gt; then
+  judge landing :: custom
+else
+  if &lt;touching (Ground v)?&gt; then
+    set [state v] to [crash]
+  end
+end
+if &lt;not &lt;(state) = [flying]&gt;&gt; then
+  broadcast (round over v)
 end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">define judge landing
+set [mult v] to (0)
+set [i v] to (1)
+repeat (length of [padLeft v])
+  if &lt;&lt;(posX) &gt; (item (i) of [padLeft v])&gt; and &lt;(posX) &lt; (item (i) of [padRight v])&gt;&gt; then
+    set [mult v] to (item (i) of [padMult v])
+  end
+  change [i v] by (1)
+end
+if &lt;&lt;&lt;(mult) = (0)&gt; or &lt;([abs v] of (angle)) &gt; (12)&gt;&gt; or &lt;([abs v] of (Drift)) &gt; (10)&gt;&gt; then
+  set [state v] to [crash]
+else
+  if &lt;(Descent) &lt; (10)&gt; then
+    set [state v] to [good]
+  else
+    if &lt;(Descent) &lt; (18)&gt; then
+      set [state v] to [hard]
+    else
+      set [state v] to [crash]
+    end
+  end
+end</pre></div>
+</div>
 
     <h3>How it works</h3>
     <ul class="do">
-      <li><b>state</b> remembers what is happening: <code>flying</code>, <code>good</code>, <code>hard</code> or <code>crash</code>. The loop keeps going while it says flying.</li>
-      <li><b>Touching the Pads</b> starts the landing check. The <b>repeat</b> walks through the three pads with <code>i</code> = 1, 2, 3 and checks whether the drone is between that pad’s left and right edge. If so, <code>mult</code> becomes the pad’s value. If no pad matches, mult stays 0, which means a crash.</li>
-      <li><b>abs</b> means “size without the sign”: abs of −11.25 is 11.25. It lets one check cover tilting left and right, and drifting left and right.</li>
-      <li><b>Touching the Ground</b> without touching a pad is always a crash, and the drone switches to its <code>boom</code> costume.</li>
+      <li><b>check touchdown</b> now has three outcomes. Touching the Pads runs <b>judge landing</b>; touching only the Ground is a crash. Once <b>state</b> is no longer “flying”, it sends <b>round over</b>.</li>
+      <li><b>judge landing</b> walks through the three pads with <code>i</code> = 1, 2, 3 and checks whether the drone is between that pad’s left and right edge. If so, <code>mult</code> becomes the pad’s value. If no pad matches, mult stays 0, which means a crash. Then it applies the rules from the table. <b>abs</b> means “size without the sign”, so one check covers tilting and drifting both ways.</li>
+      <li><b>Why “Run without screen refresh”?</b> A <b>repeat</b> loop normally pauses after each pass to let the screen redraw. Three passes would mean three frames, and the next tick would restart the tick script half-way through judging. With this option ticked, the loop finishes at once.</li>
+      <li><b>round over</b> is its own phase, not part of the tick. That is why it may use <b>say … for 2 seconds</b>: while it waits, the ticks keep coming, but the drone ignores them because it is no longer flying. Afterwards it sends <b>new round</b>, so you can try again.</li>
     </ul>
     <h3>Check it</h3>
     <p>Fly to a pad, turn upright, and come down slowly. Watch Descent as you approach.</p>
@@ -692,9 +701,7 @@ end</pre></div>
   <!-- ============================================================ STEP 7 -->
   <section class="step" id="step-7">
     <div class="step-head"><span class="num">7</span><h2>Fuel and score</h2></div>
-    <p>Now it becomes a game with rounds. You start with 1000 fuel. Every landing earns points, and every round costs fuel. When the fuel runs out, the game is over.</p>
-
-    <h3>Rules</h3>
+    <p>Now it becomes a real game. You start with 1000 fuel. Every landing earns points, and flying and crashing cost fuel. When the fuel runs out, the <b>game over</b> phase ends the game.</p>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Result</th><th>Score</th><th>Fuel</th></tr></thead>
@@ -707,128 +714,22 @@ end</pre></div>
       </table>
     </div>
 
-    <h3>Make the variables and a message</h3>
+    <h3>Make the pieces</h3>
     <ol class="do">
-      <li>Create <code>Score</code>, <code>Fuel</code> and <code>fuelLeft</code>, each <b>For all sprites</b>. Keep Score and Fuel ticked; untick fuelLeft.</li>
-      <li>Drag a <b>broadcast</b> block from Events, open its menu, choose <b>New message</b> and name it <code>new round</code>.</li>
+      <li><b>Variables:</b> <code>Score</code> and <code>Fuel</code> (keep both ticked), and <code>fuelLeft</code> (untick).</li>
+      <li><b>Message:</b> <code>game over</code>.</li>
     </ol>
     <p class="note"><b>Why two fuel variables?</b> Fuel burns in small pieces like 0.36 per frame. <code>fuelLeft</code> keeps the exact amount, and <code>Fuel</code> shows it rounded, so the display stays readable.</p>
-
-    <h3>Add the code</h3>
-    <p>The Drone now has two scripts. <b>when flag clicked</b> sets up the game and starts the first round. <b>when I receive new round</b> is the old script: drag the blocks from <b>set gravity</b> down to the end under it. New parts are the fuel blocks after <b>set force</b>, the score and fuel changes in the result messages, and the end of the script, which either starts the next round or ends the game.</p>
-    <div class="blocks-panel"><div class="label">Drone</div>
-<pre class="blocks">when flag clicked
-delete all of [padLeft v]
-delete all of [padRight v]
-delete all of [padMult v]
-add (-150) to [padLeft v]
-add (-80) to [padRight v]
-add (2) to [padMult v]
-add (36) to [padLeft v]
-add (68) to [padRight v]
-add (5) to [padMult v]
-add (140) to [padLeft v]
-add (185) to [padRight v]
-add (3) to [padMult v]
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Stage <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [setup v]
+set [gravity v] to (0.035)
 set [Score v] to (0)
 set [fuelLeft v] to (1000)
 set [Fuel v] to (1000)
-broadcast (new round v)
-
-when I receive [new round v]
-set [gravity v] to (0.035)
-set [posX v] to (-60)
-set [posY v] to (150)
-set [vx v] to (1.2)
-set [vy v] to (0)
-set [Throttle v] to (0)
-set [cooldown v] to (0)
-set [state v] to [flying]
-switch costume to (drone v)
-show
-point in direction (90)
-go to x: (posX) y: (posY)
-repeat until &lt;not &lt;(state) = [flying]&gt;&gt;
-  if &lt;(cooldown) &gt; (0)&gt; then
-    change [cooldown v] by (-1)
-  else
-    if &lt;&lt;key (up arrow v) pressed?&gt; and &lt;(Throttle) &lt; (15)&gt;&gt; then
-      change [Throttle v] by (1)
-      set [cooldown v] to (3)
-    end
-    if &lt;&lt;key (down arrow v) pressed?&gt; and &lt;(Throttle) &gt; (0)&gt;&gt; then
-      change [Throttle v] by (-1)
-      set [cooldown v] to (3)
-    end
-    if &lt;key (right arrow v) pressed?&gt; then
-      turn right (11.25) degrees
-      set [cooldown v] to (4)
-    end
-    if &lt;key (left arrow v) pressed?&gt; then
-      turn left (11.25) degrees
-      set [cooldown v] to (4)
-    end
-  end
-  set [force v] to ((Throttle) * (0.004))
-  if &lt;(fuelLeft) &lt; (0.01)&gt; then
-    set [force v] to (0)
-  end
-  change [fuelLeft v] by ((0) - ((force) * (25)))
-  if &lt;(fuelLeft) &lt; (0)&gt; then
-    set [fuelLeft v] to (0)
-  end
-  set [angle v] to ((direction) - (90))
-  if &lt;(angle) &lt; (-180)&gt; then
-    change [angle v] by (360)
-  end
-  change [vx v] by ((force) * ([sin v] of (angle)))
-  change [vy v] by (((force) * ([cos v] of (angle))) - (gravity))
-  change [posX v] by (vx)
-  change [posY v] by (vy)
-  if &lt;(posX) &gt; (230)&gt; then
-    change [posX v] by (-460)
-  end
-  if &lt;(posX) &lt; (-230)&gt; then
-    change [posX v] by (460)
-  end
-  if &lt;(posY) &gt; (165)&gt; then
-    set [posY v] to (165)
-    if &lt;(vy) &gt; (0)&gt; then
-      set [vy v] to (0)
-    end
-  end
-  go to x: (posX) y: (posY)
-  set [Descent v] to (round ((vy) * (-10)))
-  set [Drift v] to (round ((vx) * (10)))
-  set [Fuel v] to (round (fuelLeft))
-  if &lt;touching (Pads v)?&gt; then
-    set [mult v] to (0)
-    set [i v] to (1)
-    repeat (length of [padLeft v])
-      if &lt;&lt;(posX) &gt; (item (i) of [padLeft v])&gt; and &lt;(posX) &lt; (item (i) of [padRight v])&gt;&gt; then
-        set [mult v] to (item (i) of [padMult v])
-      end
-      change [i v] by (1)
-    end
-    if &lt;&lt;&lt;(mult) = (0)&gt; or &lt;([abs v] of (angle)) &gt; (12)&gt;&gt; or &lt;([abs v] of (Drift)) &gt; (10)&gt;&gt; then
-      set [state v] to [crash]
-    else
-      if &lt;(Descent) &lt; (10)&gt; then
-        set [state v] to [good]
-      else
-        if &lt;(Descent) &lt; (18)&gt; then
-          set [state v] to [hard]
-        else
-          set [state v] to [crash]
-        end
-      end
-    end
-  else
-    if &lt;touching (Ground v)?&gt; then
-      set [state v] to [crash]
-    end
-  end
-end
+set [state v] to [waiting]</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [round over v]
 if &lt;(state) = [good]&gt; then
   change [Score v] by ((50) * (mult))
   change [fuelLeft v] by (50)
@@ -850,20 +751,39 @@ set [Fuel v] to (round (fuelLeft))
 if &lt;(fuelLeft) &gt; (0)&gt; then
   broadcast (new round v)
 else
-  say (join [Out of fuel. Final score: ] (Score))
-  stop [this script v]
+  broadcast (game over v)
 end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [game over v]
+say (join [Out of fuel. Final score: ] (Score))</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define run engine
+set [force v] to ((Throttle) * (0.004))
+if &lt;(fuelLeft) &lt; (0.01)&gt; then
+  set [force v] to (0)
+end
+change [fuelLeft v] by ((0) - ((force) * (25)))
+if &lt;(fuelLeft) &lt; (0)&gt; then
+  set [fuelLeft v] to (0)
+end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define update displays
+set [Fuel v] to (round (fuelLeft))
+set [Drift v] to (round ((vx) * (10)))
+set [Descent v] to (round ((vy) * (-10)))</pre></div>
+</div>
 
     <h3>How it works</h3>
     <ul class="do">
-      <li><b>broadcast new round</b> sends a message, and the <b>when I receive</b> script starts. At the end of a round it sends the message again, so the rounds repeat until the fuel is gone.</li>
-      <li><b>No fuel, no force:</b> when fuelLeft drops below 0.01, force is set to 0 and the engine stops pushing.</li>
-      <li><b>stop this script</b> ends the game but leaves the final score on the screen.</li>
+      <li><b>setup</b> on the Stage now also resets the score and fills the tank.</li>
+      <li><b>run engine</b> burns fuel in proportion to the force. When fuelLeft drops below 0.01, the force is set to 0 and the engine stops pushing.</li>
+      <li><b>round over</b> adds the score and fuel changes, then decides: <b>new round</b> if there is fuel left, otherwise <b>game over</b>.</li>
+      <li><b>game over</b> leaves the final score on the screen. The ticks keep coming, but nothing is flying any more.</li>
     </ul>
     <h3>Check it</h3>
     <figure>
-      <img src="step7.png" alt="After a perfect landing on the x2 pad the Score shows 100." width="992" height="744" loading="lazy">
-      <figcaption>End of step 7. A perfect landing on the ×2 pad scores 100.</figcaption>
+      <img src="step7.png" alt="After a landing on the x2 pad, the Score display shows the points earned." width="992" height="744" loading="lazy">
+      <figcaption>End of step 7. Points for a landing on the ×2 pad.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Checkpoint: the project at the end of step 7.</p>
@@ -875,172 +795,83 @@ end</pre></div>
   <section class="step" id="step-8">
     <div class="step-head"><span class="num">8</span><h2>Polish</h2></div>
     <p>The game works. This last step makes it feel finished: an engine flame you can see, a boost key for emergencies, and instructions at the start.</p>
-
-    <h3>Add the code</h3>
-    <p>New parts: the instruction blocks in <b>when flag clicked</b>; the <b>if key space pressed</b> boost after <b>set force</b>; and in the loop, <b>switch costume to drone</b> before the touching checks and the flame costumes after them.</p>
-    <div class="blocks-panel"><div class="label">Drone</div>
-<pre class="blocks">when flag clicked
-delete all of [padLeft v]
-delete all of [padRight v]
-delete all of [padMult v]
-add (-150) to [padLeft v]
-add (-80) to [padRight v]
-add (2) to [padMult v]
-add (36) to [padLeft v]
-add (68) to [padRight v]
-add (5) to [padMult v]
-add (140) to [padLeft v]
-add (185) to [padRight v]
-add (3) to [padMult v]
+    <h3>Make the pieces</h3>
+    <ol class="do">
+      <li><b>My Block:</b> <code>show flame</code>.</li>
+    </ol>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Stage <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [setup v]
+set [gravity v] to (0.035)
 set [Score v] to (0)
 set [fuelLeft v] to (1000)
 set [Fuel v] to (1000)
 set [Throttle v] to (0)
 set [Drift v] to (0)
 set [Descent v] to (0)
+set [state v] to [waiting]</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [setup v]
 go to x: (-60) y: (150)
 point in direction (90)
 switch costume to (drone v)
 show
 go to [front v] layer
-say [Up/Down: throttle. Left/Right: tilt. Space: boost. Land gently on a yellow pad!] for (4) seconds
-broadcast (new round v)
-
-when I receive [new round v]
-set [gravity v] to (0.035)
-set [posX v] to (-60)
-set [posY v] to (150)
-set [vx v] to (1.2)
-set [vy v] to (0)
-set [Throttle v] to (0)
-set [cooldown v] to (0)
-set [state v] to [flying]
-switch costume to (drone v)
-show
-point in direction (90)
-go to x: (posX) y: (posY)
-repeat until &lt;not &lt;(state) = [flying]&gt;&gt;
-  if &lt;(cooldown) &gt; (0)&gt; then
-    change [cooldown v] by (-1)
-  else
-    if &lt;&lt;key (up arrow v) pressed?&gt; and &lt;(Throttle) &lt; (15)&gt;&gt; then
-      change [Throttle v] by (1)
-      set [cooldown v] to (3)
-    end
-    if &lt;&lt;key (down arrow v) pressed?&gt; and &lt;(Throttle) &gt; (0)&gt;&gt; then
-      change [Throttle v] by (-1)
-      set [cooldown v] to (3)
-    end
-    if &lt;key (right arrow v) pressed?&gt; then
-      turn right (11.25) degrees
-      set [cooldown v] to (4)
-    end
-    if &lt;key (left arrow v) pressed?&gt; then
-      turn left (11.25) degrees
-      set [cooldown v] to (4)
-    end
-  end
-  set [force v] to ((Throttle) * (0.004))
-  if &lt;key (space v) pressed?&gt; then
-    set [force v] to (0.07)
-  end
-  if &lt;(fuelLeft) &lt; (0.01)&gt; then
-    set [force v] to (0)
-  end
-  change [fuelLeft v] by ((0) - ((force) * (25)))
-  if &lt;(fuelLeft) &lt; (0)&gt; then
-    set [fuelLeft v] to (0)
-  end
-  set [angle v] to ((direction) - (90))
-  if &lt;(angle) &lt; (-180)&gt; then
-    change [angle v] by (360)
-  end
-  change [vx v] by ((force) * ([sin v] of (angle)))
-  change [vy v] by (((force) * ([cos v] of (angle))) - (gravity))
-  change [posX v] by (vx)
-  change [posY v] by (vy)
-  if &lt;(posX) &gt; (230)&gt; then
-    change [posX v] by (-460)
-  end
-  if &lt;(posX) &lt; (-230)&gt; then
-    change [posX v] by (460)
-  end
-  if &lt;(posY) &gt; (165)&gt; then
-    set [posY v] to (165)
-    if &lt;(vy) &gt; (0)&gt; then
-      set [vy v] to (0)
-    end
-  end
-  go to x: (posX) y: (posY)
-  set [Descent v] to (round ((vy) * (-10)))
-  set [Drift v] to (round ((vx) * (10)))
-  set [Fuel v] to (round (fuelLeft))
-  switch costume to (drone v)
-  if &lt;touching (Pads v)?&gt; then
-    set [mult v] to (0)
-    set [i v] to (1)
-    repeat (length of [padLeft v])
-      if &lt;&lt;(posX) &gt; (item (i) of [padLeft v])&gt; and &lt;(posX) &lt; (item (i) of [padRight v])&gt;&gt; then
-        set [mult v] to (item (i) of [padMult v])
-      end
-      change [i v] by (1)
-    end
-    if &lt;&lt;&lt;(mult) = (0)&gt; or &lt;([abs v] of (angle)) &gt; (12)&gt;&gt; or &lt;([abs v] of (Drift)) &gt; (10)&gt;&gt; then
-      set [state v] to [crash]
-    else
-      if &lt;(Descent) &lt; (10)&gt; then
-        set [state v] to [good]
-      else
-        if &lt;(Descent) &lt; (18)&gt; then
-          set [state v] to [hard]
-        else
-          set [state v] to [crash]
-        end
-      end
-    end
-  else
-    if &lt;touching (Ground v)?&gt; then
-      set [state v] to [crash]
-    end
-  end
-  if &lt;&lt;(state) = [flying]&gt; and &lt;(force) &gt; (0)&gt;&gt; then
-    if &lt;(force) &lt; (0.04)&gt; then
-      switch costume to (drone-flame v)
-    else
-      switch costume to (drone-boost v)
-    end
-  end
-end
-if &lt;(state) = [good]&gt; then
-  change [Score v] by ((50) * (mult))
-  change [fuelLeft v] by (50)
-  say (join [Perfect landing! x] (mult)) for (2) seconds
-end
-if &lt;(state) = [hard]&gt; then
-  change [Score v] by ((15) * (mult))
-  say (join [Hard landing. x] (mult)) for (2) seconds
-end
-if &lt;(state) = [crash]&gt; then
-  switch costume to (boom v)
-  change [fuelLeft v] by (-150)
-  if &lt;(fuelLeft) &lt; (0)&gt; then
-    set [fuelLeft v] to (0)
-  end
-  say [Crashed! -150 fuel] for (2) seconds
-end
-set [Fuel v] to (round (fuelLeft))
-if &lt;(fuelLeft) &gt; (0)&gt; then
-  broadcast (new round v)
-else
-  say (join [Out of fuel. Final score: ] (Score))
-  stop [this script v]
+say [Up/Down: throttle. Left/Right: tilt. Space: boost. Land gently on a yellow pad!] for (4) seconds</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [tick v]
+if &lt;(state) = [flying]&gt; then
+  read controls :: custom
+  run engine :: custom
+  move :: custom
+  place on screen :: custom
+  update displays :: custom
+  check touchdown :: custom
+  show flame :: custom
 end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define run engine
+set [force v] to ((Throttle) * (0.004))
+if &lt;key (space v) pressed?&gt; then
+  set [force v] to (0.07)
+end
+if &lt;(fuelLeft) &lt; (0.01)&gt; then
+  set [force v] to (0)
+end
+change [fuelLeft v] by ((0) - ((force) * (25)))
+if &lt;(fuelLeft) &lt; (0)&gt; then
+  set [fuelLeft v] to (0)
+end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag changed">changed</span></div>
+<pre class="blocks">define check touchdown
+switch costume to (drone v)
+if &lt;touching (Pads v)?&gt; then
+  judge landing :: custom
+else
+  if &lt;touching (Ground v)?&gt; then
+    set [state v] to [crash]
+  end
+end
+if &lt;not &lt;(state) = [flying]&gt;&gt; then
+  broadcast (round over v)
+end</pre></div>
+<div class="blocks-panel"><div class="label">Drone <span class="tag new">new</span></div>
+<pre class="blocks">define show flame
+if &lt;&lt;(state) = [flying]&gt; and &lt;(force) &gt; (0)&gt;&gt; then
+  if &lt;(force) &lt; (0.04)&gt; then
+    switch costume to (drone-flame v)
+  else
+    switch costume to (drone-boost v)
+  end
+end</pre></div>
+</div>
 
     <h3>How it works</h3>
     <ul class="do">
-      <li><b>Boost</b> sets the force to 0.07, more than full throttle. Because fuel burn depends on force, boosting also burns fuel faster without any extra blocks.</li>
-      <li><b>The flame trick:</b> the flame is part of the costume, and Scratch counts every visible pixel when it checks <b>touching</b>. A long flame could touch the rocks before the legs do. So the drone switches to its plain costume, checks for touching, and only then puts the flame back. Scratch draws the screen once at the end of each loop, so you never see the switch.</li>
-      <li><b>The small flame</b> shows for gentle thrust (force below 0.04), the <b>big flame</b> for strong thrust.</li>
+      <li><b>Boost:</b> <b>run engine</b> sets the force to 0.07 while Space is held, more than full throttle. Because fuel burn depends on force, boosting also burns fuel faster without any extra blocks.</li>
+      <li><b>The flame trick:</b> the flame is part of the costume, and Scratch counts every visible pixel when it checks <b>touching</b>. A long flame could touch the rocks before the legs do. So <b>check touchdown</b> first switches to the plain costume, and <b>show flame</b> puts the flame back afterwards. Scratch draws the screen once after each tick, so you never see the switch.</li>
+      <li><b>Instructions:</b> the drone shows them during <b>setup</b>. Because the Stage uses <b>broadcast setup and wait</b>, the game only starts once the message is gone.</li>
+      <li><b>setup</b> on the Stage also resets the displays, so they start at 0.</li>
     </ul>
     <h3>Tidy the displays</h3>
     <p>Drag the displays on the Stage so Score, Fuel and Throttle sit in the top left corner, and Drift and Descent in the top right. The drone starts in the open sky between them.</p>
@@ -1057,23 +888,23 @@ end</pre></div>
 
   <section class="stack" id="further">
     <h2>Going further</h2>
-    <p>Your engine is simple: double the throttle and you double the push. The 1979 arcade game used a table of 16 values instead, so the first few throttle steps add a lot of push and the last few add only a little: 0, 2, 5, 8, 11, 13, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28. The full version of Dust Hopper uses that table, stored in a list. You can open it and compare.</p>
+    <p>Your engine is simple: double the throttle and you double the push. The 1979 arcade game used a table of 16 values instead, so the first few throttle steps add a lot of push and the last few add only a little: 0, 2, 5, 8, 11, 13, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28. The full version of Dust Hopper uses that table, stored in a list, with the same phases and My Blocks as your game. You can open it and compare.</p>
     <div class="checkpoint">
       <p>Dust Hopper, full version, with the 1979 thrust table.</p>
       <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/games/dust-hopper/dust-hopper.sb3">Download dust-hopper.sb3</a>
     </div>
     <p>More ideas to try on your own:</p>
     <ul class="try">
-      <li>Add sounds: an engine hum while the throttle is above 0, and a bang for a crash.</li>
-      <li>Make a second level: draw new rocks and pads, and change the three lists to match.</li>
-      <li>Add wind: a small change to <code>vx</code> every frame.</li>
+      <li>Add a new sprite that listens to <b>tick</b>, such as a satellite that crosses the sky. It needs no loop of its own.</li>
+      <li>Add sounds: an engine hum while the throttle is above 0, and a bang in <b>round over</b> for a crash.</li>
+      <li>Make a second level: draw new rocks and pads, and change the lists in the Pads’ <b>setup</b> to match.</li>
+      <li>Add wind: a small change to <code>vx</code> inside <b>move</b>.</li>
     </ul>
   </section>
 
   <footer>
     <p>The physics in this game follow the 1979 arcade lander, whose original source code has been published. The game, its name, artwork and level are new.</p>
   </footer>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/scratchblocks@3.6.4/build/scratchblocks.min.js"></script>

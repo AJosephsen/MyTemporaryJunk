@@ -20,6 +20,23 @@ Open `dust-hopper.sb3` in the Scratch editor (File > Load from your computer).
 - Anything faster, or touching the rock, is a crash: −150 fuel.
 - The game ends when the fuel runs out.
 
+## Structure
+
+There is no game loop in any sprite. The Stage broadcasts `tick` once per frame, and the game moves
+through named phases, each a broadcast:
+
+| Phase | Who responds | Job |
+|---|---|---|
+| `setup` (broadcast and wait) | Stage, Ground, Pads, Drone | Reset totals, fill the pad lists, show instructions |
+| `new round` | Drone | Reset the drone at the top, set `state` to `flying` |
+| `tick` | Drone | If flying: `read controls`, `run engine`, `move`, `place on screen`, `update displays`, `check touchdown`, `show flame` |
+| `round over` | Drone | Show the result, then `new round` or `game over` |
+| `game over` | Drone | Show the final score |
+
+The per-frame work is split into custom blocks (My Blocks). Tick scripts never pause: `judge landing`,
+which contains the only loop, runs without screen refresh. A tick script that paused would be restarted
+by the next tick.
+
 ## Physics
 
 Each frame follows the model of the 1979 arcade lander: the throttle level is looked up in a thrust table,

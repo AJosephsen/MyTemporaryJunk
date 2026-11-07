@@ -74,7 +74,7 @@ function droneScripts(): Blocks {
   B.script(whenReceive("tick"), [
     ifThen(eq(v("state"), "flying"), [
       call("read controls"), call("run engine"), call("move"), call("place on screen"),
-      call("check touchdown"), call("show flame"), call("update displays"),
+      call("update displays"), call("check touchdown"), call("show flame"),
     ]),
   ], 20, at());
 
@@ -143,8 +143,6 @@ function droneScripts(): Blocks {
 
   // Runs without screen refresh, so its loop never pauses inside a tick.
   define("judge landing", [
-    set("Drift", round(mul(v("vx"), 10))),
-    set("Descent", round(mul(v("vy"), -10))),
     set("mult", 0), set("i", 1),
     repeat(length("padLeft"), [
       ifThen(and(gt(v("posX"), item("padLeft", v("i"))), lt(v("posX"), item("padRight", v("i")))),

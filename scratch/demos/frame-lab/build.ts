@@ -29,11 +29,16 @@ function senderScripts(): Blocks {
         ifThen(eq(v("case"), "wait"), [log(d, "send"), broadcastWait("ping"), log(d, "after wait")]),
         ifThen(eq(v("case"), "warp"), [call("send in warp")]),
         ifThen(eq(v("case"), "chain"), [log(d, "send"), broadcast("ping2")]),
+        // Request / response: 5 responders (a sprite and 4 clones) each answer with their own broadcast.
+        ifThen(eq(v("case"), "request"), [
+          set("responses", 0), set("direct", 0), log(d, "send"), broadcastWait("request"), log(d, "after wait"),
+        ]),
       ]),
     ]),
   ], 20, 20);
   d.define("send in warp", plain(), { warp: true, x: 500, y: 20 });
   B.script(whenReceive("ping"), [log(d, "Sender got ping")], 500, 200);
+  B.script(whenReceive("response"), [d.change("responses", 1), log(d, "Sender got response")], 500, 300);
   return B;
 }
 
@@ -41,6 +46,15 @@ function receiverScripts(): Blocks {
   const B = new Blocks(P), d = dsl(B);
   B.script(d.whenReceive("ping"), [log(d, "Receiver got ping")], 20, 20);
   B.script(d.whenReceive("ping2"), [log(d, "Receiver got ping2"), d.broadcast("ping3")], 20, 120);
+  return B;
+}
+
+function responderScripts(): Blocks {
+  const B = new Blocks(P), d = dsl(B);
+  // The clones exist only in the request case, so they cannot affect the other measurements.
+  B.script(d.whenFlag(), [d.ifThen(d.eq(d.v("case"), "request"), [d.repeat(4, [d.cloneMyself()])])], 20, 20);
+  // `direct` is counted by the responders themselves; `responses` by the Sender, one per response broadcast.
+  B.script(d.whenReceive("request"), [d.change("direct", 1), d.broadcast("response")], 20, 120);
   return B;
 }
 
@@ -57,6 +71,7 @@ const sb3 = P.build({
   sprites: [
     P.sprite("Sender", { blocks: senderScripts(), costumes: [P.costume("box", box("#3f8fd8"), 20, 20)], layer: 1, x: -100 }),
     P.sprite("Receiver", { blocks: receiverScripts(), costumes: [P.costume("box", box("#e8456b"), 20, 20)], layer: 2, x: 0 }),
+    P.sprite("Responder", { blocks: responderScripts(), costumes: [P.costume("box", box("#f0a020"), 20, 20)], layer: 4, y: -100 }),
     P.sprite("Spinner", { blocks: spinnerScripts(), costumes: [P.costume("box", box("#3fa94d"), 20, 20)], layer: 3, x: 100 }),
   ],
   listValues: { log: [] },

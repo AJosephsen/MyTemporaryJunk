@@ -19,3 +19,18 @@ another turn only when Scratch makes another pass, and it makes another pass onl
 less than 75 % of the frame time has been used).
 
 So the frame that `broadcast and wait` costs in a game is spent by the *sender* waiting, not by the receivers.
+
+## Request and response
+
+The Sender broadcasts `request`; 5 responders (a sprite and 4 clones) each change a counter `direct` and broadcast
+`response`; the Sender's `when I receive response` adds 1 to `responses`.
+
+| Counter | Result |
+|---|---|
+| `direct` (changed by each responder) | 5 |
+| `responses` (one per received response) | **1** |
+
+A script started by a broadcast exists only once per sprite or clone. When the same message arrives again before that
+script has finished, Scratch restarts it instead of running a second copy, so several responses in one frame count
+as one. Count in the responders instead (`change direct by 1`, or `add (my id) to [answers]`), and read the count after
+`broadcast and wait`, when all responders are done.

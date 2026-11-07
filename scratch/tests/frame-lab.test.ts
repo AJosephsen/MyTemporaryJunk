@@ -52,3 +52,14 @@ for (const spin of [1, 0]) {
     t.expect(frameOf(out, "after wait") === (spin ? 2 : 1), `${out}`);
   });
 }
+
+for (const spin of [1, 0]) {
+  test(`frame lab: request / response with 5 responders (${spin ? "redrawing every frame" : "nothing moving"})`, async t => {
+    const out = await measure(t, "request", spin);
+    const v = await t.vars();
+    t.log({ direct: v.direct, responses: v.responses, log: out.join(" | ") });
+    t.expect(v.direct === 5, `direct ${v.direct}`);
+    // Five "response" broadcasts in one frame start the Sender's script once: the others restart the same script.
+    t.expect(v.responses === 1, `responses ${v.responses}`);
+  });
+}

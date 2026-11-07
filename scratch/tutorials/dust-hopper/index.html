@@ -1,0 +1,247 @@
+<title>Dust Hopper Tutorial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: one reading column; each step is a numbered section with blocks, a result screenshot and a checkpoint file. */
+:root {
+  --bg: #f4f3fa; --surface: #ffffff; --fg: #1f1d33; --muted: #5c5a74; --line: #dddbea;
+  --accent: #4b3fb5; --accent-soft: #e7e4fb; --drone: #c9621f; --code-bg: #f8f7fd;
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #13121f; --surface: #1c1a2c; --fg: #ebe9f7; --muted: #a6a3bf; --line: #312e47;
+  --accent: #a99cff; --accent-soft: #2a2550; --drone: #f2a065; --code-bg: #232036; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #13121f; --surface: #1c1a2c; --fg: #ebe9f7; --muted: #a6a3bf; --line: #312e47;
+  --accent: #a99cff; --accent-soft: #2a2550; --drone: #f2a065; --code-bg: #232036; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 17px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 6vw, 2.9rem); }
+h2 { font-size: 1.7rem; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+a { color: var(--accent); }
+code { font: 0.88em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.eyebrow { font: 600 0.78rem var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--drone); }
+.stack { display: grid; gap: 16px; min-width: 0; }
+.intro { display: grid; gap: 14px; }
+.intro p { color: var(--muted); font-size: 1.08rem; }
+
+.plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: plan; }
+.plan li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 8px 12px; border-radius: 6px; counter-increment: plan; }
+.plan li::before { content: counter(plan); font: 600 0.95rem var(--display); color: var(--muted); width: 1.4em; }
+.plan li.here { background: var(--accent-soft); }
+.plan li.here::before { color: var(--accent); }
+.plan .name { font-weight: 700; }
+.plan .what { color: var(--muted); flex: 1 1 220px; }
+.chip { font-size: 0.75rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.here .chip { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+
+.step { display: grid; gap: 20px; border-top: 2px solid var(--line); padding-top: 32px; }
+.step-head { display: flex; align-items: center; gap: 14px; }
+.num { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--surface); font: 600 1.3rem var(--display); }
+ol.do { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 66ch; }
+
+.blocks-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; overflow-x: auto; }
+.blocks-panel .label { font: 700 0.78rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.sprites { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+pre.blocks { margin: 0; font: 13px var(--mono); white-space: pre; }
+
+.note { border-left: 3px solid var(--drone); padding: 2px 0 2px 14px; color: var(--fg); }
+.note b { color: var(--drone); }
+figure { margin: 0; display: grid; gap: 8px; }
+figure img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
+figcaption { font-size: 0.9rem; color: var(--muted); }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 420px; }
+th, td { text-align: right; padding: 6px 14px; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 0.82rem; color: var(--muted); font-weight: 700; }
+
+.checkpoint { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
+.checkpoint p { flex: 1 1 260px; color: var(--muted); font-size: 0.95rem; }
+.btn { display: inline-block; font-weight: 700; text-decoration: none; color: var(--surface); background: var(--accent);
+  padding: 8px 16px; border-radius: 6px; white-space: nowrap; }
+.btn:hover, .btn:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 1px; }
+.try { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+svg.coords text { font: 11px var(--body); fill: var(--muted); }
+footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--line); padding-top: 24px; }
+</style>
+
+<main>
+  <header class="intro">
+    <span class="eyebrow">Scratch tutorial · 8 steps</span>
+    <h1>Build Dust Hopper</h1>
+    <p>Dust Hopper is a landing game. You fly a small survey drone over an asteroid and set it down gently on a landing pad. Along the way you will learn how real game physics work: speed, gravity, thrust and angles.</p>
+    <p>You need the free Scratch editor at <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>. Each step ends with a checkpoint file, so you can compare your project or catch up.</p>
+  </header>
+
+  <section class="stack" aria-label="Steps">
+    <h3>The plan</h3>
+    <ol class="plan">
+      <li class="here"><span class="name">Set the scene</span><span class="what">Backdrop, ground, pads and drone in place</span><span class="chip">On this page</span></li>
+      <li class="here"><span class="name">Gravity</span><span class="what">The drone falls faster and faster, and stops on the ground</span><span class="chip">On this page</span></li>
+      <li><span class="name">Engine</span><span class="what">Throttle with Up and Down, thrust against gravity</span><span class="chip">Coming next</span></li>
+      <li><span class="name">Tilting</span><span class="what">Rotate, and split thrust into sideways and upward parts</span><span class="chip">Coming</span></li>
+      <li><span class="name">Screen edges</span><span class="what">Fly off one side and come back on the other</span><span class="chip">Coming</span></li>
+      <li><span class="name">Landing</span><span class="what">Perfect landing, hard landing or crash</span><span class="chip">Coming</span></li>
+      <li><span class="name">Fuel and score</span><span class="what">Burn fuel, earn points, game over</span><span class="chip">Coming</span></li>
+      <li><span class="name">Polish</span><span class="what">Engine flame, boost key and displays</span><span class="chip">Coming</span></li>
+    </ol>
+  </section>
+
+  <!-- ============================================================ STEP 1 -->
+  <section class="step" id="step-1">
+    <div class="step-head"><span class="num">1</span><h2>Set the scene</h2></div>
+    <p>A game needs a world before it needs rules. In this step you load the artwork and make sure every sprite starts in the same place each time you click the green flag.</p>
+
+    <h3>Get the artwork</h3>
+    <ol class="do">
+      <li>Download the starter project. It has the artwork but no code.</li>
+      <li>In the Scratch editor, choose <b>File › Load from your computer</b> and pick <code>starter.sb3</code>.</li>
+      <li>Look around. There is a backdrop called <code>space</code> and three sprites:
+        <b>Ground</b> (the rocks), <b>Pads</b> (the yellow landing pads) and <b>Drone</b>, which has four costumes: <code>drone</code>, <code>drone-flame</code>, <code>drone-boost</code> and <code>boom</code>.</li>
+    </ol>
+    <div class="checkpoint">
+      <p>Starter project: artwork only, no code.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/dust-hopper/starter.sb3">Download starter.sb3</a>
+    </div>
+    <p class="note"><b>Drawing your own?</b> Keep the ground and the pads as two separate sprites, each as big as the whole Stage. Later the drone asks “am I touching the Pads?” and “am I touching the Ground?”, and those two questions need two sprites. Draw the drone about 40 pixels wide, with its feet at the bottom.</p>
+
+    <h3>Where things are on the Stage</h3>
+    <p>The Stage is 480 pixels wide and 360 tall. The centre is <code>x: 0, y: 0</code>. x grows to the right, up to 240. y grows upwards, up to 180. The drone starts at <code>x: -60, y: 150</code>: a little left of centre, near the top.</p>
+    <svg class="coords" viewBox="0 0 520 300" width="100%" style="max-width:520px" role="img" aria-label="Stage coordinates: x from -240 to 240, y from -180 to 180, drone start at x -60, y 150">
+      <rect x="20" y="20" width="480" height="260" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+      <line x1="20" y1="150" x2="500" y2="150" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="260" y1="20" x2="260" y2="280" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="26" y="145">x: -240</text><text x="494" y="145" text-anchor="end">x: 240</text>
+      <text x="266" y="36">y: 180</text><text x="266" y="274">y: -180</text>
+      <text x="266" y="166">0, 0</text>
+      <circle cx="260" cy="150" r="3" fill="var(--muted)"/>
+      <circle cx="216.7" cy="41.7" r="6" fill="var(--drone)"/>
+      <text x="228" y="46" style="fill:var(--drone)">drone start (-60, 150)</text>
+    </svg>
+
+    <h3>Add the code</h3>
+    <p>Click each sprite in the sprite list and drag in these blocks. The <b>go to</b> blocks put things back where they belong, even if you dragged a sprite by accident. <b>point in direction 90</b> means “stand up straight”: in Scratch, direction 90 shows a costume exactly as it was drawn.</p>
+    <div class="sprites">
+      <div class="blocks-panel"><div class="label">Ground</div>
+<pre class="blocks">when flag clicked
+go to x: (0) y: (0)</pre></div>
+      <div class="blocks-panel"><div class="label">Pads</div>
+<pre class="blocks">when flag clicked
+go to x: (0) y: (0)</pre></div>
+      <div class="blocks-panel"><div class="label">Drone</div>
+<pre class="blocks">when flag clicked
+go to x: (-60) y: (150)
+point in direction (90)</pre></div>
+    </div>
+
+    <h3>Check it</h3>
+    <p>Click the green flag. The drone should hang in the sky above the rocks. Nothing moves yet; that comes next.</p>
+    <figure>
+      <img src="step1.png" alt="The Stage after step 1: a starry sky with a ringed planet, purple rocks with three yellow landing pads marked x2, x5 and x3, and the drone near the top." width="992" height="744" loading="lazy">
+      <figcaption>End of step 1. The drone waits near the top of the Stage.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Checkpoint: the project as it should look at the end of step 1.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/dust-hopper/step1.sb3">Download step1.sb3</a>
+    </div>
+  </section>
+
+  <!-- ============================================================ STEP 2 -->
+  <section class="step" id="step-2">
+    <div class="step-head"><span class="num">2</span><h2>Gravity</h2></div>
+    <p>Things do not fall at a steady speed. They start slowly and get faster. Games copy this with two simple rules, repeated in every frame (Scratch draws about 30 frames each second):</p>
+    <ol class="do">
+      <li><b>Gravity changes the speed:</b> the falling speed grows a little.</li>
+      <li><b>Speed changes the position:</b> the drone moves by its current speed.</li>
+    </ol>
+    <p>Because the speed keeps growing, each move is a bit bigger than the last. Here are the numbers from the code below, frame by frame:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Frame</th><th>Time</th><th>Speed <code>vy</code></th><th>Height <code>posY</code></th><th>Descent display</th></tr></thead>
+        <tbody>
+          <tr><td>start</td><td>0 s</td><td>0</td><td>150</td><td>0</td></tr>
+          <tr><td>1</td><td></td><td>-0.035</td><td>149.965</td><td>0</td></tr>
+          <tr><td>2</td><td></td><td>-0.07</td><td>149.895</td><td>1</td></tr>
+          <tr><td>3</td><td></td><td>-0.105</td><td>149.79</td><td>1</td></tr>
+          <tr><td>30</td><td>1 s</td><td>-1.05</td><td>133.7</td><td>11</td></tr>
+          <tr><td>60</td><td>2 s</td><td>-2.1</td><td>86.0</td><td>21</td></tr>
+          <tr><td>90</td><td>3 s</td><td>-3.15</td><td>6.7</td><td>32</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>In the first second the drone drops about 16 pixels. In the third second it drops almost 80. That is gravity.</p>
+
+    <h3>Make the variables</h3>
+    <ol class="do">
+      <li>Go to the <b>Variables</b> category and click <b>Make a Variable</b>. Create <code>gravity</code>, <code>posX</code>, <code>posY</code>, <code>vy</code> and <code>Descent</code>, each <b>For all sprites</b>.</li>
+      <li>Untick the checkbox next to every variable except <code>Descent</code>, so only Descent shows on the Stage.</li>
+    </ol>
+    <p class="note"><b>Why posX and posY?</b> Scratch already knows where the sprite is, but it rounds positions and will not let a sprite leave the Stage. Keeping the position in our own variables gives exact numbers, and in step 5 it lets the drone fly off one edge and come back on the other.</p>
+
+    <h3>Add the code</h3>
+    <p>Replace the Drone’s script from step 1 with this one. Leave the Ground and Pads scripts as they are.</p>
+    <div class="blocks-panel"><div class="label">Drone</div>
+<pre class="blocks">when flag clicked
+set [gravity v] to (0.035)
+set [posX v] to (-60)
+set [posY v] to (150)
+set [vy v] to (0)
+point in direction (90)
+go to x: (posX) y: (posY)
+repeat until &lt;&lt;touching (Ground v)?&gt; or &lt;touching (Pads v)?&gt;&gt;
+  change [vy v] by ((0) - (gravity))
+  change [posY v] by (vy)
+  go to x: (posX) y: (posY)
+  set [Descent v] to (round ((vy) * (-10)))
+end
+say (join [Touchdown! Descent: ] (Descent)) for (2) seconds</pre></div>
+
+    <h3>How it works</h3>
+    <ul class="do">
+      <li><b>The four set blocks</b> reset everything, so each run starts the same way.</li>
+      <li><b>repeat until</b> runs its inside once per frame, until the drone touches the rocks or a pad.</li>
+      <li><b>change vy by (0 − gravity)</b> makes the speed more negative each frame. Negative speed means moving down. Scratch has no “minus” block for a variable, so we subtract it from 0.</li>
+      <li><b>change posY by vy</b> moves the drone by its speed, then <b>go to</b> shows it at the new place.</li>
+      <li><b>Descent</b> turns the speed into a friendly number: it is positive while falling and ten times the speed, rounded. Later, Descent decides whether a landing is gentle or a crash.</li>
+    </ul>
+
+    <h3>Check it</h3>
+    <p>Click the green flag. The drone falls, gets faster, and stops on the rocks with a message. With the starting values it lands at a Descent of about 38.</p>
+    <figure>
+      <img src="step2.png" alt="The Stage after step 2: the drone has landed on a rocky slope and says Touchdown! Descent: 38. The Descent display in the corner shows 38." width="992" height="744" loading="lazy">
+      <figcaption>End of step 2. The drone hits the rocks at Descent 38, far too fast for a safe landing.</figcaption>
+    </figure>
+
+    <h3>Try this</h3>
+    <ul class="try">
+      <li>Set <code>gravity</code> to <code>0.01</code>. The drone floats down slowly, like on a small moon. What Descent do you get?</li>
+      <li>Set <code>gravity</code> to <code>0.1</code>. How much faster is the touchdown?</li>
+      <li>Set the starting <code>posX</code> to <code>-115</code> (in both places). The drone now lands on the ×2 pad.</li>
+    </ul>
+    <div class="checkpoint">
+      <p>Checkpoint: the project as it should look at the end of step 2.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/dust-hopper/step2.sb3">Download step2.sb3</a>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>Next: step 3, Engine.</b> The drone gets a throttle, and thrust starts pushing back against gravity. The physics in this game follow the 1979 arcade lander, whose original source code has been published; the artwork and level are new.</p>
+  </footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/scratchblocks@3.6.4/build/scratchblocks.min.js"></script>
+<script>
+  scratchblocks.renderMatching("pre.blocks", { style: "scratch3", languages: ["en"], scale: 0.75 });
+</script>

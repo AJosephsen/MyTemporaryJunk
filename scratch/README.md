@@ -7,6 +7,7 @@ All Scratch work lives here.
 | `games/` | Scratch games, each in its own folder with a `build.ts` that generates the `.sb3` file |
 | `tools/` | Tools for working with Scratch projects |
 | `tutorials/` | Step-by-step tutorials, each with a page (`index.html`) and checkpoint `.sb3` files |
+| `demos/` | Small experiments, one idea each (see `demos/README.md`) |
 | `lib/` | Shared TypeScript library for generating `.sb3` files (`sb3.ts`) |
 | `workbench/` | Local player with live reload, and the headless test runner |
 | `tests/` | Headless tests (`*.test.ts`) |

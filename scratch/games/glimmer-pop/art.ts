@@ -37,9 +37,10 @@ const SYMBOLS = [
   `<path d="M15 8.6 L21 15 L15 21.4 L9 15Z"/>`,
   `<circle cx="15" cy="15" r="5.2" fill="none" stroke-width="2.6"/>`,
 ];
-const bubble = (i: number) => {
+// The drawing of bubble i on a 30 x 30 canvas (shared with the demos).
+export const bubbleBody = (i: number, id = "b") => {
   const c = COLORS[i];
-  return svgScaled(GEOM.d, GEOM.d, 30, 30,
+  return (
     `<defs><radialGradient id="b" cx="0.38" cy="0.32" r="0.75"><stop offset="0" stop-color="${c.light}"/>` +
     `<stop offset="0.45" stop-color="${c.base}"/><stop offset="1" stop-color="${c.dark}"/></radialGradient></defs>` +
     `<circle cx="15" cy="15" r="14.3" fill="url(#b)"/>` +
@@ -48,8 +49,9 @@ const bubble = (i: number) => {
     `<circle cx="15" cy="15" r="14.3" fill="none" stroke="${c.dark}" stroke-width="1.1"/>` +
     `<g fill="#ffffff" stroke="#ffffff" stroke-width="0.8" stroke-linejoin="round" opacity="0.7">${SYMBOLS[i]}</g>` +
     `<ellipse cx="10.4" cy="8.4" rx="5.4" ry="3.1" fill="#ffffff" opacity="0.8" transform="rotate(-28 10.4 8.4)"/>` +
-    `<circle cx="7.4" cy="13" r="1.1" fill="#ffffff" opacity="0.6"/>`);
+    `<circle cx="7.4" cy="13" r="1.1" fill="#ffffff" opacity="0.6"/>`).replaceAll('id="b"', `id="${id}"`).replaceAll("url(#b)", `url(#${id})`);
 };
+const bubble = (i: number) => svgScaled(GEOM.d, GEOM.d, 30, 30, bubbleBody(i));
 
 // ---------------------------------------------------------------- backdrop
 let seed = 5;

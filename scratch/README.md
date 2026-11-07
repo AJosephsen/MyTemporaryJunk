@@ -17,12 +17,14 @@ All Scratch work lives here.
 | Game | Description |
 |---|---|
 | [Dust Hopper](games/dust-hopper/) | Single-screen landing game using the physics model of the 1979 arcade lander |
+| [Comet Rally](games/comet-rally/) | Two-paddle rally against a robot; the finished game is the tutorial's last checkpoint |
 
 ## Tutorials
 
 | Tutorial | Description |
 |---|---|
 | [Dust Hopper](tutorials/dust-hopper/) | Build the landing game by hand in 8 steps, with a checkpoint file per step |
+| [Comet Rally](tutorials/comet-rally/) | For kids: a two-paddle rally game against a robot in 6 steps, with mouse control and aimed hits |
 
 ## Tools
 

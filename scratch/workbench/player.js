@@ -60,6 +60,12 @@
       v.value = value;
     },
     key(key, isDown) { vm.postIOData("keyboard", { key, isDown }); },
+    place(name, x, y, direction) {
+      const t = vm.runtime.getSpriteTargetByName(name);
+      if (!t) throw new Error(`No sprite called ${name}`);
+      t.setXY(x, y);
+      if (direction !== undefined) t.setDirection(direction);
+    },
     sprite(name) {
       const t = vm.runtime.getSpriteTargetByName(name);
       if (!t) throw new Error(`No sprite called ${name}`);
@@ -125,6 +131,10 @@
         await settle();
       },
       key(name, isDown) { vm.postIOData("keyboard", { key: KEYS[name] ?? name, isDown }); },
+      // Moves the mouse to a Stage position (x: -240..240, y: -180..180).
+      mouse(x, y, isDown = false) {
+        vm.postIOData("mouse", { x: x + 240, y: 180 - y, canvasWidth: 480, canvasHeight: 360, isDown });
+      },
       // Steps frame by frame until check(vars, workbench, memo) is true; check runs here, in the page.
       async until(source, max) {
         const check = new Function("v", "w", "memo", `return (${source})(v, w, memo)`);

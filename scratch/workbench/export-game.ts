@@ -46,7 +46,8 @@ h1 { font: 600 clamp(1.1rem, 2.6vw, 1.6rem)/1.1 var(--display); margin: 0; lette
 .hint { color: var(--muted); font-size: 0.8rem; margin: 0; }
 .stagebox { grid-area: stage; container-type: size; display: grid; place-items: center; min-width: 0; min-height: 0; }
 .stagewrap { position: relative; width: min(100cqw, 100cqh * 4 / 3); aspect-ratio: 4 / 3; }
-#stage { width: 100%; height: 100%; background: #000; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+#stage { width: 100%; height: 100%; background: #000; border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  touch-action: none; /* finger drags on the stage act as the mouse instead of scrolling the page */ }
 button { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
   padding: 7px 12px; cursor: pointer; touch-action: manipulation; }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

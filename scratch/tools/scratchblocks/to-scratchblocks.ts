@@ -51,6 +51,9 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "operator_join": return `(join ${value(b, "STRING1")} ${value(b, "STRING2")})`;
       case "operator_random": return `(pick random ${value(b, "FROM")} to ${value(b, "TO")})`;
       case "looks_size": return "(size)";
+      case "sensing_mousex": return "(mouse x)";
+      case "sensing_mousey": return "(mouse y)";
+      case "sensing_of": return `([${field(b, "PROPERTY")} v] of ${value(b, "OBJECT")})`;
       case "data_itemoflist": return `(item ${value(b, "INDEX")} of [${field(b, "LIST")} v])`;
       case "data_lengthoflist": return `(length of [${field(b, "LIST")} v])`;
       case "motion_direction": return "(direction)";
@@ -88,6 +91,10 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "motion_turnright": return [`turn right ${value(b, "DEGREES")} degrees`];
       case "motion_turnleft": return [`turn left ${value(b, "DEGREES")} degrees`];
       case "motion_changexby": return [`change x by ${value(b, "DX")}`];
+      case "motion_movesteps": return [`move ${value(b, "STEPS")} steps`];
+      case "motion_ifonedgebounce": return ["if on edge, bounce"];
+      case "motion_setx": return [`set x to ${value(b, "X")}`];
+      case "motion_sety": return [`set y to ${value(b, "Y")}`];
       case "motion_changeyby": return [`change y by ${value(b, "DY")}`];
       case "looks_seteffectto": return [`set [${field(b, "EFFECT").toLowerCase()} v] effect to ${value(b, "VALUE")}`];
       case "looks_changeeffectby": return [`change [${field(b, "EFFECT").toLowerCase()} v] effect by ${value(b, "CHANGE")}`];

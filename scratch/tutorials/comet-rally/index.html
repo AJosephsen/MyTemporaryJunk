@@ -1,0 +1,140 @@
+<div class="scripts">
+<div class="blocks-panel"><div class="label">Player <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+go to x: (-210) y: (0)
+forever
+  set y to (mouse y)
+end</pre></div>
+</div>
+<div class="scripts">
+<div class="blocks-panel"><div class="label">Ball <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+go to x: (0) y: (0)
+point in direction (45)
+forever
+  move (6) steps
+  if on edge, bounce
+end</pre></div>
+</div>
+<div class="scripts">
+<div class="blocks-panel"><div class="label">Ball <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+go to x: (0) y: (0)
+point in direction (45)
+forever
+  move (6) steps
+  if &lt;&lt;touching (Player v)?&gt; and &lt;(direction) &lt; (0)&gt;&gt; then
+    point in direction ((90) - (((y position) - ([y position v] of (Player v))) * (1.2)))
+  end
+  if on edge, bounce
+end</pre></div>
+</div>
+<div class="scripts">
+<div class="blocks-panel"><div class="label">Robot <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+go to x: (210) y: (0)
+forever
+  change y by ((([y position v] of (Ball v)) - (y position)) / (10))
+end</pre></div>
+<div class="blocks-panel"><div class="label">Ball <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+go to x: (0) y: (0)
+point in direction (45)
+forever
+  move (6) steps
+  if &lt;&lt;touching (Player v)?&gt; and &lt;(direction) &lt; (0)&gt;&gt; then
+    point in direction ((90) - (((y position) - ([y position v] of (Player v))) * (1.2)))
+  end
+  if &lt;&lt;touching (Robot v)?&gt; and &lt;(direction) &gt; (0)&gt;&gt; then
+    point in direction ((-90) + (((y position) - ([y position v] of (Robot v))) * (1.2)))
+  end
+  if on edge, bounce
+end</pre></div>
+</div>
+<div class="scripts">
+<div class="blocks-panel"><div class="label">Ball <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+set [Your score v] to (0)
+set [Robot score v] to (0)
+go to x: (0) y: (0)
+point in direction (45)
+forever
+  move (6) steps
+  if &lt;&lt;touching (Player v)?&gt; and &lt;(direction) &lt; (0)&gt;&gt; then
+    point in direction ((90) - (((y position) - ([y position v] of (Player v))) * (1.2)))
+  end
+  if &lt;&lt;touching (Robot v)?&gt; and &lt;(direction) &gt; (0)&gt;&gt; then
+    point in direction ((-90) + (((y position) - ([y position v] of (Robot v))) * (1.2)))
+  end
+  if &lt;(x position) &lt; (-220)&gt; then
+    change [Robot score v] by (1)
+    go to x: (0) y: (0)
+    point in direction (pick random (-120) to (-60))
+    wait (1) seconds
+  end
+  if &lt;(x position) &gt; (220)&gt; then
+    change [Your score v] by (1)
+    go to x: (0) y: (0)
+    point in direction (pick random (60) to (120))
+    wait (1) seconds
+  end
+  if on edge, bounce
+end</pre></div>
+</div>
+<div class="scripts">
+<div class="blocks-panel"><div class="label">Player <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+go to x: (-210) y: (0)
+forever
+  set y to (mouse y)
+  if &lt;(y position) &gt; (140)&gt; then
+    set y to (140)
+  end
+  if &lt;(y position) &lt; (-140)&gt; then
+    set y to (-140)
+  end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Ball <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+set [Your score v] to (0)
+set [Robot score v] to (0)
+set [speed v] to (6)
+go to x: (0) y: (0)
+point in direction (45)
+forever
+  move (speed) steps
+  if &lt;&lt;touching (Player v)?&gt; and &lt;(direction) &lt; (0)&gt;&gt; then
+    point in direction ((90) - (((y position) - ([y position v] of (Player v))) * (1.2)))
+    change [speed v] by (0.5)
+    change [color v] effect by (25)
+  end
+  if &lt;&lt;touching (Robot v)?&gt; and &lt;(direction) &gt; (0)&gt;&gt; then
+    point in direction ((-90) + (((y position) - ([y position v] of (Robot v))) * (1.2)))
+    change [speed v] by (0.5)
+    change [color v] effect by (25)
+  end
+  if &lt;(x position) &lt; (-220)&gt; then
+    change [Robot score v] by (1)
+    if &lt;(Robot score) = (5)&gt; then
+      say [The robot wins!]
+      stop [this script v]
+    end
+    go to x: (0) y: (0)
+    point in direction (pick random (-120) to (-60))
+    set [speed v] to (6)
+    wait (1) seconds
+  end
+  if &lt;(x position) &gt; (220)&gt; then
+    change [Your score v] by (1)
+    if &lt;(Your score) = (5)&gt; then
+      say [You win!]
+      stop [this script v]
+    end
+    go to x: (0) y: (0)
+    point in direction (pick random (60) to (120))
+    set [speed v] to (6)
+    wait (1) seconds
+  end
+  if on edge, bounce
+end</pre></div>
+</div>

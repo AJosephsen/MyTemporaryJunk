@@ -1,0 +1,8 @@
+{
+  "title": "Comet Rally",
+  "tagline": "Move your paddle with the mouse or your finger. First to 5 wins!",
+  "project": "../../tutorials/comet-rally/step6.sb3",
+  "left": [],
+  "right": [],
+  "keys": "Move the mouse up and down to move your paddle. Hit the ball near the paddle's ends to aim it."
+}

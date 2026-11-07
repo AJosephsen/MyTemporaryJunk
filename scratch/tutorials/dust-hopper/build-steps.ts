@@ -10,10 +10,9 @@
 // In the template, <!--changed:N--> becomes every script that is new or changed in step N,
 // compared with step N-1, grouped by sprite.
 // Run: node --experimental-strip-types --no-warnings build-steps.ts
-import { readFileSync, writeFileSync } from "node:fs";
 import { Project, Blocks, dsl, type Ref } from "../../lib/sb3.ts";
 import { art, PADS } from "../../games/dust-hopper/art.ts";
-import { projectScripts } from "../../tools/scratchblocks/to-scratchblocks.ts";
+import { buildTutorial } from "../../lib/tutorial.ts";
 
 const LAST = 8;
 const INSTRUCTIONS = "Up/Down: throttle. Left/Right: tilt. Space: boost. Land gently on a yellow pad!";
@@ -203,58 +202,4 @@ function checkpoint(step: number): Buffer {
   });
 }
 
-// Reads project.json back out of a stored (uncompressed) zip built by zip().
-function projectJson(sb3: Buffer): any {
-  const nameLen = sb3.readUInt16LE(26), size = sb3.readUInt32LE(18);
-  return JSON.parse(sb3.subarray(30 + nameLen, 30 + nameLen + size).toString());
-}
-
-// ---------------------------------------------------------------- build checkpoints
-type Scripts = Record<string, Map<string, string>>; // sprite -> (first line -> script text)
-const here = (f: string) => new URL(f, import.meta.url);
-const perStep: Scripts[] = [];
-for (let step = 0; step <= LAST; step++) {
-  const sb3 = checkpoint(step);
-  const name = step === 0 ? "starter.sb3" : `step${step}.sb3`;
-  writeFileSync(here(name), sb3);
-  const byTarget: Scripts = {};
-  for (const [target, list] of Object.entries(projectScripts(projectJson(sb3))))
-    byTarget[target] = new Map(list.map(s => [s.split("\n")[0], s]));
-  perStep.push(byTarget);
-  console.log(`${name}: ${sb3.length} bytes`);
-}
-
-// ---------------------------------------------------------------- page
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const TARGETS = ["Stage", "Ground", "Pads", "Drone"];
-
-function changed(step: number): string {
-  const now = perStep[step], before = perStep[step - 1];
-  const panels: string[] = [], removed: string[] = [];
-  for (const t of TARGETS) {
-    for (const [head, text] of now[t] ?? new Map()) {
-      const old = before[t]?.get(head);
-      if (old === text) continue;
-      const tag = old === undefined ? "new" : "changed";
-      panels.push(`<div class="blocks-panel"><div class="label">${t} <span class="tag ${tag}">${tag}</span></div>\n<pre class="blocks">${esc(text)}</pre></div>`);
-    }
-    for (const head of before[t]?.keys() ?? []) if (!now[t]?.has(head)) removed.push(`${t}: <code>${esc(head)}</code>`);
-  }
-  const note = removed.length ? `<p class="note"><b>Remove</b> ${removed.join(", ")}.</p>\n` : "";
-  return `${note}<div class="scripts">\n${panels.join("\n")}\n</div>`;
-}
-
-let missing = 0;
-const page = readFileSync(here("index.template.html"), "utf8").replace(/<!--changed:(\d+)-->/g, (_, n) => {
-  const step = Number(n);
-  if (!perStep[step] || step < 1) { missing++; return ""; }
-  return changed(step);
-});
-writeFileSync(here("index.html"), page);
-const blockText: Record<string, string> = {};
-perStep.forEach((byTarget, step) => {
-  for (const [t, m] of Object.entries(byTarget)) if (m.size) blockText[`${step}:${t}`] = [...m.values()].join("\n\n");
-});
-writeFileSync(here("blocks.json"), JSON.stringify(blockText, null, 1));
-console.log(`index.html written${missing ? `, ${missing} placeholders missing` : ""}`);
-if (missing) process.exit(1);
+buildTutorial(new URL(".", import.meta.url), LAST, checkpoint, ["Stage", "Ground", "Pads", "Drone"]);

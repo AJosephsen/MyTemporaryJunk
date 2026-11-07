@@ -53,6 +53,9 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "looks_size": return "(size)";
       case "sensing_mousex": return "(mouse x)";
       case "sensing_mousey": return "(mouse y)";
+      case "sensing_mousedown": return "<mouse down?>";
+      case "operator_mod": return `(${value(b, "NUM1")} mod ${value(b, "NUM2")})`;
+      case "looks_costumenumbername": return `(costume [${field(b, "NUMBER_NAME")} v])`;
       case "sensing_of": return `([${field(b, "PROPERTY")} v] of ${value(b, "OBJECT")})`;
       case "data_itemoflist": return `(item ${value(b, "INDEX")} of [${field(b, "LIST")} v])`;
       case "data_lengthoflist": return `(length of [${field(b, "LIST")} v])`;
@@ -92,6 +95,11 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "motion_turnleft": return [`turn left ${value(b, "DEGREES")} degrees`];
       case "motion_changexby": return [`change x by ${value(b, "DX")}`];
       case "motion_movesteps": return [`move ${value(b, "STEPS")} steps`];
+      case "motion_pointtowards": return [`point towards ${value(b, "TOWARDS")}`];
+      case "data_replaceitemoflist": return [`replace item ${value(b, "INDEX")} of [${field(b, "LIST")} v] with ${value(b, "ITEM")}`];
+      case "data_deleteoflist": return [`delete ${value(b, "INDEX")} of [${field(b, "LIST")} v]`];
+      case "pen_clear": return ["erase all"];
+      case "pen_stamp": return ["stamp"];
       case "motion_ifonedgebounce": return ["if on edge, bounce"];
       case "motion_setx": return [`set x to ${value(b, "X")}`];
       case "motion_sety": return [`set y to ${value(b, "Y")}`];

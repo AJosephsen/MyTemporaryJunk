@@ -12,6 +12,8 @@ export class Project {
   lists: Record<string, string> = {};
   bcasts: Record<string, string> = {};
   assets: Record<string, string> = {};
+  /** Scratch extensions used by the project, e.g. "pen". */
+  extensions: string[] = [];
 
   nid(prefix: string) { return `${prefix}${(++this.uid).toString(36)}`; }
   varId(n: string) { return (this.vars[n] ??= this.nid("var")); }
@@ -62,7 +64,7 @@ export class Project {
         x: i < left ? 5 : Math.round(475 - (n.length * 7.5 + 60)),
         sliderMin: 0, sliderMax: 100, isDiscrete: true,
       })),
-      extensions: [],
+      extensions: this.extensions,
       meta: { semver: "3.0.0", vm: "0.2.0", agent: "scratch/lib/sb3.ts" },
     };
     const files: Record<string, Buffer> = { "project.json": Buffer.from(JSON.stringify(project)) };
@@ -135,6 +137,8 @@ export function dsl(B: Blocks) {
     and: logic("operator_and"), or: logic("operator_or"),
     not: (a: Ref) => B.add("operator_not", { OPERAND: bool(a) }),
     sin: mathop("sin"), cos: mathop("cos"), abs: mathop("abs"),
+    floor: mathop("floor"), sqrt: mathop("sqrt"), atan: mathop("atan"), ceiling: mathop("ceiling"),
+    mod: (a: In, b: In) => B.add("operator_mod", { NUM1: num(a), NUM2: num(b) }),
     round: (x: In) => B.add("operator_round", { NUM: num(x) }),
     join: (a: In, b: In) => B.add("operator_join", { STRING1: txt(a), STRING2: txt(b) }),
     item: (list: string, idx: In) => B.add("data_itemoflist", { INDEX: num(idx) }, { LIST: [list, P.listId(list)] }),
@@ -153,6 +157,19 @@ export function dsl(B: Blocks) {
     turnLeft: (d: number) => B.add("motion_turnleft", { DEGREES: num(d) }),
     deleteAll: (list: string) => B.add("data_deletealloflist", {}, { LIST: [list, P.listId(list)] }),
     addTo: (list: string, x: In) => B.add("data_addtolist", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
+    replace: (list: string, idx: In, x: In) => B.add("data_replaceitemoflist", { INDEX: num(idx), ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
+    deleteOf: (list: string, idx: In) => B.add("data_deleteoflist", { INDEX: num(idx) }, { LIST: [list, P.listId(list)] }),
+    // Pen (the project must list "pen" in Project.extensions)
+    penClear: () => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_clear"); },
+    stamp: () => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_stamp"); },
+    mouseDown: () => B.add("sensing_mousedown"),
+    pointToMouse: () => B.add("motion_pointtowards", { TOWARDS: [1, B.shadow("motion_pointtowards_menu", { TOWARDS: ["_mouse_", null] })] }),
+    cloneOf: (sprite: string) => B.add("control_create_clone_of", {
+      CLONE_OPTION: [1, B.shadow("control_create_clone_of_menu", { CLONE_OPTION: [sprite, null] })] }),
+    costumeNumber: () => B.add("looks_costumenumbername", {}, { NUMBER_NAME: ["number", null] }),
+    // Switch costume by a calculated value (a reporter or variable): the menu stays underneath as a shadow.
+    costumeTo: (x: Ref | VarRef) => B.add("looks_switchcostumeto",
+      { COSTUME: [3, num(x)[1], B.shadow("looks_costume", { COSTUME: ["", null] })] }),
     costume: (name: string) => B.add("looks_switchcostumeto", { COSTUME: [1, B.shadow("looks_costume", { COSTUME: [name, null] })] }),
     show: () => B.add("looks_show"),
     changeX: (n: In) => B.add("motion_changexby", { DX: num(n) }),

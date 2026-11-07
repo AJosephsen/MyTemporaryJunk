@@ -161,6 +161,10 @@ export function dsl(B: Blocks) {
     addTo: (list: string, x: In) => B.add("data_addtolist", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     replace: (list: string, idx: In, x: In) => B.add("data_replaceitemoflist", { INDEX: num(idx), ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     deleteOf: (list: string, idx: In) => B.add("data_deleteoflist", { INDEX: num(idx) }, { LIST: [list, P.listId(list)] }),
+    contains: (list: string, x: In) => B.add("data_listcontainsitem", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
+    // touching a sprite whose name is worked out while the project runs, e.g. touchingNamed(join("Bubble", color))
+    touchingNamed: (name: Ref | VarRef) => B.add("sensing_touchingobject", {
+      TOUCHINGOBJECTMENU: [3, num(name)[1], B.shadow("sensing_touchingobjectmenu", { TOUCHINGOBJECTMENU: ["_mouse_", null] })] }),
     // Pen (the project must list "pen" in Project.extensions)
     penClear: () => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_clear"); },
     stamp: () => { if (!P.extensions.includes("pen")) P.extensions.push("pen"); return B.add("pen_stamp"); },

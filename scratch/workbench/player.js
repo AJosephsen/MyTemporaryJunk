@@ -86,6 +86,8 @@
     let virtual = null;
     const timers = new Map();
     let nextTimer = 1;
+    const realNow = performance.now.bind(performance);
+    workbench.lastStepMs = 0;   // real time the last frame took to run (not virtual time)
     const startVirtualClock = () => {
       if (virtual) return;
       const p0 = performance.now(), d0 = Date.now();
@@ -134,7 +136,9 @@
           virtual.reads = 0;
           runDueTimers();
           await settle();
+          const t0 = realNow();
           vm.runtime._step();
+          workbench.lastStepMs = realNow() - t0;
         }
         await settle();
       },

@@ -61,6 +61,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "sensing_of": return `([${field(b, "PROPERTY")} v] of ${value(b, "OBJECT")})`;
       case "data_itemoflist": return `(item ${value(b, "INDEX")} of [${field(b, "LIST")} v])`;
       case "data_lengthoflist": return `(length of [${field(b, "LIST")} v])`;
+      case "data_listcontainsitem": return `<[${field(b, "LIST")} v] contains ${value(b, "ITEM")}?>`;
       case "motion_direction": return "(direction)";
       case "motion_xposition": return "(x position)";
       case "motion_yposition": return "(y position)";

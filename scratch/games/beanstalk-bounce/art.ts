@@ -2,10 +2,8 @@
 import { readFileSync } from "node:fs";
 import type { Project } from "../../lib/sb3.ts";
 
-// Colours the scripts look for with `touching color`.
+// Leaf colours (only for drawing: the scripts never check colours).
 export const LEAF_GREEN = "#4caf3a", DRY_BROWN = "#b07a3a", CAP_RED = "#e2453c";
-// The frog's toes have their own colour, so the scripts can check "color FEET is touching ...": only the feet land.
-export const FEET = "#f39c34";
 
 const svg = (w: number, h: number, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
@@ -21,20 +19,6 @@ const mushroom = svg(72, 34,
   `<rect x="31" y="12" width="10" height="11" rx="3" fill="#f3e6c8"/>` +
   `<path d="M22 14 Q36 -2 50 14 z" fill="${CAP_RED}" stroke="#9c2620" stroke-width="1.2"/>` +
   `<circle cx="31" cy="8" r="2" fill="#fff"/><circle cx="41" cy="9" r="1.6" fill="#fff"/>`);
-// The frog: sitting, and stretched while jumping up.
-const frog = (jump: boolean) => svg(44, 44,
-  (jump
-    ? `<path d="M10 30 l-6 10 M34 30 l6 10" stroke="#2f8a3a" stroke-width="5" stroke-linecap="round"/>` +
-      `<ellipse cx="4" cy="41" rx="5" ry="2.5" fill="${FEET}"/><ellipse cx="40" cy="41" rx="5" ry="2.5" fill="${FEET}"/>`
-    : `<ellipse cx="9" cy="38" rx="8" ry="4" fill="#2f8a3a"/><ellipse cx="35" cy="38" rx="8" ry="4" fill="#2f8a3a"/>` +
-      `<ellipse cx="7" cy="40.5" rx="6" ry="2.5" fill="${FEET}"/><ellipse cx="37" cy="40.5" rx="6" ry="2.5" fill="${FEET}"/>`) +
-  `<ellipse cx="22" cy="${jump ? 24 : 28}" rx="15" ry="${jump ? 14 : 12}" fill="#5cc45a" stroke="#2f8a3a" stroke-width="2"/>` +
-  `<ellipse cx="22" cy="${jump ? 28 : 31}" rx="9" ry="6" fill="#d9f5c8"/>` +
-  `<circle cx="14" cy="${jump ? 11 : 16}" r="6" fill="#5cc45a" stroke="#2f8a3a" stroke-width="2"/>` +
-  `<circle cx="30" cy="${jump ? 11 : 16}" r="6" fill="#5cc45a" stroke="#2f8a3a" stroke-width="2"/>` +
-  `<circle cx="14" cy="${jump ? 11 : 16}" r="3" fill="#fff"/><circle cx="30" cy="${jump ? 11 : 16}" r="3" fill="#fff"/>` +
-  `<circle cx="15" cy="${jump ? 11 : 16}" r="1.6" fill="#1b2a1b"/><circle cx="31" cy="${jump ? 11 : 16}" r="1.6" fill="#1b2a1b"/>` +
-  `<path d="M16 ${jump ? 22 : 26} Q22 ${jump ? 27 : 30} 28 ${jump ? 22 : 26}" stroke="#2f8a3a" stroke-width="1.8" fill="none"/>`);
 // A bee: striped, with see-through wings; facing right (flipped for left).
 const bee = (flip: boolean) => svg(40, 32, `<g transform="${flip ? "translate(40 0) scale(-1 1)" : ""}">` +
   `<ellipse cx="15" cy="9" rx="8" ry="6" fill="#ffffff" opacity="0.8" stroke="#9ec9e6"/><ellipse cx="24" cy="8" rx="7" ry="5" fill="#ffffff" opacity="0.8" stroke="#9ec9e6"/>` +
@@ -62,7 +46,6 @@ export function art(P: Project) {
   return {
     skin: [P.bitmap("sit", skin, 26, 42), P.bitmap("jump", skin, 26, 42)],
     feet: [P.costume("feet", feetBox, 18, 22)],
-    frog: [P.costume("sit", frog(false), 22, 22), P.costume("jump", frog(true), 22, 22)],
     leaf: [P.costume("leaf", leaf(LEAF_GREEN, "#2e7d22"), 36, 9), P.costume("dry", leaf(DRY_BROWN, "#7a5222"), 36, 9),
       P.costume("mushroom", mushroom, 36, 25)],
     bee: [P.costume("right", bee(false), 20, 16), P.costume("left", bee(true), 20, 16)],

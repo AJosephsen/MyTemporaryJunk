@@ -3,9 +3,22 @@ import { test, type T } from "../workbench/testing.ts";
 
 const GAME = "games/beanstalk-bounce/beanstalk-bounce.sb3";
 const shot = (name: string) => `/tmp/claude-0/-home-user-MyTemporaryJunk/af299c66-140a-5320-8b1f-a09d589ac156/scratchpad/${name}.png`;
-type Leaf = { x: number; wy: number };
+type Leaf = { x: number; wy: number; kind: string; dx: number };
 const leaves = (t: T) => t.page(w => w.vm.runtime.targets.filter((c: any) => !c.isOriginal && c.sprite.name === "Leaf")
-  .map((c: any) => ({ x: c.x, wy: Number((Object.values(c.variables) as any[]).find((x: any) => x.name === "wy").value) }))) as Promise<Leaf[]>;
+  .map((c: any) => {
+    const get = (n: string) => Number((Object.values(c.variables) as any[]).find((x: any) => x.name === n).value);
+    return { x: c.x, wy: get("wy"), dx: get("dx"), kind: c.getCostumes()[c.currentCostume].name };
+  })) as Promise<Leaf[]>;
+// Puts the frog just above a new leaf of the given kind (and nothing else nearby), falling.
+const landOn = (t: T, kind: string) => t.page((w, kind) => {
+  const rt = w.vm.runtime;
+  for (const c of rt.targets.slice()) if (!c.isOriginal && ["Leaf", "Bee"].includes(c.sprite.name)) { rt.stopForTarget(c); rt.disposeTarget(c); }
+  const orig = rt.getSpriteTargetByName("Leaf"), c = orig.makeClone();
+  rt.addTarget(c); c.setXY(0, -100); c.setCostume(c.getCostumeIndexByName(kind));
+  for (const x of Object.values(c.variables) as any[]) { if (x.name === "wy") x.value = -100; if (x.name === "dx") x.value = 0; }
+  const set = (n: string, val: any) => { for (const x of Object.values(rt.getTargetForStage().variables) as any[]) if (x.name === n) x.value = val; };
+  set("nextY", 9999); set("fx", 0); set("fy", -60); set("vy", -1); set("camera", 0);
+}, kind);
 const start = async (t: T) => { await t.load(GAME); await t.greenFlag(); await t.frames(3); };
 
 // A simple player: after every bounce, pick the lowest leaf above the one it bounced from, and steer towards it.
@@ -17,7 +30,7 @@ async function climb(t: T, frames: number) {
     const fy = Number(v.fy), fx = Number(v.fx), vy = Number(v.vy);
     if (vy > 0 && lastVy <= 0) from = fy - 30;
     lastVy = vy;
-    const next = (await leaves(t)).filter(l => l.wy > from + 10 && l.wy < from + 115).sort((a, b) => a.wy - b.wy)[0];
+    const next = (await leaves(t)).filter(l => l.kind !== "dry" && l.wy > from + 10 && l.wy < from + 115).sort((a, b) => a.wy - b.wy)[0];
     const want = !next || Math.abs(next.x - fx) < 8 ? "" : next.x > fx ? "right arrow" : "left arrow";
     if (want !== held) { if (held) await t.release(held); if (want) await t.hold(want); held = want; }
     await t.frames(1);
@@ -65,4 +78,49 @@ test("beanstalk bounce: falling off the bottom ends the game", async t => {
   await t.set("nextY", 9999);          // and no new ones
   const v = await t.until(v => v.phase === "over", { max: 120, what: "the frog to fall off" });
   t.expect(Number(v.fy) < -190, `fy ${v.fy}`);
+});
+
+test("beanstalk bounce: a green leaf bounces, a mushroom bounces much higher, a dry leaf crumbles", async t => {
+  await start(t);
+  const peak = async (kind: string) => {
+    await landOn(t, kind);
+    let top = -999;
+    for (let i = 0; i < 60; i++) { await t.frames(1); top = Math.max(top, Number(await t.get("fy"))); }
+    return top;
+  };
+  const leaf = await peak("leaf"), mushroom = await peak("mushroom");
+  t.log({ leaf, mushroom });
+  t.expect(leaf > 0 && leaf < 50 && mushroom > 200, `peaks: leaf ${leaf}, mushroom ${mushroom}`);
+  await landOn(t, "dry");
+  const v = await t.until(v => v.phase === "over", { max: 120, what: "the frog to fall through the dry leaf" });
+  t.expect(v.phase === "over", "");
+});
+
+test("beanstalk bounce: higher up there are moving leaves, dry leaves, mushrooms and bees", async t => {
+  await start(t);
+  const seen = { moving: 0, dry: 0, mushroom: 0, bees: 0 };
+  for (let cam = 1000; cam <= 4000; cam += 300) {
+    await t.set("camera", cam); await t.set("fy", cam); await t.set("vy", 0); await t.set("nextY", cam - 180);
+    await t.frames(2);
+    for (const l of await leaves(t)) { if (l.dx !== 0) seen.moving++; if (l.kind === "dry") seen.dry++; if (l.kind === "mushroom") seen.mushroom++; }
+    seen.bees += await t.page(w => w.vm.runtime.targets.filter((c: any) => !c.isOriginal && c.sprite.name === "Bee").length);
+  }
+  t.log(seen);
+  t.expect(seen.moving > 3 && seen.dry > 3 && seen.mushroom > 0 && seen.bees > 0, JSON.stringify(seen));
+  await t.screenshot(shot("beanstalk-high"));
+});
+
+test("beanstalk bounce: a bee sting knocks the frog down", async t => {
+  await start(t);
+  await t.page(w => {
+    const rt = w.vm.runtime, orig = rt.getSpriteTargetByName("Bee");
+    for (const x of Object.values(orig.variables) as any[]) { if (x.name === "wy") x.value = -100; if (x.name === "dx") x.value = 0; }
+    const c = orig.makeClone(); rt.addTarget(c);
+    c.setXY(0, -100);
+  });
+  const v = await t.until(v => v.phase === "stung", { max: 120, what: "the bee to sting" });
+  await t.frames(10);
+  await t.screenshot(shot("beanstalk-stung"));
+  await t.until(v => v.phase === "over", { max: 200, what: "the frog to fall off" });
+  t.expect(v.phase === "stung", "");
 });

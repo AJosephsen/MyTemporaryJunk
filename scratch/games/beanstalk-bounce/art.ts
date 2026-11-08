@@ -30,6 +30,12 @@ const frog = (jump: boolean) => svg(44, 44,
   `<circle cx="14" cy="${jump ? 11 : 16}" r="3" fill="#fff"/><circle cx="30" cy="${jump ? 11 : 16}" r="3" fill="#fff"/>` +
   `<circle cx="15" cy="${jump ? 11 : 16}" r="1.6" fill="#1b2a1b"/><circle cx="31" cy="${jump ? 11 : 16}" r="1.6" fill="#1b2a1b"/>` +
   `<path d="M16 ${jump ? 22 : 26} Q22 ${jump ? 27 : 30} 28 ${jump ? 22 : 26}" stroke="#2f8a3a" stroke-width="1.8" fill="none"/>`);
+// A bee: striped, with see-through wings; facing right (flipped for left).
+const bee = (flip: boolean) => svg(40, 32, `<g transform="${flip ? "translate(40 0) scale(-1 1)" : ""}">` +
+  `<ellipse cx="15" cy="9" rx="8" ry="6" fill="#ffffff" opacity="0.8" stroke="#9ec9e6"/><ellipse cx="24" cy="8" rx="7" ry="5" fill="#ffffff" opacity="0.8" stroke="#9ec9e6"/>` +
+  `<ellipse cx="19" cy="19" rx="13" ry="9" fill="#ffc928" stroke="#3a2a10" stroke-width="1.5"/>` +
+  `<path d="M14 11 v16 M21 10.5 v17" stroke="#3a2a10" stroke-width="3.5"/>` +
+  `<circle cx="29" cy="17" r="2" fill="#3a2a10"/><path d="M5 19 l-4 1 l4 1 z" fill="#3a2a10"/></g>`);
 // The sky with a beanstalk climbing up the middle and a few clouds.
 const backdrop = svg(480, 360,
   `<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3ff"/><stop offset="1" stop-color="#e3f6ff"/></linearGradient></defs>` +
@@ -43,6 +49,7 @@ export function art(P: Project) {
     frog: [P.costume("sit", frog(false), 22, 22), P.costume("jump", frog(true), 22, 22)],
     leaf: [P.costume("leaf", leaf(LEAF_GREEN, "#2e7d22"), 36, 9), P.costume("dry", leaf(DRY_BROWN, "#7a5222"), 36, 9),
       P.costume("mushroom", mushroom, 36, 25)],
+    bee: [P.costume("right", bee(false), 20, 16), P.costume("left", bee(true), 20, 16)],
     backdrop: P.costume("sky", backdrop, 240, 180),
   };
 }

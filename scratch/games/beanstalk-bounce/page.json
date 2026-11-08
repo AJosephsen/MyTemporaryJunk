@@ -1,0 +1,8 @@
+{
+  "title": "Beanstalk Bounce",
+  "tagline": "Bounce up the beanstalk, leaf by leaf. How high can the frog go?",
+  "project": "beanstalk-bounce.sb3",
+  "left": [{ "key": "ArrowLeft", "label": "◀", "name": "Left", "big": true }],
+  "right": [{ "key": "ArrowRight", "label": "▶", "name": "Right", "big": true }],
+  "keys": "← → to steer · green leaves bounce · red mushrooms bounce high · brown leaves crumble · avoid the bees"
+}

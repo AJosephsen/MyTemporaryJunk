@@ -165,6 +165,9 @@ export function dsl(B: Blocks) {
     // touching color: a fixed colour "#rrggbb", or a reporter that gives a colour number
     touchingColor: (c: Ref | string) => B.add("sensing_touchingcolor",
       { COLOR: typeof c === "string" ? [1, [9, c]] : [3, c.id, [9, "#ff00ff"]] }),
+    // color A is touching color B: only the pixels of my own colour A count (for example a sprite's feet).
+    colorTouchingColor: (mine: string, other: string) => B.add("sensing_coloristouchingcolor",
+      { COLOR: [1, [9, mine]], COLOR2: [1, [9, other]] }),
     // touching a sprite whose name is worked out while the project runs, e.g. touchingNamed(join("Bubble", color))
     touchingNamed: (name: Ref | VarRef) => B.add("sensing_touchingobject", {
       TOUCHINGOBJECTMENU: [3, num(name)[1], B.shadow("sensing_touchingobjectmenu", { TOUCHINGOBJECTMENU: ["_mouse_", null] })] }),

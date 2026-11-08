@@ -69,6 +69,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "sensing_keypressed": return `<key ${value(b, "KEY_OPTION")} pressed?>`;
       case "sensing_touchingobject": return `<touching ${value(b, "TOUCHINGOBJECTMENU")}?>`;
       case "sensing_touchingcolor": return `<touching color ${value(b, "COLOR")}?>`;
+      case "sensing_coloristouchingcolor": return `<color ${value(b, "COLOR")} is touching ${value(b, "COLOR2")}?>`;
       case "argument_reporter_string_number": return `(${field(b, "VALUE")} :: custom)`;
     }
     return `(${o} :: obsolete)`;

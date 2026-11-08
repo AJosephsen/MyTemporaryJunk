@@ -1,15 +1,16 @@
 // Beanstalk Bounce, as a function of the tutorial step: beanstalkBounce(5) is the whole game, 1..4 are the tutorial's
 // checkpoints, 0 is the starter (artwork, no code). Each step adds one idea:
-//   1  gravity and bounce: vy shrinks every frame (gravity); landing on a leaf sets it back to the jump speed
+//   1  gravity and bounce: vy shrinks every frame (gravity); landing on a leaf sets it back to the jump speed;
+//      only the feet count: "color (toes) is touching (leaf green)?"
 //   2  climb forever: a camera follows the frog up; leaves keep their height, screen y = height - camera
 //   3  level numbers: the gaps between leaves grow with the height (parametric levels); best height
-//   4  leaf kinds: moving, mushrooms and dry leaves, chosen by chances; the frog tells them apart by colour
+//   4  leaf kinds: moving, mushrooms and dry leaves, chosen by chances; the frog's feet tell them apart by colour
 //   5  bees
 //
 // No lists. Every leaf is a clone that keeps its own height `wy` (world y).
 // The frog can always reach the next leaf: the biggest gap stays below JUMP * JUMP / (2 * GRAVITY) = 121 pixels.
 import { Project, Blocks, dsl, type In } from "../../lib/sb3.ts";
-import { art, LEAF_GREEN, CAP_RED } from "./art.ts";
+import { art, LEAF_GREEN, CAP_RED, DRY_BROWN, FEET } from "./art.ts";
 
 export const LAST = 5;
 const GRAVITY = 0.5, JUMP = 11, SUPER_JUMP = 20, STEER = 5;
@@ -83,7 +84,7 @@ export function beanstalkBounce(step: number): Buffer {
           // Moving leaves go to and fro.
           ifThen(not(eq(v("dx"), 0)), [d.changeX(v("dx")), ifThen(or(gt(d.xPos(), 200), lt(d.xPos(), -200)), [set("dx", d.mul(v("dx"), -1))])]),
           // A dry leaf crumbles when the frog lands on it: it falls and fades.
-          ifThen(and(eq(d.costumeNumber(), 2), and(touching("Frog"), lt(v("vy"), 0))), [set("crumble", 1)]),
+          ifThen(and(lt(v("vy"), 0), d.colorTouchingColor(DRY_BROWN, FEET)), [set("crumble", 1)]),
           ifThen(eq(v("crumble"), 1), [change("wy", -8), d.changeEffect("GHOST", 12)]),
         ]),
       ]),
@@ -113,14 +114,13 @@ export function beanstalkBounce(step: number): Buffer {
           ifThen(lt(v("fx"), -240), [change("fx", 480)]),
           // Gravity: the speed goes down a little every frame, and the frog moves by the speed.
           ...fall(),
-          // Falling onto a leaf? Bounce!
-          ...(at(4) ? [
-            // A green leaf bounces, a red mushroom cap bounces much higher. (Dry brown leaves don't hold.)
-            ifThen(lt(v("vy"), 0), [
-              ifThen(d.touchingColor(LEAF_GREEN), [set("vy", JUMP)]),
-              ifThen(d.touchingColor(CAP_RED), [set("vy", SUPER_JUMP)]),
-            ]),
-          ] : [ifThen(d.and(lt(v("vy"), 0), d.touching("Leaf")), [set("vy", JUMP)])]),
+          // Falling, and the feet (orange toes) land on a green leaf? Bounce! Only the feet count: a head that bumps
+          // into a leaf from below must not bounce.
+          ifThen(lt(v("vy"), 0), [
+            ifThen(d.colorTouchingColor(FEET, LEAF_GREEN), [set("vy", JUMP)]),
+            // A red mushroom cap bounces much higher. (Dry brown leaves don't hold.)
+            ...when(4, () => [ifThen(d.colorTouchingColor(FEET, CAP_RED), [set("vy", SUPER_JUMP)])]),
+          ]),
           ifElse(gt(v("vy"), 0), [costume("jump")], [costume("sit")]),
           ...when(2, () => [
             // The camera follows the frog up, never down.

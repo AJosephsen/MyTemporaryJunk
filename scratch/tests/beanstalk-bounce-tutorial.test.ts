@@ -16,9 +16,9 @@ async function climb(t: T, frames: number, until?: (v: any) => boolean) {
     const v = await t.vars();
     if (v.phase !== "play" || until?.(v)) break;
     const fy = Number(v.fy), fx = Number(v.fx), vy = Number(v.vy);
-    if (vy > 0 && lastVy <= 0) from = fy - 30;
+    if (vy > 0 && lastVy <= 0) from = fy - 12;   // the leaf just bounced from is a little below the frog's middle
     lastVy = vy;
-    const next = (await leaves(t)).filter(l => l.kind !== "dry" && l.wy > from + 10 && l.wy < from + 115).sort((a, b) => a.wy - b.wy)[0];
+    const next = (await leaves(t)).filter(l => l.kind !== "dry" && l.wy > from && l.wy < from + 115).sort((a, b) => a.wy - b.wy)[0];
     const want = !next || Math.abs(next.x - fx) < 8 ? "" : next.x > fx ? "right arrow" : "left arrow";
     if (want !== held) { if (held) await t.release(held); if (want) await t.hold(want); held = want; }
     await t.frames(1);
@@ -42,7 +42,7 @@ test("beanstalk bounce tutorial step 1: gravity and bounce", async t => {
 
 test("beanstalk bounce tutorial step 2: the camera follows the frog up; falling off ends the game", async t => {
   await start(t, 2);
-  await climb(t, 500, v => Number(v.height) >= 60);
+  await climb(t, 900, v => Number(v.height) >= 60);
   const v = await t.vars();
   t.expect(Number(v.height) >= 60, `height ${v.height}`);
   await t.screenshot(shot(2));

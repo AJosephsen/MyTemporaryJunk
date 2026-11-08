@@ -120,6 +120,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     <!--changed:1-->
     <ul class="do">
       <li>The frog only bounces when he is <b>falling</b> (vy &lt; 0). On the way up he jumps right through the leaves.</li>
+      <li><b>Only the feet count.</b> The frog has orange toes, and the check is <b>color (orange) is touching (leaf green)?</b>. With <b>touching Leaf</b>, his head could hit a leaf from below and bounce off it! Pick both colours with the eyedropper.</li>
       <li>Off the right side, back on the left: if <b>fx</b> is more than 240, take 480 away.</li>
       <li><b>grow</b> puts leaves 40 to 70 steps apart until the screen is full. Each clone keeps its own height <b>wy</b>.</li>
     </ul>
@@ -175,13 +176,13 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 
   <section class="step" id="step-4">
     <div class="step-head"><span class="num">4</span><h2>Leaf kinds</h2></div>
-    <div class="idea"><b>Big idea: tell things apart by colour</b><span>Some leaves move, some are dry and crumble, and some have a red mushroom that sends you flying. The chances also come from level numbers. The frog now checks <b>touching color</b> instead of <b>touching Leaf</b>: green bounces, red bounces high, brown doesn't hold.</span></div>
+    <div class="idea"><b>Big idea: tell things apart by colour</b><span>Some leaves move, some are dry and crumble, and some have a red mushroom that sends you flying. The chances also come from level numbers. The frog's feet already look for green; now they also look for red, which bounces much higher. Brown is not green, so dry leaves don't hold.</span></div>
     <p class="make"><span><b>Make:</b> variables <code>moveChance</code> and <code>dryChance</code>; on the Leaf <code>dx</code> and <code>crumble</code> <b>for this sprite only</b>.</span></p>
     <!--changed:4-->
     <ul class="do">
-      <li>Pick the colours with the eyedropper: click the colour box in <b>touching color</b>, then a leaf.</li>
+      <li>A dry leaf crumbles when <b>its brown is touching the orange toes</b>: the same block, used from the leaf's side.</li>
       <li>A clone copies the costume, so <b>grow</b> switches the costume <b>before</b> it makes the clone.</li>
-      <li>A dry leaf checks if the frog is falling onto it. Then it slides down and fades away.</li>
+      <li>A crumbling leaf slides down and fades away, then it is deleted below the screen.</li>
     </ul>
     <figure>
       <img src="step4.png" alt="Moving, dry and mushroom leaves." width="720" height="541" loading="lazy">

@@ -28,9 +28,9 @@ async function climb(t: T, frames: number) {
     const v = await t.vars();
     if (v.phase !== "play") break;
     const fy = Number(v.fy), fx = Number(v.fx), vy = Number(v.vy);
-    if (vy > 0 && lastVy <= 0) from = fy - 30;
+    if (vy > 0 && lastVy <= 0) from = fy - 12;   // the leaf just bounced from is a little below the frog's middle
     lastVy = vy;
-    const next = (await leaves(t)).filter(l => l.kind !== "dry" && l.wy > from + 10 && l.wy < from + 115).sort((a, b) => a.wy - b.wy)[0];
+    const next = (await leaves(t)).filter(l => l.kind !== "dry" && l.wy > from && l.wy < from + 115).sort((a, b) => a.wy - b.wy)[0];
     const want = !next || Math.abs(next.x - fx) < 8 ? "" : next.x > fx ? "right arrow" : "left arrow";
     if (want !== held) { if (held) await t.release(held); if (want) await t.hold(want); held = want; }
     await t.frames(1);
@@ -123,4 +123,20 @@ test("beanstalk bounce: a bee sting knocks the frog down", async t => {
   await t.screenshot(shot("beanstalk-stung"));
   await t.until(v => v.phase === "over", { max: 200, what: "the frog to fall off" });
   t.expect(v.phase === "stung", "");
+});
+
+test("beanstalk bounce: only the feet land; a head touching a leaf from below does not bounce", async t => {
+  await start(t);
+  // Feet just above the leaf: bounce.
+  await landOn(t, "leaf");
+  await t.set("fy", -78);
+  let bounced = false;
+  for (let i = 0; i < 10 && !bounced; i++) { await t.frames(1); bounced = Number(await t.get("vy")) > 5; }
+  t.expect(bounced, "feet on the leaf did not bounce");
+  // Head just under the leaf (the frog is below it), falling: no bounce.
+  await landOn(t, "leaf");
+  await t.set("fy", -122);
+  let rose = false;
+  for (let i = 0; i < 10; i++) { await t.frames(1); if (Number(await t.get("vy")) > 0) rose = true; }
+  t.expect(!rose, "the frog bounced off the leaf with his head");
 });

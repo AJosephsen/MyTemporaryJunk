@@ -3,6 +3,8 @@ import type { Project } from "../../lib/sb3.ts";
 
 // Colours the scripts look for with `touching color`.
 export const LEAF_GREEN = "#4caf3a", DRY_BROWN = "#b07a3a", CAP_RED = "#e2453c";
+// The frog's toes have their own colour, so the scripts can check "color FEET is touching ...": only the feet land.
+export const FEET = "#f39c34";
 
 const svg = (w: number, h: number, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
@@ -21,8 +23,10 @@ const mushroom = svg(72, 34,
 // The frog: sitting, and stretched while jumping up.
 const frog = (jump: boolean) => svg(44, 44,
   (jump
-    ? `<path d="M10 30 l-6 12 M34 30 l6 12" stroke="#2f8a3a" stroke-width="5" stroke-linecap="round"/>`
-    : `<ellipse cx="9" cy="38" rx="8" ry="4" fill="#2f8a3a"/><ellipse cx="35" cy="38" rx="8" ry="4" fill="#2f8a3a"/>`) +
+    ? `<path d="M10 30 l-6 10 M34 30 l6 10" stroke="#2f8a3a" stroke-width="5" stroke-linecap="round"/>` +
+      `<ellipse cx="4" cy="41" rx="5" ry="2.5" fill="${FEET}"/><ellipse cx="40" cy="41" rx="5" ry="2.5" fill="${FEET}"/>`
+    : `<ellipse cx="9" cy="38" rx="8" ry="4" fill="#2f8a3a"/><ellipse cx="35" cy="38" rx="8" ry="4" fill="#2f8a3a"/>` +
+      `<ellipse cx="7" cy="40.5" rx="6" ry="2.5" fill="${FEET}"/><ellipse cx="37" cy="40.5" rx="6" ry="2.5" fill="${FEET}"/>`) +
   `<ellipse cx="22" cy="${jump ? 24 : 28}" rx="15" ry="${jump ? 14 : 12}" fill="#5cc45a" stroke="#2f8a3a" stroke-width="2"/>` +
   `<ellipse cx="22" cy="${jump ? 28 : 31}" rx="9" ry="6" fill="#d9f5c8"/>` +
   `<circle cx="14" cy="${jump ? 11 : 16}" r="6" fill="#5cc45a" stroke="#2f8a3a" stroke-width="2"/>` +

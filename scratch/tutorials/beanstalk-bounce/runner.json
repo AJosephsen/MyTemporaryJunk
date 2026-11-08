@@ -1,0 +1,12 @@
+{
+  "title": "Beanstalk Bounce Runner",
+  "heading": "Beanstalk Bounce",
+  "help": "Pick a step, click Green flag, and steer with the left and right arrow keys.",
+  "steps": {
+    "1": { "name": "Gravity and bounce", "note": "vy shrinks every frame; landing on a leaf sets it back to 11." },
+    "2": { "name": "Climb forever", "note": "A camera follows the frog up: everything is drawn at height − camera." },
+    "3": { "name": "Level numbers", "note": "The gaps between leaves grow with the height (minGap, maxGap)." },
+    "4": { "name": "Leaf kinds", "note": "Moving, dry and mushroom leaves; the frog tells them apart with touching color." },
+    "5": { "name": "Bees", "note": "Bees fly to and fro; a sting knocks the frog down. This is the whole game." }
+  }
+}

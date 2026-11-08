@@ -96,7 +96,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     <p>A frog bounces up a giant beanstalk, from leaf to leaf. The higher he gets, the further apart the leaves are, and the more tricks they have: moving leaves, crumbling leaves, springy mushrooms, and bees. How high can you climb?</p>
     <p>The whole game is about 150 lines of blocks. Every step is a game you can play, and every step has a file you can download if you get stuck. You need the Scratch editor: <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>.</p>
     <div class="checkpoint">
-      <p>Start here: the starter project has the frog, the leaves, the bee and the sky. No code yet.</p>
+      <p>Start here: the starter project has the frog (its feet and its skin), the leaves, the bee and the sky. No code yet.</p>
       <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/beanstalk-bounce/starter.sb3">Download starter.sb3</a>
     </div>
   </header>
@@ -107,7 +107,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
       <li><a href="#step-1"><span class="name">Gravity and bounce</span></a><span class="what">Speed that changes every frame</span></li>
       <li><a href="#step-2"><span class="name">Climb forever</span></a><span class="what">A camera that follows the frog</span></li>
       <li><a href="#step-3"><span class="name">Level numbers</span></a><span class="what">Change the numbers, change the game</span></li>
-      <li><a href="#step-4"><span class="name">Leaf kinds</span></a><span class="what">Tell things apart by colour</span></li>
+      <li><a href="#step-4"><span class="name">Leaf kinds</span></a><span class="what">Every clone knows what it is</span></li>
       <li><a href="#step-5"><span class="name">Bees</span></a><span class="what">A danger that moves</span></li>
     </ol>
     <p class="note"><b>Tip:</b> the block pictures can't show the <b>Run without screen refresh</b> tick. Only <code>grow</code> needs it.</p>
@@ -115,12 +115,13 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 
   <section class="step" id="step-1">
     <div class="step-head"><span class="num">1</span><h2>Gravity and bounce</h2></div>
-    <div class="idea"><b>Big idea: speed that changes every frame</b><span>The frog has a speed going up, <b>vy</b>. Every frame gravity takes a little away (<b>change vy by -0.5</b>), and the frog moves up by <b>vy</b>. So he slows down, stops, and falls faster and faster. When he lands on a leaf, <b>vy</b> becomes 11 again: a bounce!</span></div>
-    <p class="make"><span><b>Make:</b> variables <code>fx</code>, <code>fy</code>, <code>vy</code>, <code>nextY</code> and <code>phase</code> (for all sprites); on the <b>Leaf</b> sprite <code>isClone</code> and <code>wy</code> <b>for this sprite only</b>; messages <code>clear</code> and <code>tick</code>; the block <code>grow</code> with <b>Run without screen refresh</b> ticked.</span></p>
+    <div class="idea"><b>Big idea: speed that changes every frame</b><span>The frog has a speed going up, <b>vy</b>. Every frame gravity takes a little away (<b>change vy by -0.5</b>), and the frog moves up by <b>vy</b>. So he slows down, stops, and falls faster and faster. When he lands on a leaf, <b>vy</b> becomes 11 again: a bounce! The frog is made of two sprites: <b>Frog</b> is only his invisible feet, and <b>Skin</b> is what you see.</span></div>
+    <p class="make"><span><b>Make:</b> scripts for the <b>Frog</b> (the invisible feet) and the <b>Skin</b> (the picture); variables <code>fx</code>, <code>fy</code>, <code>vy</code>, <code>nextY</code> and <code>phase</code> (for all sprites); on the <b>Leaf</b> sprite <code>isClone</code> and <code>wy</code> <b>for this sprite only</b>; messages <code>clear</code> and <code>tick</code>; the block <code>grow</code> with <b>Run without screen refresh</b> ticked.</span></p>
     <!--changed:1-->
     <ul class="do">
       <li>The frog only bounces when he is <b>falling</b> (vy &lt; 0). On the way up he jumps right through the leaves.</li>
-      <li><b>Only the feet count.</b> The frog has orange toes, and the check is <b>color (orange) is touching (leaf green)?</b>. With <b>touching Leaf</b>, his head could hit a leaf from below and bounce off it! Pick both colours with the eyedropper.</li>
+      <li><b>Two sprites, two jobs.</b> The <b>Frog</b> sprite is just a thin strip where the feet are, ghosted so you can't see it. The <b>Skin</b> sprite goes to the Frog every frame and shows the picture. Now the picture can look like anything, and only the feet can land: a head that bumps into a leaf from below does nothing.</li>
+      <li><b>The leaf does the bouncing.</b> Every leaf checks: is the frog falling, and am I <b>touching Frog</b>? Then it sets <b>vy</b> to 11.</li>
       <li>Off the right side, back on the left: if <b>fx</b> is more than 240, take 480 away.</li>
       <li><b>grow</b> puts leaves 40 to 70 steps apart until the screen is full. Each clone keeps its own height <b>wy</b>.</li>
     </ul>
@@ -176,11 +177,11 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 
   <section class="step" id="step-4">
     <div class="step-head"><span class="num">4</span><h2>Leaf kinds</h2></div>
-    <div class="idea"><b>Big idea: tell things apart by colour</b><span>Some leaves move, some are dry and crumble, and some have a red mushroom that sends you flying. The chances also come from level numbers. The frog's feet already look for green; now they also look for red, which bounces much higher. Brown is not green, so dry leaves don't hold.</span></div>
+    <div class="idea"><b>Big idea: every clone knows what it is</b><span>Some leaves move, some are dry and crumble, and some have a red mushroom that sends you flying. The chances also come from level numbers. Every leaf already bounces the frog when his feet land on it. Now it first looks at its own costume: a green leaf bounces, a mushroom bounces much higher, and a dry leaf crumbles instead.</span></div>
     <p class="make"><span><b>Make:</b> variables <code>moveChance</code> and <code>dryChance</code>; on the Leaf <code>dx</code> and <code>crumble</code> <b>for this sprite only</b>.</span></p>
     <!--changed:4-->
     <ul class="do">
-      <li>A dry leaf crumbles when <b>its brown is touching the orange toes</b>: the same block, used from the leaf's side.</li>
+      <li><b>costume number</b> tells a leaf what it is: 1 is a leaf, 2 is dry, 3 is a mushroom.</li>
       <li>A clone copies the costume, so <b>grow</b> switches the costume <b>before</b> it makes the clone.</li>
       <li>A crumbling leaf slides down and fades away, then it is deleted below the screen.</li>
     </ul>

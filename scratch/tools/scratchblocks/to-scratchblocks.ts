@@ -106,6 +106,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "data_changevariableby": return [`change [${field(b, "VARIABLE")} v] by ${value(b, "VALUE")}`];
       case "data_deletealloflist": return [`delete all of [${field(b, "LIST")} v]`];
       case "data_addtolist": return [`add ${value(b, "ITEM")} to [${field(b, "LIST")} v]`];
+      case "motion_goto": return [`go to ${value(b, "TO")}`];
       case "motion_gotoxy": return [`go to x: ${value(b, "X")} y: ${value(b, "Y")}`];
       case "motion_pointindirection": return [`point in direction ${value(b, "DIRECTION")}`];
       case "motion_turnright": return [`turn right ${value(b, "DEGREES")} degrees`];

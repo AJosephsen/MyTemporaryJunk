@@ -1,4 +1,5 @@
-// Artwork for Beanstalk Bounce: the frog, the leaves and the sky. All original SVG.
+// Artwork for Beanstalk Bounce: the frog skin (made with ElevenLabs), the leaves, the bee and the sky (original SVG).
+import { readFileSync } from "node:fs";
 import type { Project } from "../../lib/sb3.ts";
 
 // Colours the scripts look for with `touching color`.
@@ -48,8 +49,19 @@ const backdrop = svg(480, 360,
     `<g transform="translate(${x} ${y}) scale(${k})" fill="#ffffff" opacity="0.85"><ellipse cx="0" cy="0" rx="34" ry="14"/><ellipse cx="-18" cy="-8" rx="16" ry="12"/><ellipse cx="14" cy="-10" rx="18" ry="14"/></g>`).join("") +
   `<path d="M232 360 C212 300 252 260 236 200 C220 140 258 100 240 40 C232 15 246 0 244 0 L254 0 C258 30 246 60 256 100 C270 150 230 190 248 240 C262 290 226 320 246 360 z" fill="#7cc46b" opacity="0.55"/>`);
 
+// The Frog sprite is only the frog's feet: an invisible strip (ghost 100) where the feet are. The leaves check
+// "touching Frog?" to know that the frog landed on them. The Skin sprite shows what the frog looks like.
+const feetBox = svg(36, 40, `<rect x="0" y="36" width="36" height="4" fill="#ff8800"/>`);
+
+// The Skin: a picture made with ElevenLabs (free design, background removed), 105 x 120 pixels at double
+// resolution, so 52.5 x 60 on the Stage. Its centre is placed 18 pixels above the bottom of the toes, like the Frog's
+// feet strip, so the drawn feet stand where the real feet are.
+const skin = readFileSync(new URL("skins/explorer.png", import.meta.url));
+
 export function art(P: Project) {
   return {
+    skin: [P.bitmap("sit", skin, 26, 42), P.bitmap("jump", skin, 26, 42)],
+    feet: [P.costume("feet", feetBox, 18, 22)],
     frog: [P.costume("sit", frog(false), 22, 22), P.costume("jump", frog(true), 22, 22)],
     leaf: [P.costume("leaf", leaf(LEAF_GREEN, "#2e7d22"), 36, 9), P.costume("dry", leaf(DRY_BROWN, "#7a5222"), 36, 9),
       P.costume("mushroom", mushroom, 36, 25)],

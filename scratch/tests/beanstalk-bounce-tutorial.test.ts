@@ -18,8 +18,11 @@ async function climb(t: T, frames: number, until?: (v: any) => boolean) {
     const fy = Number(v.fy), fx = Number(v.fx), vy = Number(v.vy);
     if (vy > 0 && lastVy <= 0) from = fy - 12;   // the leaf just bounced from is a little below the frog's middle
     lastVy = vy;
-    const next = (await leaves(t)).filter(l => l.kind !== "dry" && l.wy > from && l.wy < from + 115).sort((a, b) => a.wy - b.wy)[0];
-    const want = !next || Math.abs(next.x - fx) < 8 ? "" : next.x > fx ? "right arrow" : "left arrow";
+    // Horizontal distance, the short way round (off one side, back on the other).
+    const dist = (x: number) => { const d = ((x - fx) % 480 + 720) % 480 - 240; return d; };
+    const next = (await leaves(t)).filter(l => l.kind !== "dry" && l.wy > from && l.wy < from + 115)
+      .sort((a, b) => Math.abs(dist(a.x)) - Math.abs(dist(b.x)) || a.wy - b.wy)[0];
+    const want = !next || Math.abs(dist(next.x)) < 8 ? "" : dist(next.x) > 0 ? "right arrow" : "left arrow";
     if (want !== held) { if (held) await t.release(held); if (want) await t.hold(want); held = want; }
     await t.frames(1);
   }

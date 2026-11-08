@@ -4,4 +4,4 @@
 import { buildTutorial } from "../../lib/tutorial.ts";
 import { beanstalkBounce, LAST } from "../../games/beanstalk-bounce/project.ts";
 
-buildTutorial(new URL(".", import.meta.url), LAST, beanstalkBounce, ["Stage", "Frog", "Leaf", "Bee"]);
+buildTutorial(new URL(".", import.meta.url), LAST, beanstalkBounce, ["Stage", "Frog", "Skin", "Leaf", "Bee"]);

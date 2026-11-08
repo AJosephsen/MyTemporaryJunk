@@ -96,7 +96,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     <p>A frog bounces up a giant beanstalk, from leaf to leaf. The higher he gets, the further apart the leaves are, and the more tricks they have: moving leaves, crumbling leaves, springy mushrooms, and bees. How high can you climb?</p>
     <p>The whole game is about 150 lines of blocks. Every step is a game you can play, and every step has a file you can download if you get stuck. You need the Scratch editor: <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>.</p>
     <div class="checkpoint">
-      <p>Start here: the starter project has the frog, the leaves, the bee and the sky. No code yet.</p>
+      <p>Start here: the starter project has the frog (its feet and its skin), the leaves, the bee and the sky. No code yet.</p>
       <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/beanstalk-bounce/starter.sb3">Download starter.sb3</a>
     </div>
   </header>
@@ -107,7 +107,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
       <li><a href="#step-1"><span class="name">Gravity and bounce</span></a><span class="what">Speed that changes every frame</span></li>
       <li><a href="#step-2"><span class="name">Climb forever</span></a><span class="what">A camera that follows the frog</span></li>
       <li><a href="#step-3"><span class="name">Level numbers</span></a><span class="what">Change the numbers, change the game</span></li>
-      <li><a href="#step-4"><span class="name">Leaf kinds</span></a><span class="what">Tell things apart by colour</span></li>
+      <li><a href="#step-4"><span class="name">Leaf kinds</span></a><span class="what">Every clone knows what it is</span></li>
       <li><a href="#step-5"><span class="name">Bees</span></a><span class="what">A danger that moves</span></li>
     </ol>
     <p class="note"><b>Tip:</b> the block pictures can't show the <b>Run without screen refresh</b> tick. Only <code>grow</code> needs it.</p>
@@ -115,8 +115,8 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 
   <section class="step" id="step-1">
     <div class="step-head"><span class="num">1</span><h2>Gravity and bounce</h2></div>
-    <div class="idea"><b>Big idea: speed that changes every frame</b><span>The frog has a speed going up, <b>vy</b>. Every frame gravity takes a little away (<b>change vy by -0.5</b>), and the frog moves up by <b>vy</b>. So he slows down, stops, and falls faster and faster. When he lands on a leaf, <b>vy</b> becomes 11 again: a bounce!</span></div>
-    <p class="make"><span><b>Make:</b> variables <code>fx</code>, <code>fy</code>, <code>vy</code>, <code>nextY</code> and <code>phase</code> (for all sprites); on the <b>Leaf</b> sprite <code>isClone</code> and <code>wy</code> <b>for this sprite only</b>; messages <code>clear</code> and <code>tick</code>; the block <code>grow</code> with <b>Run without screen refresh</b> ticked.</span></p>
+    <div class="idea"><b>Big idea: speed that changes every frame</b><span>The frog has a speed going up, <b>vy</b>. Every frame gravity takes a little away (<b>change vy by -0.5</b>), and the frog moves up by <b>vy</b>. So he slows down, stops, and falls faster and faster. When he lands on a leaf, <b>vy</b> becomes 11 again: a bounce! The frog is made of two sprites: <b>Frog</b> is only his invisible feet, and <b>Skin</b> is what you see.</span></div>
+    <p class="make"><span><b>Make:</b> scripts for the <b>Frog</b> (the invisible feet) and the <b>Skin</b> (the picture); variables <code>fx</code>, <code>fy</code>, <code>vy</code>, <code>nextY</code> and <code>phase</code> (for all sprites); on the <b>Leaf</b> sprite <code>isClone</code> and <code>wy</code> <b>for this sprite only</b>; messages <code>clear</code> and <code>tick</code>; the block <code>grow</code> with <b>Run without screen refresh</b> ticked.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Stage <span class="tag new">new</span></div>
 <pre class="blocks">when flag clicked
@@ -131,7 +131,7 @@ end</pre></div>
 set [fx v] to (0)
 set [fy v] to (-120)
 set [vy v] to (0)
-go to [front v] layer
+set [ghost v] effect to (100)
 forever
   if &lt;(phase) = [play]&gt; then
     if &lt;key (right arrow v) pressed?&gt; then
@@ -149,17 +149,20 @@ forever
     change [vy v] by (-0.5)
     change [fy v] by (vy)
     go to x: (fx) y: (fy)
-    if &lt;(vy) &lt; (0)&gt; then
-      if &lt;color [#f39c34] is touching [#4caf3a]?&gt; then
-        set [vy v] to (11)
-      end
-    end
-    if &lt;(vy) &gt; (0)&gt; then
-      switch costume to (jump v)
-    else
-      switch costume to (sit v)
-    end
   end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Skin <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+show
+point in direction (90)
+forever
+  go to (Frog v)
+  if &lt;(vy) &gt; (0)&gt; then
+    switch costume to (jump v)
+  else
+    switch costume to (sit v)
+  end
+  go to [front v] layer
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag new">new</span></div>
 <pre class="blocks">when flag clicked
@@ -172,8 +175,10 @@ if &lt;(isClone) = (1)&gt; then
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag new">new</span></div>
 <pre class="blocks">when I receive [tick v]
-if &lt;(isClone) = (0)&gt; then
-  grow :: custom
+if &lt;(isClone) = (1)&gt; then
+  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
+    set [vy v] to (11)
+  end
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag new">new</span></div>
 <pre class="blocks">define grow
@@ -194,7 +199,8 @@ show</pre></div>
 </div>
     <ul class="do">
       <li>The frog only bounces when he is <b>falling</b> (vy &lt; 0). On the way up he jumps right through the leaves.</li>
-      <li><b>Only the feet count.</b> The frog has orange toes, and the check is <b>color (orange) is touching (leaf green)?</b>. With <b>touching Leaf</b>, his head could hit a leaf from below and bounce off it! Pick both colours with the eyedropper.</li>
+      <li><b>Two sprites, two jobs.</b> The <b>Frog</b> sprite is just a thin strip where the feet are, ghosted so you can't see it. The <b>Skin</b> sprite goes to the Frog every frame and shows the picture. Now the picture can look like anything, and only the feet can land: a head that bumps into a leaf from below does nothing.</li>
+      <li><b>The leaf does the bouncing.</b> Every leaf checks: is the frog falling, and am I <b>touching Frog</b>? Then it sets <b>vy</b> to 11.</li>
       <li>Off the right side, back on the left: if <b>fx</b> is more than 240, take 480 away.</li>
       <li><b>grow</b> puts leaves 40 to 70 steps apart until the screen is full. Each clone keeps its own height <b>wy</b>.</li>
     </ul>
@@ -229,7 +235,7 @@ set [fx v] to (0)
 set [fy v] to (-120)
 set [vy v] to (0)
 say []
-go to [front v] layer
+set [ghost v] effect to (100)
 forever
   if &lt;(phase) = [play]&gt; then
     if &lt;key (right arrow v) pressed?&gt; then
@@ -247,16 +253,6 @@ forever
     change [vy v] by (-0.5)
     change [fy v] by (vy)
     go to x: (fx) y: ((fy) - (camera))
-    if &lt;(vy) &lt; (0)&gt; then
-      if &lt;color [#f39c34] is touching [#4caf3a]?&gt; then
-        set [vy v] to (11)
-      end
-    end
-    if &lt;(vy) &gt; (0)&gt; then
-      switch costume to (jump v)
-    else
-      switch costume to (sit v)
-    end
     if &lt;((fy) - (camera)) &gt; (30)&gt; then
       set [camera v] to ((fy) - (30))
     end
@@ -274,6 +270,9 @@ if &lt;(isClone) = (1)&gt; then
     delete this clone
   end
   set y to ((wy) - (camera))
+  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
+    set [vy v] to (11)
+  end
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
 <pre class="blocks">define grow
@@ -332,7 +331,7 @@ set [fx v] to (0)
 set [fy v] to (-120)
 set [vy v] to (0)
 say []
-go to [front v] layer
+set [ghost v] effect to (100)
 forever
   if &lt;(phase) = [play]&gt; then
     if &lt;key (right arrow v) pressed?&gt; then
@@ -350,16 +349,6 @@ forever
     change [vy v] by (-0.5)
     change [fy v] by (vy)
     go to x: (fx) y: ((fy) - (camera))
-    if &lt;(vy) &lt; (0)&gt; then
-      if &lt;color [#f39c34] is touching [#4caf3a]?&gt; then
-        set [vy v] to (11)
-      end
-    end
-    if &lt;(vy) &gt; (0)&gt; then
-      switch costume to (jump v)
-    else
-      switch costume to (sit v)
-    end
     if &lt;((fy) - (camera)) &gt; (30)&gt; then
       set [camera v] to ((fy) - (30))
     end
@@ -403,7 +392,7 @@ end</pre></div>
 
   <section class="step" id="step-4">
     <div class="step-head"><span class="num">4</span><h2>Leaf kinds</h2></div>
-    <div class="idea"><b>Big idea: tell things apart by colour</b><span>Some leaves move, some are dry and crumble, and some have a red mushroom that sends you flying. The chances also come from level numbers. The frog's feet already look for green; now they also look for red, which bounces much higher. Brown is not green, so dry leaves don't hold.</span></div>
+    <div class="idea"><b>Big idea: every clone knows what it is</b><span>Some leaves move, some are dry and crumble, and some have a red mushroom that sends you flying. The chances also come from level numbers. Every leaf already bounces the frog when his feet land on it. Now it first looks at its own costume: a green leaf bounces, a mushroom bounces much higher, and a dry leaf crumbles instead.</span></div>
     <p class="make"><span><b>Make:</b> variables <code>moveChance</code> and <code>dryChance</code>; on the Leaf <code>dx</code> and <code>crumble</code> <b>for this sprite only</b>.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Stage <span class="tag changed">changed</span></div>
@@ -432,56 +421,6 @@ forever
   end
   broadcast (tick v)
 end</pre></div>
-<div class="blocks-panel"><div class="label">Frog <span class="tag changed">changed</span></div>
-<pre class="blocks">when flag clicked
-set [fx v] to (0)
-set [fy v] to (-120)
-set [vy v] to (0)
-say []
-go to [front v] layer
-forever
-  if &lt;(phase) = [play]&gt; then
-    if &lt;key (right arrow v) pressed?&gt; then
-      change [fx v] by (5)
-    end
-    if &lt;key (left arrow v) pressed?&gt; then
-      change [fx v] by (-5)
-    end
-    if &lt;(fx) &gt; (240)&gt; then
-      change [fx v] by (-480)
-    end
-    if &lt;(fx) &lt; (-240)&gt; then
-      change [fx v] by (480)
-    end
-    change [vy v] by (-0.5)
-    change [fy v] by (vy)
-    go to x: (fx) y: ((fy) - (camera))
-    if &lt;(vy) &lt; (0)&gt; then
-      if &lt;color [#f39c34] is touching [#4caf3a]?&gt; then
-        set [vy v] to (11)
-      end
-      if &lt;color [#f39c34] is touching [#e2453c]?&gt; then
-        set [vy v] to (20)
-      end
-    end
-    if &lt;(vy) &gt; (0)&gt; then
-      switch costume to (jump v)
-    else
-      switch costume to (sit v)
-    end
-    if &lt;((fy) - (camera)) &gt; (30)&gt; then
-      set [camera v] to ((fy) - (30))
-    end
-    set [height v] to (round ((camera) / (10)))
-    if &lt;(height) &gt; (best)&gt; then
-      set [best v] to (height)
-    end
-    if &lt;((fy) - (camera)) &lt; (-190)&gt; then
-      set [phase v] to [over]
-      say [Oh no! Click the green flag.]
-    end
-  end
-end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
 <pre class="blocks">when I receive [tick v]
 if &lt;(isClone) = (1)&gt; then
@@ -495,8 +434,16 @@ if &lt;(isClone) = (1)&gt; then
       set [dx v] to ((dx) * (-1))
     end
   end
-  if &lt;&lt;(vy) &lt; (0)&gt; and &lt;color [#b07a3a] is touching [#f39c34]?&gt;&gt; then
-    set [crumble v] to (1)
+  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
+    if &lt;(costume [number v]) = (1)&gt; then
+      set [vy v] to (11)
+    end
+    if &lt;(costume [number v]) = (3)&gt; then
+      set [vy v] to (20)
+    end
+    if &lt;(costume [number v]) = (2)&gt; then
+      set [crumble v] to (1)
+    end
   end
   if &lt;(crumble) = (1)&gt; then
     change [wy v] by (-8)
@@ -537,7 +484,7 @@ set [crumble v] to (0)
 show</pre></div>
 </div>
     <ul class="do">
-      <li>A dry leaf crumbles when <b>its brown is touching the orange toes</b>: the same block, used from the leaf's side.</li>
+      <li><b>costume number</b> tells a leaf what it is: 1 is a leaf, 2 is dry, 3 is a mushroom.</li>
       <li>A clone copies the costume, so <b>grow</b> switches the costume <b>before</b> it makes the clone.</li>
       <li>A crumbling leaf slides down and fades away, then it is deleted below the screen.</li>
     </ul>
@@ -592,17 +539,15 @@ set [fx v] to (0)
 set [fy v] to (-120)
 set [vy v] to (0)
 say []
-go to [front v] layer
 point in direction (90)
+set [ghost v] effect to (100)
 forever
   if &lt;(phase) = [stung]&gt; then
     change [vy v] by (-0.5)
     change [fy v] by (vy)
     go to x: (fx) y: ((fy) - (camera))
-    turn right (12) degrees
     if &lt;((fy) - (camera)) &lt; (-190)&gt; then
       set [phase v] to [over]
-      point in direction (90)
       say [Bzzz! Click the green flag.]
     end
   end
@@ -622,19 +567,6 @@ forever
     change [vy v] by (-0.5)
     change [fy v] by (vy)
     go to x: (fx) y: ((fy) - (camera))
-    if &lt;(vy) &lt; (0)&gt; then
-      if &lt;color [#f39c34] is touching [#4caf3a]?&gt; then
-        set [vy v] to (11)
-      end
-      if &lt;color [#f39c34] is touching [#e2453c]?&gt; then
-        set [vy v] to (20)
-      end
-    end
-    if &lt;(vy) &gt; (0)&gt; then
-      switch costume to (jump v)
-    else
-      switch costume to (sit v)
-    end
     if &lt;((fy) - (camera)) &gt; (30)&gt; then
       set [camera v] to ((fy) - (30))
     end
@@ -654,6 +586,22 @@ if &lt;(phase) = [play]&gt; then
   set [phase v] to [stung]
   say [Ouch!]
   set [vy v] to (0)
+end</pre></div>
+<div class="blocks-panel"><div class="label">Skin <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+show
+point in direction (90)
+forever
+  go to (Frog v)
+  if &lt;(vy) &gt; (0)&gt; then
+    switch costume to (jump v)
+  else
+    switch costume to (sit v)
+  end
+  if &lt;(phase) = [stung]&gt; then
+    turn right (12) degrees
+  end
+  go to [front v] layer
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
 <pre class="blocks">define grow
@@ -724,7 +672,7 @@ if &lt;(isClone) = (1)&gt; then
   if &lt;(dx) &lt; (0)&gt; then
     switch costume to (left v)
   end
-  if &lt;touching (Frog v)?&gt; then
+  if &lt;touching (Skin v)?&gt; then
     broadcast (stung v)
   end
 end</pre></div>

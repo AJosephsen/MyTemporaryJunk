@@ -1,16 +1,16 @@
 // Beanstalk Bounce, as a function of the tutorial step: beanstalkBounce(5) is the whole game, 1..4 are the tutorial's
 // checkpoints, 0 is the starter (artwork, no code). Each step adds one idea:
-//   1  gravity and bounce: vy shrinks every frame (gravity); landing on a leaf sets it back to the jump speed;
-//      only the feet count: "color (toes) is touching (leaf green)?"
+//   1  gravity and bounce: vy shrinks every frame (gravity); a leaf that the frog lands on sets it back to the jump
+//      speed. Two sprites: Frog is only the invisible feet (what the leaves touch), Skin is what you see.
 //   2  climb forever: a camera follows the frog up; leaves keep their height, screen y = height - camera
 //   3  level numbers: the gaps between leaves grow with the height (parametric levels); best height
-//   4  leaf kinds: moving, mushrooms and dry leaves, chosen by chances; the frog's feet tell them apart by colour
+//   4  leaf kinds: moving, mushrooms and dry leaves, chosen by chances; each leaf knows its own kind (costume)
 //   5  bees
 //
 // No lists. Every leaf is a clone that keeps its own height `wy` (world y).
 // The frog can always reach the next leaf: the biggest gap stays below JUMP * JUMP / (2 * GRAVITY) = 121 pixels.
 import { Project, Blocks, dsl, type In } from "../../lib/sb3.ts";
-import { art, LEAF_GREEN, CAP_RED, DRY_BROWN, FEET } from "./art.ts";
+import { art } from "./art.ts";
 
 export const LAST = 5;
 const GRAVITY = 0.5, JUMP = 11, SUPER_JUMP = 20, STEER = 5;
@@ -75,18 +75,29 @@ export function beanstalkBounce(step: number): Buffer {
       ]),
     ], { warp: true, x: 420, y: 20 });
     B.script(whenCloned(), [set("isClone", 1), ...when(4, () => [set("crumble", 0)]), show()], 20, 280);
-    if (at(2)) B.script(whenReceive("tick"), [
+    // The frog's feet (the Frog sprite) landed on me while falling? Then I bounce him: a leaf back up to the jump speed,
+    // a mushroom much higher. A dry leaf can't hold him: it crumbles, falls and fades.
+    const landed = () => and(eq(v("phase"), "play"), and(lt(v("vy"), 0), touching("Frog")));
+    const bounce = at(4)
+      ? [ifThen(landed(), [
+          ifThen(eq(d.costumeNumber(), 1), [set("vy", JUMP)]),
+          ifThen(eq(d.costumeNumber(), 3), [set("vy", SUPER_JUMP)]),
+          ifThen(eq(d.costumeNumber(), 2), [set("crumble", 1)]),
+        ])]
+      : [ifThen(landed(), [set("vy", JUMP)])];
+    B.script(whenReceive("tick"), [
       ifThen(eq(v("isClone"), 1), [
-        // Below the screen? Then it's gone for good.
-        ifThen(lt(screen(d, v("wy")), -200), [deleteClone()]),
-        setY(screen(d, v("wy"))),
+        ...when(2, () => [
+          // Below the screen? Then it's gone for good.
+          ifThen(lt(screen(d, v("wy")), -200), [deleteClone()]),
+          setY(screen(d, v("wy"))),
+        ]),
         ...when(4, () => [
           // Moving leaves go to and fro.
           ifThen(not(eq(v("dx"), 0)), [d.changeX(v("dx")), ifThen(or(gt(d.xPos(), 200), lt(d.xPos(), -200)), [set("dx", d.mul(v("dx"), -1))])]),
-          // A dry leaf crumbles when the frog lands on it: it falls and fades.
-          ifThen(and(lt(v("vy"), 0), d.colorTouchingColor(DRY_BROWN, FEET)), [set("crumble", 1)]),
-          ifThen(eq(v("crumble"), 1), [change("wy", -8), d.changeEffect("GHOST", 12)]),
         ]),
+        ...bounce,
+        ...when(4, () => [ifThen(eq(v("crumble"), 1), [change("wy", -8), d.changeEffect("GHOST", 12)])]),
       ]),
     ], 20, 360);
     return B;
@@ -99,12 +110,14 @@ export function beanstalkBounce(step: number): Buffer {
     if (!at(1)) return B;
     const fall = () => [change("vy", -GRAVITY), change("fy", v("vy")), goto(v("fx"), screen(d, v("fy")))];
     B.script(whenFlag(), [
-      set("fx", 0), set("fy", START_Y + 30), set("vy", 0), ...when(2, () => [say("")]), front(), ...when(5, () => [d.point(90)]),
+      set("fx", 0), set("fy", START_Y + 30), set("vy", 0), ...when(2, () => [say("")]), ...when(5, () => [d.point(90)]),
+      // The Frog is only the frog's invisible feet; the Skin sprite shows the frog. The leaves do the bouncing.
+      d.setEffect("GHOST", 100),
       forever([
         // Stung by a bee: no more bouncing, just falling.
         ...when(5, () => [ifThen(d.eq(v("phase"), "stung"), [
-          ...fall(), d.turn(12),
-          ifThen(lt(screen(d, v("fy")), -190), [set("phase", "over"), d.point(90), say("Bzzz! Click the green flag.")]),
+          ...fall(),
+          ifThen(lt(screen(d, v("fy")), -190), [set("phase", "over"), say("Bzzz! Click the green flag.")]),
         ])]),
         ifThen(d.eq(v("phase"), "play"), [
           ifThen(key("right arrow"), [change("fx", STEER)]),
@@ -114,14 +127,6 @@ export function beanstalkBounce(step: number): Buffer {
           ifThen(lt(v("fx"), -240), [change("fx", 480)]),
           // Gravity: the speed goes down a little every frame, and the frog moves by the speed.
           ...fall(),
-          // Falling, and the feet (orange toes) land on a green leaf? Bounce! Only the feet count: a head that bumps
-          // into a leaf from below must not bounce.
-          ifThen(lt(v("vy"), 0), [
-            ifThen(d.colorTouchingColor(FEET, LEAF_GREEN), [set("vy", JUMP)]),
-            // A red mushroom cap bounces much higher. (Dry brown leaves don't hold.)
-            ...when(4, () => [ifThen(d.colorTouchingColor(FEET, CAP_RED), [set("vy", SUPER_JUMP)])]),
-          ]),
-          ifElse(gt(v("vy"), 0), [costume("jump")], [costume("sit")]),
           ...when(2, () => [
             // The camera follows the frog up, never down.
             ifThen(gt(screen(d, v("fy")), 30), [set("camera", sub(v("fy"), 30))]),
@@ -134,6 +139,19 @@ export function beanstalkBounce(step: number): Buffer {
       ]),
     ], 20, 20);
     if (at(5)) B.script(d.whenReceive("stung"), [ifThen(d.eq(v("phase"), "play"), [set("phase", "stung"), say("Ouch!"), set("vy", 0)])], 20, 700);
+    return B;
+  }
+
+  // ---------------------------------------------------------------- Skin: what the frog looks like, on top of the hit box
+  function skinScripts(): Blocks {
+    const B = new Blocks(P), d = dsl(B);
+    if (!at(1)) return B;
+    B.script(d.whenFlag(), [d.show(), d.point(90), d.forever([
+      d.goTo("Frog"),
+      d.ifElse(d.gt(d.v("vy"), 0), [d.costume("jump")], [d.costume("sit")]),
+      ...when(5, () => [d.ifThen(d.eq(d.v("phase"), "stung"), [d.turn(12)])]),
+      d.front(),
+    ])], 20, 20);
     return B;
   }
 
@@ -156,7 +174,8 @@ export function beanstalkBounce(step: number): Buffer {
         setY(screen(d, v("wy"))), changeX(v("dx")),
         ifThen(or(gt(xPos(), 215), lt(xPos(), -215)), [set("dx", d.mul(v("dx"), -1))]),
         ifThen(gt(v("dx"), 0), [costume("right")]), ifThen(lt(v("dx"), 0), [costume("left")]),
-        ifThen(touching("Frog"), [broadcast("stung")]),
+        // The bee stings the frog you see: the Skin.
+        ifThen(touching("Skin"), [broadcast("stung")]),
       ]),
     ], 20, 360);
     return B;
@@ -169,7 +188,8 @@ export function beanstalkBounce(step: number): Buffer {
     sprites: [
       P.sprite("Leaf", { blocks: leafScripts(), costumes: A.leaf, layer: 1, visible: false }),
       P.sprite("Bee", { blocks: beeScripts(), costumes: A.bee, layer: 2, visible: false }),
-      P.sprite("Frog", { blocks: frogScripts(), costumes: A.frog, layer: 3, y: START_Y + 30 }),
+      P.sprite("Frog", { blocks: frogScripts(), costumes: A.feet, layer: 3, y: START_Y + 30 }),
+      P.sprite("Skin", { blocks: skinScripts(), costumes: A.skin, layer: 4, y: START_Y + 30 }),
     ],
     shown: [...(at(2) ? ["height"] : []), ...(at(3) ? ["best"] : [])],
   });

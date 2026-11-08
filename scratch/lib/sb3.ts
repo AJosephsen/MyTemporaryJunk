@@ -11,7 +11,7 @@ export class Project {
   vars: Record<string, string> = {};
   lists: Record<string, string> = {};
   bcasts: Record<string, string> = {};
-  assets: Record<string, string> = {};
+  assets: Record<string, string | Buffer> = {};
   /** Scratch extensions used by the project, e.g. "pen". */
   extensions: string[] = [];
 
@@ -24,6 +24,14 @@ export class Project {
     const md5 = createHash("md5").update(svg).digest("hex");
     this.assets[`${md5}.svg`] = svg;
     return { name, dataFormat: "svg", assetId: md5, md5ext: `${md5}.svg`, rotationCenterX: cx, rotationCenterY: cy };
+  }
+
+  /** A PNG costume drawn at double resolution (bitmapResolution 2): (cx, cy) is the centre in Stage pixels. */
+  bitmap(name: string, png: Buffer, cx: number, cy: number) {
+    const md5 = createHash("md5").update(png).digest("hex");
+    this.assets[`${md5}.png`] = png;
+    return { name, dataFormat: "png", bitmapResolution: 2, assetId: md5, md5ext: `${md5}.png`,
+      rotationCenterX: cx * 2, rotationCenterY: cy * 2 };
   }
 
   sprite(name: string, opts: { blocks?: Blocks; costumes: any[]; layer: number; x?: number; y?: number; visible?: boolean }) {
@@ -155,6 +163,8 @@ export function dsl(B: Blocks) {
     goto: (x: In, y: In) => B.add("motion_gotoxy", { X: num(x), Y: num(y) }),
     point: (d: In) => B.add("motion_pointindirection",
       { DIRECTION: typeof d === "number" ? [1, [8, String(d)]] : [3, ...num(d).slice(1, 2), [8, "90"]] }),
+    // go to [sprite v]
+    goTo: (sprite: string) => B.add("motion_goto", { TO: [1, B.shadow("motion_goto_menu", { TO: [sprite, null] })] }),
     turn: (d: In) => B.add("motion_turnright", { DEGREES: num(d) }),
     turnLeft: (d: In) => B.add("motion_turnleft", { DEGREES: num(d) }),
     deleteAll: (list: string) => B.add("data_deletealloflist", {}, { LIST: [list, P.listId(list)] }),

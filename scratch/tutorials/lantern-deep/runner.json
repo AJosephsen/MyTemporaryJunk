@@ -1,0 +1,14 @@
+{
+  "title": "Lantern Deep Runner",
+  "heading": "Lantern Deep",
+  "help": "Pick a step, click Green flag, and dig with the arrow keys (U buys a pickaxe from step 5).",
+  "steps": {
+    "1": { "name": "Rows of squares", "note": "The Square sprite sets its own variables, then clones itself: each clone keeps a copy." },
+    "2": { "name": "Dig with a pick", "note": "An invisible Pick goes to the square you face; the square touching it takes the hit." },
+    "3": { "name": "Scroll down forever", "note": "Everything moves up by scroll; new rows below, old rows above are deleted." },
+    "4": { "name": "In the dark", "note": "Squares show what they are only when the Lantern touches them. Treasure gives coins." },
+    "5": { "name": "Better pickaxes", "note": "U buys a pickaxe that hits twice as hard (40, 150, 500 coins)." },
+    "6": { "name": "Lava and hearts", "note": "Lava from row 16 costs a heart; then a short safe time." },
+    "7": { "name": "Cave crawlers", "note": "Caves from row 20, with crawlers walking to and fro. This is the whole game." }
+  }
+}

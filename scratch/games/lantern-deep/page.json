@@ -1,0 +1,15 @@
+{
+  "title": "Lantern Deep",
+  "tagline": "Dig down forever. Your lantern shows what's near: treasure, lava and crawlers.",
+  "project": "lantern-deep.sb3",
+  "left": [
+    { "key": "ArrowLeft", "label": "◀", "name": "Dig left" },
+    { "key": "ArrowRight", "label": "▶", "name": "Dig right" },
+    { "key": "u", "label": "Upgrade", "name": "Buy a better pickaxe" }
+  ],
+  "right": [
+    { "key": "ArrowUp", "label": "▲", "name": "Dig up" },
+    { "key": "ArrowDown", "label": "▼", "name": "Dig down", "big": true }
+  ],
+  "keys": "Arrow keys dig · U buys a better pickaxe · avoid lava and crawlers"
+}

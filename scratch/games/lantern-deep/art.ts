@@ -8,7 +8,7 @@ export const KINDS = [
   { name: "dirt", hp: 1, value: 0 }, { name: "stone", hp: 3, value: 0 }, { name: "bedrock", hp: 9999, value: 0 },
   { name: "coal", hp: 2, value: 2 }, { name: "copper", hp: 2, value: 5 }, { name: "silver", hp: 3, value: 12 },
   { name: "gold", hp: 3, value: 25 }, { name: "ruby", hp: 4, value: 60 }, { name: "emerald", hp: 4, value: 90 },
-  { name: "diamond", hp: 6, value: 200 }, { name: "lava", hp: 1, value: 0 }, { name: "hardrock", hp: 8, value: 0 },
+  { name: "diamond", hp: 6, value: 200 }, { name: "lava", hp: 9999, value: 0 }, { name: "hardrock", hp: 8, value: 0 },
 ] as const;
 export const KIND = Object.fromEntries(KINDS.map((k, i) => [k.name, i + 1])) as Record<(typeof KINDS)[number]["name"], number>;
 
@@ -55,6 +55,16 @@ const miner = (flip: boolean) => svg(32, 32, `<g transform="${flip ? "translate(
 const glow = svg(160, 160, `<defs><radialGradient id="g"><stop offset="0" stop-color="#ffe9a8" stop-opacity="0.22"/>` +
   `<stop offset="0.7" stop-color="#ffe9a8" stop-opacity="0.08"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient></defs>` +
   `<circle cx="80" cy="80" r="78" fill="url(#g)"/>`);
+// A cave crawler: a dark beetle with glowing eyes, seen even in the dark. Facing right; flipped for left.
+const crawler = (flip: boolean) => svg(32, 24, `<g transform="${flip ? "translate(32 0) scale(-1 1)" : ""}">` +
+  `<ellipse cx="15" cy="15" rx="12" ry="8" fill="#3b2f4a" stroke="#1e1726" stroke-width="1.5"/>` +
+  `<path d="M6 20 l-3 3 M11 22 l-1 2 M19 22 l1 2 M24 20 l3 3" stroke="#1e1726" stroke-width="1.6"/>` +
+  `<circle cx="22" cy="12" r="2.4" fill="#b6ff5c"/><circle cx="26" cy="13" r="2" fill="#b6ff5c"/>` +
+  `<path d="M24 7 q4 -5 7 -4 M21 7 q2 -5 5 -6" stroke="#5c4a70" stroke-width="1.3" fill="none"/></g>`);
+// Pickaxe icons for the score bar: wood, stone, iron, diamond.
+const pickIcon = (head: string) => svg(32, 32,
+  `<path d="M9 27 l14 -14" stroke="#8a5a2b" stroke-width="3.5" stroke-linecap="round"/>` +
+  `<path d="M5 12 q12 -12 24 2 q-10 -6 -21 3 z" fill="${head}" stroke="#00000066" stroke-width="1"/>`);
 const dot = svg(6, 6, `<rect width="6" height="6" fill="#ffffff"/>`);
 const backdrop = svg(480, 360, `<rect width="480" height="360" fill="#0f0b09"/>`);
 
@@ -64,6 +74,9 @@ export function art(P: Project) {
     miner: [P.costume("right", miner(false), 16, 16), P.costume("left", miner(true), 16, 16)],
     lantern: [P.costume("light", glow, 80, 80)],
     pick: [P.costume("dot", dot, 3, 3)],
+    crawler: [P.costume("right", crawler(false), 16, 12), P.costume("left", crawler(true), 16, 12)],
+    pickaxes: [["wood", "#a8743f"], ["stone", "#8d8a88"], ["iron", "#c9d1db"], ["diamond", "#9fe8ff"]]
+      .map(([n, c]) => P.costume(n, pickIcon(c), 16, 16)),
     backdrop: P.costume("cave", backdrop, 240, 180),
   };
 }

@@ -30,6 +30,7 @@ All Scratch work lives here.
 | [Maze Maker](tutorials/maze-maker/) | For kids, 4 short steps: a mole digs a maze with the pen; one idea per step (pen, `touching color`, a block that calls itself, run without screen refresh) |
 | [Lantern Deep](tutorials/lantern-deep/) | For older kids (10+), 7 steps: the endless digging game, built up idea by idea (clones with their own variables, a probe pick, scrolling, a lantern, upgrades, dangers); the last step is the game |
 | [Beanstalk Bounce](tutorials/beanstalk-bounce/) | For kids (9+), 5 steps: an endless jumper with levels made from numbers (gravity, a camera, gaps that grow with height, leaf kinds by colour, bees); the last step is the game |
+| [Sky Guard](tutorials/sky-guard/) | For kids (8+), 4 short steps, basic blocks only: a cannon points towards the mouse and shoots clones at falling meteors; the last step is the game |
 
 ## Tools
 

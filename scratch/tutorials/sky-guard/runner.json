@@ -1,0 +1,23 @@
+{
+  "title": "Sky Guard Runner",
+  "heading": "Sky Guard",
+  "help": "Pick a step and click Green flag. Aim with the mouse over the stage; click or press Space to shoot.",
+  "steps": {
+    "1": {
+      "name": "Aim",
+      "note": "point towards (mouse-pointer), forever."
+    },
+    "2": {
+      "name": "Shoot",
+      "note": "A click clones the Bullet; it points like the cannon and moves 12 steps until the edge."
+    },
+    "3": {
+      "name": "Meteors",
+      "note": "Clones fall from random places; a bullet that touches one pops it and scores."
+    },
+    "4": {
+      "name": "Lives and waves",
+      "note": "A landed meteor costs a life; speed = 2 + score / 10. This is the whole game."
+    }
+  }
+}

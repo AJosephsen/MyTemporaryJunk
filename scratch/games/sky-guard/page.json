@@ -1,0 +1,15 @@
+{
+  "title": "Sky Guard",
+  "tagline": "Turn the cannon, shoot the meteors, save the valley.",
+  "project": "sky-guard.sb3",
+  "left": [],
+  "right": [
+    {
+      "key": " ",
+      "label": "Fire",
+      "name": "Fire",
+      "big": true
+    }
+  ],
+  "keys": "Aim with the mouse or finger \u00b7 click, tap or Space to shoot \u00b7 three landed meteors and it's over"
+}

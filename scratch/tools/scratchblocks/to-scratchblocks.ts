@@ -68,6 +68,8 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "motion_yposition": return "(y position)";
       case "sensing_keypressed": return `<key ${value(b, "KEY_OPTION")} pressed?>`;
       case "sensing_touchingobject": return `<touching ${value(b, "TOUCHINGOBJECTMENU")}?>`;
+      case "sensing_distanceto": return `(distance to ${value(b, "DISTANCETOMENU")})`;
+      case "sensing_timer": return "(timer)";
       case "sensing_touchingcolor": return `<touching color ${value(b, "COLOR")}?>`;
       case "sensing_coloristouchingcolor": return `<color ${value(b, "COLOR")} is touching ${value(b, "COLOR2")}?>`;
       case "argument_reporter_string_number": return `(${field(b, "VALUE")} :: custom)`;
@@ -107,6 +109,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "data_deletealloflist": return [`delete all of [${field(b, "LIST")} v]`];
       case "data_addtolist": return [`add ${value(b, "ITEM")} to [${field(b, "LIST")} v]`];
       case "motion_goto": return [`go to ${value(b, "TO")}`];
+      case "sensing_resettimer": return ["reset timer"];
       case "motion_gotoxy": return [`go to x: ${value(b, "X")} y: ${value(b, "Y")}`];
       case "motion_pointindirection": return [`point in direction ${value(b, "DIRECTION")}`];
       case "motion_turnright": return [`turn right ${value(b, "DEGREES")} degrees`];

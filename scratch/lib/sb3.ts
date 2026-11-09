@@ -190,6 +190,12 @@ export function dsl(B: Blocks) {
     penColor: (hex: string) => { if (!P.extensions.includes("pen")) P.extensions.push("pen");
       return B.add("pen_setPenColorToColor", { COLOR: [1, [9, hex]] }); },
     mouseDown: () => B.add("sensing_mousedown"),
+    // point towards [sprite v] (or "_mouse_")
+    pointTowards: (sprite: string) => B.add("motion_pointtowards", { TOWARDS: [1, B.shadow("motion_pointtowards_menu", { TOWARDS: [sprite, null] })] }),
+    // distance to [sprite v] (or "_mouse_")
+    distanceTo: (sprite: string) => B.add("sensing_distanceto", { DISTANCETOMENU: [1, B.shadow("sensing_distancetomenu", { DISTANCETOMENU: [sprite, null] })] }),
+    timer: () => B.add("sensing_timer"),
+    resetTimer: () => B.add("sensing_resettimer"),
     pointToMouse: () => B.add("motion_pointtowards", { TOWARDS: [1, B.shadow("motion_pointtowards_menu", { TOWARDS: ["_mouse_", null] })] }),
     cloneOf: (sprite: string) => B.add("control_create_clone_of", {
       CLONE_OPTION: [1, B.shadow("control_create_clone_of_menu", { CLONE_OPTION: [sprite, null] })] }),

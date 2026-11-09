@@ -1,0 +1,23 @@
+{
+  "title": "Sheepdog Runner",
+  "heading": "Sheepdog",
+  "help": "Pick a step and click Green flag. Move the mouse over the stage: the dog follows it.",
+  "steps": {
+    "1": {
+      "name": "The dog follows the mouse",
+      "note": "point towards (mouse-pointer), move 4, unless the mouse is close."
+    },
+    "2": {
+      "name": "The sheep graze",
+      "note": "8 clones wander: a random turn, move 1, bounce off the edges."
+    },
+    "3": {
+      "name": "The sheep run from the dog",
+      "note": "distance to Dog < 70: point towards Dog, turn 180, move 3."
+    },
+    "4": {
+      "name": "The pen and the clock",
+      "note": "repeat until touching Pen; all 8 inside wins, the timer is the score. This is the whole game."
+    }
+  }
+}

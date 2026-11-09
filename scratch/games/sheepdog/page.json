@@ -1,0 +1,8 @@
+{
+  "title": "Sheepdog",
+  "tagline": "Herd all eight sheep into the pen. They run from you, so run behind them.",
+  "project": "sheepdog.sb3",
+  "left": [],
+  "right": [],
+  "keys": "Move the mouse (or your finger) over the field: the dog runs there \u00b7 the pen's open side faces left"
+}

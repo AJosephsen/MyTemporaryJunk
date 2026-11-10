@@ -33,6 +33,7 @@ All Scratch work lives here.
 | [Sky Guard](tutorials/sky-guard/) | For kids (8+), 4 short steps, basic blocks only: a cannon points towards the mouse and shoots clones at falling meteors; the last step is the game |
 | [Sheepdog](tutorials/sheepdog/) | For kids (8+), 4 short steps, basic blocks only: a dog follows the mouse, sheep clones graze and flee, herd them into the pen against the clock; the last step is the game |
 | [Splat Patrol](tutorials/splat-patrol/) | For kids (8+), 5 steps, basic blocks only: windows pop open in houses that take turns; splat the raccoon bandits, not the villagers; the last step is the game |
+| [Splat Patrol Deluxe](games/splat-patrol/) | The bonus level after the tutorial (step 6 of the same project): raccoons in disguise that wink, a golden raccoon, splash particles, score pop-ups and combos, swinging shutters, shaking windows, a round banner, hearts, evening light and birds |
 
 ## Tools
 

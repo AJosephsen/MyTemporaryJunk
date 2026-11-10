@@ -226,6 +226,8 @@ export function dsl(B: Blocks) {
     changeEffect: (effect: string, n: In) => B.add("looks_changeeffectby", { CHANGE: num(n) }, { EFFECT: [effect, null] }),
     clearEffects: () => B.add("looks_cleargraphiceffects"),
     setSize: (n: In) => B.add("looks_setsizeto", { SIZE: num(n) }),
+    size: () => B.add("looks_size"),
+    nextCostume: () => B.add("looks_nextcostume"),
     changeSize: (n: In) => B.add("looks_changesizeby", { CHANGE: num(n) }),
     back: (layers: number) => B.add("looks_goforwardbackwardlayers", { NUM: num(layers) }, { FORWARD_BACKWARD: ["backward", null] }),
     // Clones

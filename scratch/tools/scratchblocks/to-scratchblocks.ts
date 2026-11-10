@@ -140,6 +140,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "control_start_as_clone": return ["when I start as a clone"];
       case "control_delete_this_clone": return ["delete this clone"];
       case "looks_switchcostumeto": return [`switch costume to ${value(b, "COSTUME")}`];
+      case "looks_nextcostume": return ["next costume"];
       case "looks_show": return ["show"];
       case "looks_hide": return ["hide"];
       case "looks_gotofrontback": return [`go to [${field(b, "FRONT_BACK")} v] layer`];

@@ -96,6 +96,60 @@ const house = (i: number) => {
     holes(h));
 };
 
+// ---------------------------------------------------------------- deluxe extras (the bonus level, not in the tutorial)
+// Disguised raccoons look like villagers at first sight, but always give themselves away: grey fur and a mask under
+// the glasses or cap, and a ringed tail sticking out at the side.
+const tail = `<path d="M50 70 q10 -6 8 -20 q-2 -10 6 -14" stroke="#6b7079" stroke-width="7" fill="none" stroke-linecap="round"/>` +
+  `<path d="M52 64 l7 -2 M57 55 l7 0 M59 45 l6 -3" stroke="#2b2b33" stroke-width="3"/>`;
+const furFace = (cx: number, cy: number) => `<ellipse cx="${cx}" cy="${cy}" rx="12" ry="11" fill="#9aa0a8"/>` +
+  `<path d="M${cx - 12} ${cy - 2} Q${cx} ${cy - 9} ${cx + 12} ${cy - 2} Q${cx + 12} ${cy + 5} ${cx + 5} ${cy + 3} Q${cx} ${cy} ${cx - 5} ${cy + 3} Q${cx - 12} ${cy + 5} ${cx - 12} ${cy - 2} z" fill="#2b2b33"/>` +
+  `<circle cx="${cx - 5}" cy="${cy - 1}" r="1.6" fill="#fff"/><circle cx="${cx + 5}" cy="${cy - 1}" r="1.6" fill="#fff"/>` +
+  `<circle cx="${cx}" cy="${cy + 6}" r="1.8" fill="#111"/>`;
+const fakeGranny = `<path d="M12 72 Q12 50 32 48 Q52 50 52 72 z" fill="#c45d9b"/>` + tail +
+  `<circle cx="32" cy="22" r="10" fill="#e5e5e5"/>` + furFace(32, 34) +
+  `<circle cx="26" cy="33" r="4.5" fill="none" stroke="#5b4636" stroke-width="1.5"/><circle cx="38" cy="33" r="4.5" fill="none" stroke="#5b4636" stroke-width="1.5"/>`;
+const fakeKid = `<path d="M16 72 Q16 52 32 50 Q48 52 48 72 z" fill="#3fa34d"/>` + tail + furFace(32, 37) +
+  `<path d="M18 30 Q32 14 46 30 z" fill="#e2453c"/><rect x="38" y="27" width="14" height="4" rx="2" fill="#e2453c"/>` +
+  `<path d="M14 64 l6 -16 l6 16 z" fill="#d9a35f"/><circle cx="20" cy="46" r="6" fill="#ffb3c7"/>`;
+// The golden raccoon: rare, shiny, worth 5.
+const golden = (splat: boolean) => raccoonBody(splat).replace(/#8a8f98/g, "#d4a017").replace(/#9aa0a8/g, "#f5c518").replace(/#6b7079/g, "#b8860b") +
+  `<path d="M10 14 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z M54 52 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 l4 -1.5 z" fill="#fff59d"/>`;
+// Shutters half way open, for the opening animation.
+const half = svg(WIN_W, WIN_H, room + `<path d="M4 4 L16 8 V68 L4 72 z" fill="#4f8fbf"/><path d="M60 4 L48 8 V68 L60 72 z" fill="#4a86b3"/>` + frame);
+export const DELUXE_WINDOW = ["half", "raccoon granny", "raccoon kid", "golden", "raccoon granny splat", "raccoon kid splat", "golden splat"] as const;
+const deluxeWindowSvgs: Record<(typeof DELUXE_WINDOW)[number], string> = {
+  "half": half,
+  "raccoon granny": svg(WIN_W, WIN_H, room + fakeGranny + frame),
+  "raccoon kid": svg(WIN_W, WIN_H, room + fakeKid + frame),
+  "golden": svg(WIN_W, WIN_H, room + golden(false) + frame),
+  "raccoon granny splat": svg(WIN_W, WIN_H, room + fakeGranny + splash + frame),
+  "raccoon kid splat": svg(WIN_W, WIN_H, room + fakeKid + splash + frame),
+  "golden splat": svg(WIN_W, WIN_H, room + golden(true) + splash + frame),
+};
+const drop = svg(12, 14, `<path d="M6 1 Q11 8 10 10 A4.2 4.2 0 0 1 2 10 Q1 8 6 1 z" fill="#38bdf8" stroke="#0284c7" stroke-width="1"/><circle cx="4.5" cy="9" r="1.2" fill="#e0f2fe"/>`);
+const spark = svg(14, 14, `<path d="M7 0 l1.8 5.2 l5.2 1.8 l-5.2 1.8 l-1.8 5.2 l-1.8 -5.2 l-5.2 -1.8 l5.2 -1.8 z" fill="#fde047"/>`);
+const label = (text: string, fill: string) => svg(110, 44,
+  `<text x="55" y="33" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="30" fill="${fill}" stroke="#1f2937" stroke-width="5" paint-order="stroke">${text}</text>`);
+const POPUPS: [string, string, string][] = [["+1", "+1", "#fef08a"], ["+3", "+3", "#fdba74"], ["+5", "+5", "#fde047"],
+  ["x2", "COMBO x2", "#a5f3fc"], ["x3", "COMBO x3", "#86efac"], ["x4", "COMBO x4", "#f9a8d4"], ["oops", "OOPS!", "#fca5a5"]];
+const banner = (name: string) => svg(300, 70,
+  `<rect x="4" y="8" width="292" height="56" rx="14" fill="#0b6fa4" stroke="#083d5c" stroke-width="5"/>` +
+  `<text x="150" y="47" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="28" fill="#fff">${name}</text>`);
+const bird = (up: boolean) => svg(30, 20, `<path d="M2 ${up ? 4 : 14} Q8 ${up ? 8 : 12} 15 11 Q22 ${up ? 8 : 12} 28 ${up ? 4 : 14}" stroke="#334155" stroke-width="3" fill="none" stroke-linecap="round"/>`);
+const heart = (x: number, full: boolean) => `<path transform="translate(${x} 0)" d="M15 26 C4 18 0 12 4 6 C8 0 14 2 15 7 C16 2 22 0 26 6 C30 12 26 18 15 26 z" fill="${full ? "#ef4444" : "#ffffff55"}" stroke="#7f1d1d" stroke-width="2"/>`;
+const hearts = (n: number) => svg(96, 28, [0, 32, 64].map((x, i) => heart(x, i < n)).join(""));
+
+export function deluxeArt(P: Project) {
+  return {
+    window: DELUXE_WINDOW.map(n => P.costume(n, deluxeWindowSvgs[n], WIN_W / 2, WIN_H / 2)),
+    drop: [P.costume("drop", drop, 6, 7), P.costume("spark", spark, 7, 7)],
+    popup: POPUPS.map(([n, text, fill]) => P.costume(n, label(text, fill), 55, 22)),
+    banner: HOUSES.map((h, i) => P.costume(h.name, banner(["The Cottage", "The Snack Shop", "The Town House"][i]), 150, 35)),
+    bird: [P.costume("up", bird(true), 15, 10), P.costume("down", bird(false), 15, 10)],
+    hearts: [0, 1, 2, 3].map(n => P.costume(`h${n}`, hearts(n), 48, 14)),
+  };
+}
+
 export function art(P: Project) {
   return {
     window: WINDOW_COSTUMES.map(n => P.costume(n, windowSvgs[n], WIN_W / 2, WIN_H / 2)),

@@ -112,10 +112,12 @@ export function splatPatrol(step: number): Buffer {
     if (at(2)) B.script(whenClicked(), [broadcast("splat")], 20, 200);
     if (at(4)) {
       // Splatted by a raccoon, or splashed a villager: a life is gone.
-      for (const [msg, words] of [["splatted", "Splat!"], ["oops", "Oops! Sorry!"]] as const)
+      for (const msg of ["splatted", "oops"] as const)
         B.script(whenReceive(msg), [
-          change("lives", -1), ...(msg === "oops" ? [say(words)] : []),
+          change("lives", -1),
           ifThen(eq(v("lives"), 0), [sayFor("Game over! Click the green flag.", 2), stopAll()]),
+          // Say sorry for a moment only ("say" without a time would stay on the screen).
+          ...(msg === "oops" ? [sayFor("Oops! Sorry!", 1)] : []),
         ], 20, msg === "splatted" ? 300 : 460);
     }
     return B;

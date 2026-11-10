@@ -93,3 +93,17 @@ test("splat patrol step 5: the houses take turns and each round is harder", asyn
   await t.frames(3);
   t.expect((await windows(t)).length === 3, "round 4 is not the cottage again");
 });
+
+test("splat patrol step 4: splashing a villager says sorry for a moment and costs a life", async t => {
+  await start(t, 4);
+  await t.set("lives", 99);
+  // Find a villager while no goo covers the screen (a click on the goo is lost: you're splatted, you can't see).
+  let w = await someone(t, "granny", 1200).catch(() => someone(t, "kid", 1200));
+  for (let i = 0; i < 20 && (await t.sprite("Goo")).visible; i++) { await t.frames(1); w = await someone(t, w.costume); }
+  const before = Number(await t.get("lives"));
+  await splat(t, w);
+  const bubble = (await t.sprite("Crosshair")).bubble, lives = Number(await t.get("lives"));
+  t.expect(bubble === "Oops! Sorry!" && lives < before, `bubble "${bubble}", lives ${before} → ${lives}`);
+  await t.frames(40);
+  t.expect((await t.sprite("Crosshair")).bubble === "", "the sorry bubble stayed");
+});

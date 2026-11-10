@@ -347,11 +347,11 @@ end</pre></div>
 <div class="blocks-panel"><div class="label">Crosshair <span class="tag new">new</span></div>
 <pre class="blocks">when I receive [oops v]
 change [lives v] by (-1)
-say [Oops! Sorry!]
 if &lt;(lives) = (0)&gt; then
   say [Game over! Click the green flag.] for (2) seconds
   stop [all v]
-end</pre></div>
+end
+say [Oops! Sorry!] for (1) seconds</pre></div>
 <div class="blocks-panel"><div class="label">Goo <span class="tag new">new</span></div>
 <pre class="blocks">when flag clicked
 hide</pre></div>

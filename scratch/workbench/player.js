@@ -144,8 +144,10 @@
       },
       key(name, isDown) { vm.postIOData("keyboard", { key: KEYS[name] ?? name, isDown }); },
       // Moves the mouse to a Stage position (x: -240..240, y: -180..180).
+      // Positions are sent in the canvas's real size on the page: Scratch uses them to find the sprite under a click.
       mouse(x, y, isDown) {
-        const data = { x: x + 240, y: 180 - y, canvasWidth: 480, canvasHeight: 360 };
+        const c = vm.renderer.canvas, w = c.clientWidth || 480, h = c.clientHeight || 360;
+        const data = { x: (x + 240) * w / 480, y: (180 - y) * h / 360, canvasWidth: w, canvasHeight: h };
         if (isDown !== undefined) data.isDown = isDown;
         vm.postIOData("mouse", data);
       },

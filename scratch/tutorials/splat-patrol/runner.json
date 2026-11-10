@@ -1,0 +1,27 @@
+{
+  "title": "Splat Patrol Runner",
+  "heading": "Splat Patrol",
+  "help": "Pick a step and click Green flag. Aim with the mouse and click the crosshair over a window to splat.",
+  "steps": {
+    "1": {
+      "name": "Open and close",
+      "note": "A forever loop: wait a random time, the raccoon looks out, the window shuts."
+    },
+    "2": {
+      "name": "Splat!",
+      "note": "The crosshair gets the click and broadcasts splat; the window under the mouse-pointer is hit."
+    },
+    "3": {
+      "name": "A whole house",
+      "note": "The Window sprite puts a clone on every window spot; each clone runs the same script."
+    },
+    "4": {
+      "name": "Raccoons splat back",
+      "note": "A raccoon not splatted in time splats you; splashing a villager costs a life too."
+    },
+    "5": {
+      "name": "Round after round",
+      "note": "Houses take turns; showTime shrinks and badChance grows. This is the whole game."
+    }
+  }
+}

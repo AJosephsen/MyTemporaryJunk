@@ -110,6 +110,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "data_addtolist": return [`add ${value(b, "ITEM")} to [${field(b, "LIST")} v]`];
       case "motion_goto": return [`go to ${value(b, "TO")}`];
       case "sensing_resettimer": return ["reset timer"];
+      case "looks_switchbackdropto": return [`switch backdrop to ${value(b, "BACKDROP")}`];
       case "motion_gotoxy": return [`go to x: ${value(b, "X")} y: ${value(b, "Y")}`];
       case "motion_pointindirection": return [`point in direction ${value(b, "DIRECTION")}`];
       case "motion_turnright": return [`turn right ${value(b, "DEGREES")} degrees`];

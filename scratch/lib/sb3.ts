@@ -48,7 +48,7 @@ export class Project {
   }
 
   // Assembles project.json and packs it with the costume files.
-  build(opts: { backdrop: any; sprites: any[]; stage?: Blocks; listValues?: Record<string, (number | string)[]>; shown?: string[]; shownLeft?: number }): Buffer {
+  build(opts: { backdrop: any | any[]; sprites: any[]; stage?: Blocks; listValues?: Record<string, (number | string)[]>; shown?: string[]; shownLeft?: number }): Buffer {
     const shown = opts.shown ?? [];
     const left = opts.shownLeft ?? 3; // displays in the top left corner; the rest go top right
     shown.forEach(n => this.varId(n));
@@ -60,7 +60,7 @@ export class Project {
           lists: Object.fromEntries(Object.entries(this.lists).map(([n, id]) => [id, [n, opts.listValues?.[n] ?? []]])),
           broadcasts: Object.fromEntries(Object.entries(this.bcasts).map(([n, id]) => [id, n])),
           blocks: opts.stage ? this.sprite("Stage", { blocks: opts.stage, costumes: [], layer: 0 }).blocks : {},
-          comments: {}, currentCostume: 0, costumes: [opts.backdrop], sounds: [], volume: 100,
+          comments: {}, currentCostume: 0, costumes: Array.isArray(opts.backdrop) ? opts.backdrop : [opts.backdrop], sounds: [], volume: 100,
           layerOrder: 0, tempo: 60, videoTransparency: 50, videoState: "on", textToSpeechLanguage: null,
         },
         ...opts.sprites,
@@ -259,6 +259,9 @@ export function dsl(B: Blocks) {
     // The value of a custom block's input, inside its definition.
     arg: (name: string) => B.add("argument_reporter_string_number", {}, { VALUE: [name, null] }),
     whenFlag: () => B.add("event_whenflagclicked"),
+    switchBackdrop: (name: In) => B.add("looks_switchbackdropto", { BACKDROP: typeof name === "string"
+      ? [1, B.shadow("looks_backdrops", { BACKDROP: [name, null] })]
+      : [3, num(name)[1], B.shadow("looks_backdrops", { BACKDROP: ["", null] })] }),
     whenClicked: () => B.add("event_whenthisspriteclicked"),
     whenStageClicked: () => B.add("event_whenstageclicked"),
     whenReceive: (name: string) => B.add("event_whenbroadcastreceived", {}, { BROADCAST_OPTION: [name, P.bcastId(name)] }),

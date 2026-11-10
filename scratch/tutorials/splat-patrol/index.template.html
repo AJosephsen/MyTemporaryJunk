@@ -1,0 +1,231 @@
+<title>Splat Patrol Tutorial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: one reading column; each step is a numbered section: the big idea, the blocks, a picture and a checkpoint file. */
+:root {
+  --bg: #f4f3fa; --surface: #ffffff; --fg: #1f1d33; --muted: #5c5a74; --line: #dddbea;
+  --accent: #0b6fa4; --accent-soft: #e0f2fe; --drone: #c2410c; --code-bg: #f8f7fd;
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #13121f; --surface: #1c1a2c; --fg: #ebe9f7; --muted: #a6a3bf; --line: #312e47;
+  --accent: #7dd3fc; --accent-soft: #0c2a3a; --drone: #f2a065; --code-bg: #232036; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #13121f; --surface: #1c1a2c; --fg: #ebe9f7; --muted: #a6a3bf; --line: #312e47;
+  --accent: #7dd3fc; --accent-soft: #0c2a3a; --drone: #f2a065; --code-bg: #232036; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 18px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 48px; }
+main > *, .step > *, .stack > *, .intro > * { min-width: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 6vw, 2.9rem); }
+h2 { font-size: 1.7rem; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+a { color: var(--accent); }
+code { font: 0.88em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.eyebrow { font: 600 0.78rem var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--drone); }
+.stack { display: grid; gap: 16px; min-width: 0; }
+.intro { display: grid; gap: 14px; }
+.intro p { color: var(--muted); font-size: 1.08rem; }
+
+.plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: plan; }
+.plan li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 8px 12px; border-radius: 6px; counter-increment: plan; }
+.plan li::before { content: counter(plan); font: 600 0.95rem var(--display); color: var(--muted); width: 1.4em; }
+.plan .name { font-weight: 700; }
+.plan a { text-decoration: none; }
+.plan a:hover .name, .plan a:focus-visible .name { text-decoration: underline; }
+.plan .what { color: var(--muted); flex: 1 1 220px; }
+
+.step { display: grid; gap: 20px; border-top: 2px solid var(--line); padding-top: 32px; }
+.step-head { display: flex; align-items: center; gap: 14px; }
+.num { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--surface); font: 600 1.3rem var(--display); }
+ol.do { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 66ch; }
+
+.blocks-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; overflow-x: auto; }
+.blocks-panel .label { font: 700 0.78rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+pre.blocks { margin: 0; font: 13px var(--mono); white-space: pre; }
+
+.note { border-left: 3px solid var(--drone); padding: 2px 0 2px 14px; color: var(--fg); }
+.note b { color: var(--drone); }
+figure { margin: 0; display: grid; gap: 8px; }
+figure img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
+figcaption { font-size: 0.9rem; color: var(--muted); }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 420px; }
+th, td { text-align: right; padding: 6px 14px; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 0.82rem; color: var(--muted); font-weight: 700; }
+
+.checkpoint { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
+.checkpoint p { flex: 1 1 260px; color: var(--muted); font-size: 0.95rem; }
+.btn { display: inline-block; font-weight: 700; text-decoration: none; color: var(--surface); background: var(--accent);
+  padding: 8px 16px; border-radius: 6px; white-space: nowrap; }
+.btn:hover, .btn:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 1px; }
+.try { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+svg.coords text { font: 11px var(--body); fill: var(--muted); }
+.scripts { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.scripts .blocks-panel { flex: 0 1 auto; max-width: 100%; min-width: 0; }
+.tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; padding: 1px 7px; border-radius: 999px; margin-left: 6px; }
+.tag.new { background: var(--accent); color: var(--surface); }
+.tag.changed { border: 1px solid var(--drone); color: var(--drone); }
+.flow { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; counter-reset: none; }
+.flow li { display: grid; gap: 2px; padding: 10px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line);
+  flex: 1 1 130px; min-width: 0; position: relative; }
+.flow li b { font: 600 1.05rem var(--display); color: var(--accent); }
+.flow li span { font-size: 0.85rem; color: var(--muted); }
+footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--line); padding-top: 24px; }
+.idea { background: var(--accent-soft); border-radius: 8px; padding: 12px 16px; display: grid; gap: 4px; max-width: 66ch; }
+.make { display: grid; gap: 4px; max-width: 66ch; font-size: 0.95rem; }
+.make b { color: var(--drone); }
+.idea b { font: 600 1rem var(--display); color: var(--accent); }
+</style>
+
+<main>
+  <header class="intro">
+    <span class="eyebrow">Scratch tutorial for kids (8+) · 5 steps · basic blocks only</span>
+    <h1>Splat Patrol</h1>
+    <p>Sneaky raccoon bandits are hiding in the houses, ready to throw water balloons. Windows pop open: splat the raccoons before they splat you, but don't splash the granny or the kid! Round after round the houses change, and the raccoons get quicker.</p>
+    <p>Every step is a game you can play, and every step has a file you can download if you get stuck. You need the Scratch editor: <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>.</p>
+    <div class="checkpoint">
+      <p>Start here: the starter project has the window with all its costumes, the crosshair, the goo and three houses. No code yet.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/splat-patrol/starter.sb3">Download starter.sb3</a>
+    </div>
+  </header>
+
+  <section class="stack" aria-label="Steps">
+    <h3>The steps</h3>
+    <ol class="plan">
+      <li><a href="#step-1"><span class="name">Open and close</span></a><span class="what">Costumes tell the story</span></li>
+      <li><a href="#step-2"><span class="name">Splat!</span></a><span class="what">The crosshair gets the click</span></li>
+      <li><a href="#step-3"><span class="name">A whole house</span></a><span class="what">One script, many windows</span></li>
+      <li><a href="#step-4"><span class="name">Raccoons splat back</span></a><span class="what">A timer you can lose to</span></li>
+      <li><a href="#step-5"><span class="name">Round after round</span></a><span class="what">Two numbers make it harder</span></li>
+    </ol>
+  </section>
+
+  <section class="step" id="step-1">
+    <div class="step-head"><span class="num">1</span><h2>Open and close</h2></div>
+    <div class="idea"><b>Big idea: costumes tell the story</b><span>The Window sprite has a costume for every moment: <b>shut</b>, <b>open</b>, and one for everybody who can look out. A <b>forever</b> loop waits a random time, switches to the raccoon, waits, and shuts again. That is already a little play!</span></div>
+    <p class="make"><span><b>Make:</b> nothing new yet. The starter has the Window (with all its costumes), the Crosshair, the Goo and three house backdrops.</span></p>
+    <!--changed:1-->
+    <ul class="do">
+      <li><b>wait (pick random 1 to 3) seconds</b> makes the raccoon hard to predict. Try 0.2 to 0.5 for a very busy raccoon.</li>
+      <li>Look at the Window's costumes: the order matters later. 1 is shut, 2 is open, 3 to 5 are the raccoon, the granny and the kid, then their splashed versions.</li>
+    </ul>
+    <figure>
+      <img src="step1.png" alt="The cottage with a raccoon looking out of the left window." width="720" height="541" loading="lazy">
+      <figcaption>Watch the window: who's there?</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 1.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/splat-patrol/step1.sb3">Download step1.sb3</a>
+    </div>
+  </section>
+
+  <section class="step" id="step-2">
+    <div class="step-head"><span class="num">2</span><h2>Splat!</h2></div>
+    <div class="idea"><b>Big idea: the crosshair gets the click</b><span>The crosshair follows the mouse, so it is always on top of whatever you click. That's why the crosshair gets the click, not the window. It <b>broadcasts splat</b>, and the window checks: is somebody looking out, and am I <b>touching the mouse-pointer</b>? Then they're hit.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>score</code> (for all sprites); on the Window <code>who</code>, <code>hit</code> and <code>close</code> <b>for this sprite only</b>; the message <code>splat</code>.</span></p>
+    <!--changed:2-->
+    <ul class="do">
+      <li><b>who</b> is picked at random: 60 out of 100 times a raccoon, otherwise the granny or the kid. The costume has the same name as <b>who</b>, so <b>switch costume to (who)</b> just works.</li>
+      <li><b>close</b> is <b>timer + 1.5</b>: the window stays open until the timer passes it, or until <b>hit</b> becomes 1.</li>
+      <li>The splashed costume is <b>join (who) [ splat]</b>, like "raccoon splat".</li>
+      <li>There is no <b>wait</b> in the splat script on purpose: a second click would start that script again in the middle of its wait.</li>
+    </ul>
+    <figure>
+      <img src="step2.png" alt="A splashed raccoon in the cottage window, the crosshair next to it." width="720" height="541" loading="lazy">
+      <figcaption>Splat the raccoon: one point. Splash the granny: minus one!</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 2.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/splat-patrol/step2.sb3">Download step2.sb3</a>
+    </div>
+  </section>
+
+  <section class="step" id="step-3">
+    <div class="step-head"><span class="num">3</span><h2>A whole house</h2></div>
+    <div class="idea"><b>Big idea: one script, many windows</b><span>The Window sprite now hides and builds the house: it goes to each window spot and <b>creates a clone of myself</b>. The forever loop moves to <b>when I start as a clone</b>, so every window runs it on its own.</span></div>
+    <p class="make"><span><b>Make:</b> on the Window <code>isClone</code> <b>for this sprite only</b>.</span></p>
+    <!--changed:3-->
+    <ul class="do">
+      <li>Every clone has its own <b>who</b>, <b>hit</b> and <b>close</b>, because they are <b>for this sprite only</b>. That's why three windows can each have a different visitor.</li>
+      <li>The splat script didn't change at all: only the window under the mouse-pointer answers.</li>
+    </ul>
+    <figure>
+      <img src="step3.png" alt="The cottage with three windows, a raccoon in one of them." width="720" height="541" loading="lazy">
+      <figcaption>Three windows to watch now.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 3.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/splat-patrol/step3.sb3">Download step3.sb3</a>
+    </div>
+  </section>
+
+  <section class="step" id="step-4">
+    <div class="step-head"><span class="num">4</span><h2>Raccoons splat back</h2></div>
+    <div class="idea"><b>Big idea: a timer you can lose to</b><span>If a raccoon is still there when its time is up, it throws its water balloon at you: green goo on the screen, and one life gone. Splashing a villager costs a life too. Three lives, then it's game over.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>lives</code>; the messages <code>splatted</code> and <code>oops</code>; a script for the <b>Goo</b> sprite (it's in the starter).</span></p>
+    <!--changed:4-->
+    <ul class="do">
+      <li>The window only checks one thing after its loop: <b>hit</b> is 0 and <b>who</b> is raccoon? Then <b>broadcast splatted</b>.</li>
+      <li>The Goo shows for 0.4 seconds. The Crosshair counts the lives.</li>
+      <li><b>say … for 2 seconds</b> comes before <b>stop all</b>: stop all also clears speech bubbles.</li>
+    </ul>
+    <figure>
+      <img src="step4.png" alt="Green goo over the cottage: a raccoon got you." width="720" height="541" loading="lazy">
+      <figcaption>Too slow! The raccoon splatted you.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 4.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/splat-patrol/step4.sb3">Download step4.sb3</a>
+    </div>
+  </section>
+
+  <section class="step" id="step-5">
+    <div class="step-head"><span class="num">5</span><h2>Round after round</h2></div>
+    <div class="idea"><b>Big idea: two numbers make it harder</b><span>Every 15 seconds a new round starts, and the houses take turns: the cottage, the shop, the town house, and again. Each round <b>showTime</b> gets shorter and <b>badChance</b> gets bigger. Those two numbers are the whole difficulty.</span></div>
+    <p class="make"><span><b>Make:</b> variables <code>round</code>, <code>house</code>, <code>showTime</code> and <code>badChance</code>; messages <code>clear</code> and <code>build</code>.</span></p>
+    <!--changed:5-->
+    <ul class="do">
+      <li><b>showTime</b> is <b>2.2 − round × 0.2</b>, but never below 0.7 seconds. <b>badChance</b> is <b>50 + round × 8</b>, but never above 85.</li>
+      <li><b>house</b> is <b>(round − 1) mod 3 + 1</b>: 1, 2, 3, 1, 2, 3 … The backdrops are in the same order, so <b>switch backdrop to (house)</b> picks the right house.</li>
+      <li><b>clear</b> deletes the old clones, <b>build</b> makes the new ones. Each house has its own list of <b>go to</b> and <b>create clone</b>.</li>
+      <li>This is the whole game! Try your own house: draw a backdrop and add a new <b>if house = 4</b>.</li>
+    </ul>
+    <figure>
+      <img src="step5.png" alt="Round 3: the tall town house with six windows and two raccoons." width="720" height="541" loading="lazy">
+      <figcaption>Round 3, the town house: six windows!</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 5.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/splat-patrol/step5.sb3">Download step5.sb3</a>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h3>Make it your own</h3>
+    <ul class="try">
+      <li>A golden raccoon that is worth 5 points: add a costume, and a <b>who</b> that is picked once in 20 times.</li>
+      <li>A sound for every splat, and a different one for "Oops!".</li>
+      <li>Your own house: a new backdrop and an <b>if house = 4</b> with its window spots. Remember to change <b>mod 3</b> to <b>mod 4</b>.</li>
+      <li>Make it fairer for little brothers and sisters: start <b>showTime</b> at 3 seconds.</li>
+    </ul>
+  </section>
+
+  <footer>Made with the Scratch workbench in this repository. The blocks on this page are drawn from the real project files, so they always match the downloads; the last step is the finished game.</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/scratchblocks@3.6.4/build/scratchblocks.min.js"></script>
+<script>
+  scratchblocks.renderMatching("pre.blocks", { style: "scratch3", languages: ["en"], scale: 0.75 });
+</script>

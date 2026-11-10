@@ -32,6 +32,7 @@ All Scratch work lives here.
 | [Beanstalk Bounce](tutorials/beanstalk-bounce/) | For kids (9+), 5 steps: an endless jumper with levels made from numbers (gravity, a camera, gaps that grow with height, leaf kinds by colour, bees); the last step is the game |
 | [Sky Guard](tutorials/sky-guard/) | For kids (8+), 4 short steps, basic blocks only: a cannon points towards the mouse and shoots clones at falling meteors; the last step is the game |
 | [Sheepdog](tutorials/sheepdog/) | For kids (8+), 4 short steps, basic blocks only: a dog follows the mouse, sheep clones graze and flee, herd them into the pen against the clock; the last step is the game |
+| [Splat Patrol](tutorials/splat-patrol/) | For kids (8+), 5 steps, basic blocks only: windows pop open in houses that take turns; splat the raccoon bandits, not the villagers; the last step is the game |
 
 ## Tools
 

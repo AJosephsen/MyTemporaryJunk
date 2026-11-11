@@ -129,6 +129,8 @@ export class Blocks {
 
   chain(stmts: Ref[]): string {
     // A statement that already sits in another script, or earlier in this one, is copied (see add).
+    stmts = (stmts as any[]).flat(Infinity);   // a nested list of statements (e.g. ret(...) not spread) is fine
+    if (stmts.length === 0) throw new Error("an empty list of blocks (use ifThen instead of ifElse with an empty branch)");
     const seen = new Set<string>(), out: Ref[] = [];
     stmts.forEach((s, i) => {
       const parent = this.map[s.id].parent;

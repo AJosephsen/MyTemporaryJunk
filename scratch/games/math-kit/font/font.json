@@ -142,6 +142,33 @@
    "width": 165.5
   },
   {
+   "text": "NUMBER BONDS",
+   "name": "bonds1",
+   "width": 361,
+   "game": "number-bonds-pop"
+  },
+  {
+   "text": "POP!",
+   "name": "bonds2",
+   "width": 115.5,
+   "game": "number-bonds-pop"
+  },
+  {
+   "text": "MAKE",
+   "name": "make",
+   "width": 140.5
+  },
+  {
+   "text": "GOLD!",
+   "name": "gold",
+   "width": 151
+  },
+  {
+   "text": "RAINBOW!",
+   "name": "rainbow",
+   "width": 235.5
+  },
+  {
    "text": "COMBO",
    "name": "combo",
    "width": 178

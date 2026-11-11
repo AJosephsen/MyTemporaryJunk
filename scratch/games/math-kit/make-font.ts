@@ -14,7 +14,8 @@ export const GLYPHS: [string, string][] = [
 export const WORDS: [string, string, string?][] = [
   ["NUMBER", "title1", "number-blaster"], ["BLASTER", "title2", "number-blaster"],
   ["TIMES TABLE", "tower1", "times-table-tower"], ["TOWER", "tower2", "times-table-tower"], ["QUICK!", "quick"],
-  ["WOBBLY!", "wobbly"], ["FLOOR", "floor"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
+  ["WOBBLY!", "wobbly"], ["FLOOR", "floor"], ["NUMBER BONDS", "bonds1", "number-bonds-pop"], ["POP!", "bonds2", "number-bonds-pop"],
+  ["MAKE", "make"], ["GOLD!", "gold"], ["RAINBOW!", "rainbow"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
   ["LEVEL", "level"], ["LEVEL UP!", "levelup"], ["BONUS", "bonus"], ["GAME OVER", "gameover"], ["CLICK TO PLAY", "clickplay"],
   ["SPEED BONUS", "speed"], ["SCORE", "score"], ["BEST", "best"], ["OOPS!", "oops"], ["SHIELD LOST", "shield"],
 ];

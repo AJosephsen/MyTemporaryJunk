@@ -31,7 +31,7 @@ function stageScripts(): Blocks {
   const slot = (list: string, s: In) => item(list, s);
 
   B.script(whenFlag(), [
-    set("phase", "title"), set("shake", 0), set("frame", 0), set("score", 0), set("shown", 0), set("lives", 3),
+    set("phase", "title"), set("shake", 0), set("frame", 0), set("hideAbove", 150), set("score", 0), set("shown", 0), set("lives", 3),
     set("level", 1), set("mult", 1),
     call("title screen"),
     forever([
@@ -62,7 +62,7 @@ function stageScripts(): Blocks {
   ], { warp: true, x: 520, y: 20 });
 
   define("new game", [
-    ...[G.title1, G.title2, G.click, G.best, G.bestWord, G.banner, G.bannerNum, G.stars, G.bonusWord, G.mult].map(g => clear(d, g)),
+    ...[G.title1, G.title2, G.click, G.best, G.bestWord, G.banner, G.bannerNum, G.stars, G.bonusWord, G.mult].flatMap(g => clear(d, g)),
     set("score", 0), set("shown", -1), set("lives", 3), set("level", 1), set("streak", 0), set("mult", 1),
     broadcast("shields"),
     call("start level"),
@@ -72,7 +72,7 @@ function stageScripts(): Blocks {
     set("spawned", 0), set("hits", 0), set("misses", 0), set("spawnWait", 50),
     set("goal", add(7, v("level"))),
     set("maxActive", 2), ifThen(gt(v("level"), 2), [set("maxActive", 3)]),
-    set("s", 1), repeat(SLOTS, [replace("slotActive", v("s"), 0), clear(d, add(G.slot, v("s"))), change("s", 1)]),
+    set("s", 1), repeat(SLOTS, [replace("slotActive", v("s"), 0), ...clear(d, add(G.slot, v("s"))), change("s", 1)]),
     ...write(d, { text: "word-level", x: 50, y: 158, size: 32, group: G.levelWord }),
     ...write(d, { text: v("level"), x: 112, y: 158, size: 40, group: G.levelNum }),
     // A big "LEVEL 3" banner to start.
@@ -86,7 +86,7 @@ function stageScripts(): Blocks {
   // ---------------------------------------------------------------- every frame while playing
   define("play", [
     // The start-of-level banner goes after a while.
-    ifThen(gt(v("bannerTime"), 0), [change("bannerTime", -1), ifThen(eq(v("bannerTime"), 0), [clear(d, G.banner), clear(d, G.bannerNum)])]),
+    ifThen(gt(v("bannerTime"), 0), [change("bannerTime", -1), ifThen(eq(v("bannerTime"), 0), [...clear(d, G.banner), ...clear(d, G.bannerNum)])]),
     // Meteors fall; one that reaches the shield line lands.
     set("s", 1),
     repeat(SLOTS, [
@@ -211,14 +211,16 @@ function stageScripts(): Blocks {
   ], { warp: true, x: 2500, y: 20 });
 
   // A click on a pad's number counts as a click on the pad.
+  // On the title and game-over screens a click on any text starts a game.
   B.script(whenReceive("text click"), [
+    ifThen(or(eq(v("phase"), "title"), eq(v("phase"), "ready")), [call("new game")]),
     ifThen(and(gt(v("clickedGroup"), G.pad), lt(v("clickedGroup"), G.pad + PADS + 1)), [
       set("pressed", sub(v("clickedGroup"), G.pad)), broadcast("pad")]),
   ], 20, 1100);
 
   define("hit %s", [
     set("hx", slot("slotX", arg("s"))), set("hy", slot("slotY", arg("s"))),
-    replace("slotActive", arg("s"), 0), clear(d, add(G.slot, arg("s"))), change("hits", 1),
+    replace("slotActive", arg("s"), 0), ...clear(d, add(G.slot, arg("s"))), change("hits", 1),
     // The streak makes the multiplier: 3 in a row x2, 6 x3, 10 x5, 15 x8.
     change("streak", 1), set("oldMult", v("mult")), set("mult", 1),
     ifThen(gt(v("streak"), 2), [set("mult", 2)]), ifThen(gt(v("streak"), 5), [set("mult", 3)]),
@@ -248,15 +250,15 @@ function stageScripts(): Blocks {
   ], { warp: true, args: ["s"], x: 2000, y: 20 });
 
   define("miss", [
-    set("streak", 0), set("mult", 1), clear(d, G.mult), change("misses", 1), set("shake", 3),
+    set("streak", 0), set("mult", 1), ...clear(d, G.mult), change("misses", 1), set("shake", 3),
     replace("padState", v("pressed"), 2),
     ...write(d, { text: "word-oops", x: item("padX", v("pressed")), y: PAD_Y + 50, size: 40, group: G.pop, mode: "float", replace: false }),
   ], { warp: true, x: 2000, y: 900 });
 
   define("land %s", [
     set("hx", slot("slotX", arg("s"))),
-    replace("slotActive", arg("s"), 0), clear(d, add(G.slot, arg("s"))),
-    change("lives", -1), change("misses", 1), set("streak", 0), set("mult", 1), clear(d, G.mult),
+    replace("slotActive", arg("s"), 0), ...clear(d, add(G.slot, arg("s"))),
+    change("lives", -1), change("misses", 1), set("streak", 0), set("mult", 1), ...clear(d, G.mult),
     ...emit(d, "debris", v("hx"), GROUND, 20), ...emit(d, "smoke", v("hx"), GROUND, 8), ...emit(d, "ring", v("hx"), GROUND, 1),
     set("shake", 14), set("flashKind", "red"), broadcast("flash"), broadcast("shields"),
     ...write(d, { text: "word-shield", x: v("hx"), y: GROUND + 40, size: 40, group: G.pop, mode: "float", replace: false }),
@@ -291,7 +293,7 @@ function stageScripts(): Blocks {
     ]),
     change("score", v("bonus")),
     wait(1.6),
-    ...[G.banner, G.bannerNum, G.stars, G.bonusWord].map(g => clear(d, g)),
+    ...[G.banner, G.bannerNum, G.stars, G.bonusWord].flatMap(g => clear(d, g)),
     change("level", 1), call("start level"),
   ], 20, 760);
 
@@ -299,7 +301,7 @@ function stageScripts(): Blocks {
   B.script(whenReceive("game over"), [
     set("s", 1), repeat(SLOTS, [
       ifThen(eq(slot("slotActive", v("s")), 1), [...emit(d, "debris", slot("slotX", v("s")), slot("slotY", v("s")), 10)]),
-      replace("slotActive", v("s"), 0), clear(d, add(G.slot, v("s"))), change("s", 1)]),
+      replace("slotActive", v("s"), 0), ...clear(d, add(G.slot, v("s"))), change("s", 1)]),
     ...write(d, { text: "word-gameover", x: 0, y: 80, size: 110, group: G.banner }), pulse(d, G.banner, 40),
     ...write(d, { text: v("score"), x: 0, y: 10, size: 100, group: G.bannerNum }),
     ifThen(gt(v("score"), v("best")), [set("best", v("score")),

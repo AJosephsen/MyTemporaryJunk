@@ -93,7 +93,12 @@ export class Blocks {
     const id = this.project.nid("b");
     this.map[id] = { opcode, next: null, parent: null, inputs, fields, shadow: false, topLevel: false, ...extra };
     for (const slot of Object.values(inputs))
-      for (const x of slot.slice(1)) if (typeof x === "string" && this.map[x]) this.map[x].parent = id;
+      for (const x of slot.slice(1)) if (typeof x === "string" && this.map[x]) {
+        // A block can only be in one place. (TurboWarp's compiler copes with a block used twice; Scratch does not.)
+        if (this.map[x].parent !== null && this.map[x].parent !== id)
+          throw new Error(`block ${x} (${this.map[x].opcode}) is used in two places; build it twice instead`);
+        this.map[x].parent = id;
+      }
     return { id };
   }
 
@@ -104,6 +109,8 @@ export class Blocks {
   chain(stmts: Ref[]): string {
     stmts.forEach((s, i) => {
       const b = this.map[s.id];
+      if (i > 0 && b.parent !== null && b.parent !== stmts[i - 1].id)
+        throw new Error(`block ${s.id} (${b.opcode}) is used in two places; build it twice instead`);
       if (i > 0) b.parent = stmts[i - 1].id;
       if (i < stmts.length - 1) b.next = stmts[i + 1].id;
     });

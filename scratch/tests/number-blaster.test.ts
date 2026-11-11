@@ -16,7 +16,9 @@ const textOf = (t: T, group: number) => t.page((w, g) => {
     .join("");
 }, group) as Promise<string>;
 const list = (t: T, name: string) => t.get(name) as Promise<any[]>;
-async function startGame(t: T) {
+// compiler = false runs the project like scratch.mit.edu does (TurboWarp's interpreter).
+async function startGame(t: T, compiler = true) {
+  await t.page((w, on) => w.vm.setCompilerOptions({ enabled: on }), compiler);
   await t.load(GAME); await t.greenFlag(); await t.frames(3);
   await t.page(w => w.vm.runtime.startHats("event_whenstageclicked"));
   await t.until(v => v.phase === "play", { max: 30, what: "the game to start" });
@@ -34,15 +36,16 @@ async function meteor(t: T) {
 const clickPad = async (t: T, p: number) => { const x = [-168, -56, 56, 168][p - 1]; await t.mouse(x, -150); await t.click(x, -150); await t.frames(2); };
 
 test("number blaster: the title shows, a click starts level 1", async t => {
+  await t.page(w => w.vm.setCompilerOptions({ enabled: true }));
   await t.load(GAME); await t.greenFlag(); await t.frames(10);
   await t.screenshot(shot("nb-title"));
-  await t.page(w => w.vm.runtime.startHats("event_whenstageclicked"));
+  await t.mouse(0, 40); await t.click(0, 40);          // right on the title words
   const v = await t.until(v => v.phase === "play", { max: 30, what: "play" });
   t.expect(Number(v.level) === 1 && Number(v.lives) === 3, `level ${v.level}`);
 });
 
-test("number blaster: a meteor carries a sum, and its answer is on a pad", async t => {
-  await startGame(t);
+for (const compiler of [true, false]) test(`number blaster: a meteor carries a sum, and its answer is on a pad (${compiler ? "compiled" : "interpreted"})`, async t => {
+  await startGame(t, compiler);
   const m = await meteor(t);
   await t.frames(3);
   const sum = await textOf(t, 30 + m.slot);
@@ -58,8 +61,8 @@ test("number blaster: a meteor carries a sum, and its answer is on a pad", async
   await t.screenshot(shot("nb-meteor"));
 });
 
-test("number blaster: the right pad blasts the meteor and scores; the score display rolls up", async t => {
-  await startGame(t);
+for (const compiler of [true, false]) test(`number blaster: the right pad blasts the meteor and scores; the score display rolls up (${compiler ? "compiled" : "interpreted"})`, async t => {
+  await startGame(t, compiler);
   const m = await meteor(t);
   const p = (await list(t, "padValue")).map(String).indexOf(m.ans) + 1;
   await clickPad(t, p);
@@ -123,4 +126,40 @@ test("number blaster: clearing a level gives stars, a bonus and the next level w
   const m = await meteor(t);
   const sum = await textOf(t, 30 + m.slot);
   t.expect(sum.includes("−"), `level 2 sum "${sum}"`);
+});
+
+for (const compiler of [true, false]) test(`number blaster: writing a text group twice in one frame shows only the second text (${compiler ? "compiled" : "interpreted"})`, async t => {
+  await startGame(t, compiler);
+  await t.frames(5);
+  await t.page(w => {
+    const st = w.vm.runtime.getTargetForStage(), L = (n: string) => (Object.values(st.variables) as any[]).find((x: any) => x.name === n).value;
+    for (const text of ["5", "17"]) {
+      L("groupGen")[23] = Number(L("groupGen")[23]) + 1;
+      L("qText").push(text); L("qX").push(168); L("qY").push(-150); L("qSize").push(56); L("qGroup").push(24);
+      L("qMode").push("fixed"); L("qFollow").push(0); L("qGen").push(L("groupGen")[23]);
+    }
+  });
+  await t.frames(3);
+  t.expect(await textOf(t, 24) === "17", `pad 4 shows "${await textOf(t, 24)}"`);
+  const all = await t.page(w => w.vm.runtime.targets.filter((c: any) => c.sprite.name === "Text" && !c.isOriginal &&
+    Number((Object.values(c.variables) as any[]).find((x: any) => x.name === "group").value) === 24).length);
+  t.expect(all === 2, `${all} clones in the group`);
+});
+
+test("number blaster: after a minute of play the pads still show one number each (interpreted)", async t => {
+  await startGame(t, false);
+  for (let i = 0; i < 6; i++) {
+    const m = await meteor(t);
+    if (i % 2 === 0) await clickPad(t, (await list(t, "padValue")).map(String).indexOf(m.ans) + 1);
+    await t.frames(150);
+    if ((await t.get("phase")) !== "play") break;
+  }
+  await t.frames(3);
+  const pads = (await list(t, "padValue")).map(String);
+  for (let p = 1; p <= 4; p++) t.expect(await textOf(t, 20 + p) === pads[p - 1], `pad ${p}: "${await textOf(t, 20 + p)}" for ${pads[p - 1]}`);
+  const shown = await t.page(w => w.vm.runtime.targets.filter((c: any) => c.sprite.name === "Text" && !c.isOriginal && c.visible &&
+    Number((Object.values(c.variables) as any[]).find((x: any) => x.name === "group").value) > 20 &&
+    Number((Object.values(c.variables) as any[]).find((x: any) => x.name === "group").value) < 25).length);
+  t.expect(shown === pads.join("").length, `${shown} pad digits on screen for ${pads}`);
+  await t.page(w => w.vm.setCompilerOptions({ enabled: true }));
 });

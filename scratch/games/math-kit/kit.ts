@@ -6,8 +6,8 @@
 //   groupGen    a clone whose `gen` differs from its group's gen deletes itself; increase it to replace or clear a group
 //   groupPulse  extra size in percent, shrinking every tick (set it to make the group "pop")
 //   groupColor  colour effect for the group's clones
-// Text modes: "fixed" (stays put), "follow" (stays on slot `follow` of the lists slotX/slotY), "float" (rises and fades,
-// then goes by itself). Everything on screen moves by shakeX/shakeY, for screen shake.
+// Text modes: "fixed" (stays put), "follow" (stays on slot `follow` of the lists slotX/slotY, hidden while that slot is
+// above the variable hideAbove), "float" (rises and fades, then goes by itself). Everything on screen moves by shakeX/shakeY, for screen shake.
 import { readFileSync } from "node:fs";
 import { Blocks, dsl, type Project, type In } from "../../lib/sb3.ts";
 
@@ -22,16 +22,27 @@ export const SPACING = 0.86;          // glyphs overlap a little: their outlines
 export type TextOpts = { text: In; x: In; y: In; size?: In; group: number | In; mode?: "fixed" | "follow" | "float"; follow?: In; replace?: boolean };
 /** Blocks that ask the Text sprite to write `text` (a number or symbols, or a banner word as "word-combo" and so on),
  *  centred on x, y. In follow mode x, y are the offset from the slot. */
+// A group given as a calculation (a block) is stored in a variable first: a block can only be used in one place.
+function groupOf(d: D, group: number | In): [any[], () => any] {
+  if (typeof group === "number" || typeof group === "string" || "v" in (group as any)) return [[], () => group];
+  return [[d.set("textGroup", group as any)], () => d.v("textGroup")];
+}
 export function write(d: D, o: TextOpts) {
-  const g = o.group;
+  const [store, g] = groupOf(d, o.group);
   return [
-    ...(o.replace === false ? [] : [d.replace("groupGen", g, d.add(d.item("groupGen", g), 1))]),
+    ...store,
+    ...(o.replace === false ? [] : [d.replace("groupGen", g(), d.add(d.item("groupGen", g()), 1))]),
     d.addTo("qText", o.text), d.addTo("qX", o.x), d.addTo("qY", o.y), d.addTo("qSize", o.size ?? 100),
-    d.addTo("qGroup", g), d.addTo("qMode", o.mode ?? "fixed"), d.addTo("qFollow", o.follow ?? 0),
+    d.addTo("qGroup", g()), d.addTo("qMode", o.mode ?? "fixed"), d.addTo("qFollow", o.follow ?? 0),
+    // The group's version at the moment of asking: if the group is written again in the same frame, this text is old.
+    d.addTo("qGen", d.item("groupGen", g())),
   ];
 }
 /** Blocks that clear a text group (its clones go on the next tick). */
-export const clear = (d: D, group: number | In) => d.replace("groupGen", group, d.add(d.item("groupGen", group), 1));
+export function clear(d: D, group: number | In) {
+  const [store, g] = groupOf(d, group);
+  return [...store, d.replace("groupGen", g(), d.add(d.item("groupGen", g()), 1))];
+}
 /** Blocks that make a text group pop (grow and shrink back). */
 export const pulse = (d: D, group: number | In, amount: In = 30) => d.replace("groupPulse", group, amount);
 /** Blocks that ask for `count` particles of a kind at x, y. Kinds: debris, ember, spark, confetti, ring, smoke. */
@@ -43,7 +54,7 @@ export function kitLists() {
   return {
     glyphChars: font.glyphs.map(g => g.char), glyphWidth: font.glyphs.map(g => g.width),
     groupGen: Array(GROUPS).fill(0), groupPulse: Array(GROUPS).fill(0), groupColor: Array(GROUPS).fill(0),
-    qText: [], qX: [], qY: [], qSize: [], qGroup: [], qMode: [], qFollow: [],
+    qText: [], qX: [], qY: [], qSize: [], qGroup: [], qMode: [], qFollow: [], qGen: [],
     eKind: [], eX: [], eY: [], eCount: [], slotX: [0, 0, 0, 0, 0, 0], slotY: [0, 0, 0, 0, 0, 0],
   } as Record<string, (number | string)[]>;
 }
@@ -66,9 +77,9 @@ export function textScripts(P: Project): Blocks {
   define("work", [
     until(eq(length("qText"), 0), [
       set("t", item("qText", 1)), set("tSize", item("qSize", 1)), set("group", item("qGroup", 1)),
-      set("gen", item("groupGen", v("group"))), set("mode", item("qMode", 1)), set("follow", item("qFollow", 1)),
+      set("gen", item("qGen", 1)), set("mode", item("qMode", 1)), set("follow", item("qFollow", 1)),
       set("x0", item("qX", 1)), set("y0", item("qY", 1)),
-      ...["qText", "qX", "qY", "qSize", "qGroup", "qMode", "qFollow"].map(l => deleteOf(l, 1)),
+      ...["qText", "qX", "qY", "qSize", "qGroup", "qMode", "qFollow", "qGen"].map(l => deleteOf(l, 1)),
       set("base", v("tSize")), set("life", 32), set("vy", 1.6), setSize(v("tSize")), setEffect("GHOST", 0),
       ifElse(eq(letterOf(1, v("t")), "w"), [
         // A banner word ("word-combo" and so on): one clone with that costume.
@@ -123,9 +134,11 @@ export function textScripts(P: Project): Blocks {
       ifThen(lt(v("life"), 1), [deleteClone()]),
     ], [
       ifThen(not(eq(v("gen"), item("groupGen", v("group")))), [deleteClone()]),
-      ifElse(eq(v("mode"), "follow"),
-        [goto(add(add(v("offX"), item("slotX", v("follow"))), v("shakeX")), add(add(v("offY"), item("slotY", v("follow"))), v("shakeY")))],
-        [goto(add(v("offX"), v("shakeX")), add(v("offY"), v("shakeY")))]),
+      ifElse(eq(v("mode"), "follow"), [
+        goto(add(add(v("offX"), item("slotX", v("follow"))), v("shakeX")), add(add(v("offY"), item("slotY", v("follow"))), v("shakeY"))),
+        // Hidden while the thing it follows is still above hideAbove (for example behind a score bar).
+        ifElse(gt(item("slotY", v("follow")), v("hideAbove")), [d.hide()], [show()]),
+      ], [goto(add(v("offX"), v("shakeX")), add(v("offY"), v("shakeY")))]),
       setSize(mul(v("base"), div(add(100, item("groupPulse", v("group"))), 100))),
       setEffect("COLOR", item("groupColor", v("group"))),
     ]),

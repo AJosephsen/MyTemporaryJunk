@@ -171,6 +171,8 @@ export function dsl(B: Blocks) {
     addTo: (list: string, x: In) => B.add("data_addtolist", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     replace: (list: string, idx: In, x: In) => B.add("data_replaceitemoflist", { INDEX: num(idx), ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     deleteOf: (list: string, idx: In) => B.add("data_deleteoflist", { INDEX: num(idx) }, { LIST: [list, P.listId(list)] }),
+    // item # of (x) in [list v]: its position in the list, 0 when it isn't there
+    itemNum: (list: string, x: In) => B.add("data_itemnumoflist", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     contains: (list: string, x: In) => B.add("data_listcontainsitem", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     // touching color: a fixed colour "#rrggbb", or a reporter that gives a colour number
     touchingColor: (c: Ref | string) => B.add("sensing_touchingcolor",

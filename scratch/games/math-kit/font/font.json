@@ -1,0 +1,181 @@
+{
+ "glyphs": [
+  {
+   "char": "0",
+   "name": "0",
+   "width": 41
+  },
+  {
+   "char": "1",
+   "name": "1",
+   "width": 32.5
+  },
+  {
+   "char": "2",
+   "name": "2",
+   "width": 41
+  },
+  {
+   "char": "3",
+   "name": "3",
+   "width": 41
+  },
+  {
+   "char": "4",
+   "name": "4",
+   "width": 40.5
+  },
+  {
+   "char": "5",
+   "name": "5",
+   "width": 37.5
+  },
+  {
+   "char": "6",
+   "name": "6",
+   "width": 39
+  },
+  {
+   "char": "7",
+   "name": "7",
+   "width": 39
+  },
+  {
+   "char": "8",
+   "name": "8",
+   "width": 40
+  },
+  {
+   "char": "9",
+   "name": "9",
+   "width": 39
+  },
+  {
+   "char": "+",
+   "name": "plus",
+   "width": 37.5
+  },
+  {
+   "char": "−",
+   "name": "minus",
+   "width": 40
+  },
+  {
+   "char": "×",
+   "name": "times",
+   "width": 37.5
+  },
+  {
+   "char": "÷",
+   "name": "divide",
+   "width": 36.5
+  },
+  {
+   "char": "=",
+   "name": "equals",
+   "width": 35.5
+  },
+  {
+   "char": "?",
+   "name": "query",
+   "width": 37
+  },
+  {
+   "char": "x",
+   "name": "x",
+   "width": 40
+  },
+  {
+   "char": "!",
+   "name": "bang",
+   "width": 26.5
+  },
+  {
+   "char": ",",
+   "name": "comma",
+   "width": 25
+  },
+  {
+   "char": "★",
+   "name": "star",
+   "width": 63.5
+  }
+ ],
+ "words": [
+  {
+   "text": "NUMBER",
+   "name": "title1",
+   "width": 200.5
+  },
+  {
+   "text": "BLASTER",
+   "name": "title2",
+   "width": 212.5
+  },
+  {
+   "text": "COMBO",
+   "name": "combo",
+   "width": 178
+  },
+  {
+   "text": "PERFECT!",
+   "name": "perfect",
+   "width": 227
+  },
+  {
+   "text": "GREAT!",
+   "name": "great",
+   "width": 171
+  },
+  {
+   "text": "LEVEL",
+   "name": "level",
+   "width": 158.5
+  },
+  {
+   "text": "LEVEL UP!",
+   "name": "levelup",
+   "width": 240.5
+  },
+  {
+   "text": "BONUS",
+   "name": "bonus",
+   "width": 164
+  },
+  {
+   "text": "GAME OVER",
+   "name": "gameover",
+   "width": 279.5
+  },
+  {
+   "text": "CLICK TO PLAY",
+   "name": "clickplay",
+   "width": 340
+  },
+  {
+   "text": "SPEED BONUS",
+   "name": "speed",
+   "width": 315
+  },
+  {
+   "text": "SCORE",
+   "name": "score",
+   "width": 160
+  },
+  {
+   "text": "BEST",
+   "name": "best",
+   "width": 124.5
+  },
+  {
+   "text": "OOPS!",
+   "name": "oops",
+   "width": 147
+  },
+  {
+   "text": "SHIELD LOST",
+   "name": "shield",
+   "width": 291.5
+  }
+ ]
+}

@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 export type Ref = { id: string };
 export type VarRef = { v: string };
 export type In = number | string | Ref | VarRef;
+export type Call = { proccode: string; args: In[] };
 
 export class Project {
   private uid = 0;
@@ -171,7 +172,7 @@ export function dsl(B: Blocks) {
   const logic = (op: string) => (a: Ref, b: Ref) => B.add(op, { OPERAND1: bool(a), OPERAND2: bool(b) });
   const mathop = (fn: string) => (x: In) => B.add("operator_mathop", { NUM: num(x) }, { OPERATOR: [fn, null] });
   const sub = (stmts: Ref[]) => [2, B.chain(stmts)];
-  return {
+  const api = {
     v: (name: string): VarRef => ({ v: name }),
     add: arith("operator_add"), sub: arith("operator_subtract"),
     mul: arith("operator_multiply"), div: arith("operator_divide"),
@@ -310,6 +311,44 @@ export function dsl(B: Blocks) {
     waitUntil: (c: Ref) => B.add("control_wait_until", { CONDITION: bool(c) }),
     stopThis: () => B.add("control_stop", {}, { STOP_OPTION: ["this script", null] },
       { mutation: { tagName: "mutation", children: [], hasnext: "false" } }),
+  };
+
+  // ---- Custom blocks with a return value (Scratch has none; this is compiled to plain blocks).
+  // Inside the definition, ret(f, value) stores the value in the global "↩ f" and stops the block.
+  // A caller runs calls and uses the results right away with compute(...), before any other call can change them.
+  // Several results wait on the list "↩ stack", so recursion works (see tests/generator.test.ts: fib).
+  // Use warp blocks, so no other script runs between a call and the use of its result.
+  const retVar = (proccode: string) => `↩ ${proccode.replace(/ ?%s/g, "")}`;
+  const STACK = "↩ stack";
+  /** A call to a custom block that returns a value, for compute and retCalls. */
+  const fn = (proccode: string, ...args: In[]): Call => ({ proccode, args });
+  /** The calls in order, then name = combine(results), then the stack is cleaned up. */
+  const runCalls = (calls: Call[], combine: (...values: In[]) => In, store: (x: In) => Ref): Ref[] => {
+    const k = calls.length, out: Ref[] = [];
+    calls.forEach((c, i) => {
+      out.push(api.call(c.proccode, ...c.args));
+      if (i < k - 1) out.push(api.addTo(STACK, { v: retVar(c.proccode) }));
+    });
+    // Result i (of the first k - 1) is item length - (k - 1) + 1 + i of the stack; the last is still in its variable.
+    const values: In[] = calls.map((c, i) => i === k - 1 ? { v: retVar(c.proccode) }
+      : api.item(STACK, api.add(api.length(STACK), i + 2 - k)));
+    out.push(store(combine(...values)));
+    for (let i = 0; i < k - 1; i++) out.push(api.deleteOf(STACK, "last"));
+    return out;
+  };
+  return {
+    ...api,
+    fn,
+    /** The last value custom block `proccode` returned. */
+    result: (proccode: string) => ({ v: retVar(proccode) }) as VarRef,
+    /** Return value from the custom block `proccode` (use inside its definition). */
+    ret: (proccode: string, value: In): Ref[] => [api.set(retVar(proccode), value), api.stopThis()],
+    /** Run the calls, then set variable `name` to combine(their results). */
+    compute: (name: string, calls: Call[], combine: (...values: In[]) => In = x => x): Ref[] =>
+      runCalls(calls, combine, x => api.set(name, x)),
+    /** Inside custom block `proccode`: run the calls, then return combine(their results). */
+    retCalls: (proccode: string, calls: Call[], combine: (...values: In[]) => In = x => x): Ref[] =>
+      [...runCalls(calls, combine, x => api.set(retVar(proccode), x)), api.stopThis()],
   };
 }
 

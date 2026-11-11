@@ -22,6 +22,7 @@ async function dropWhen(t: T, right: boolean, tol = 6) {
       const tx = xs.length ? Number(xs[xs.length - 1]) : 0;
       if ((shown === String(v.ans)) === right && Math.abs(Number(v.dropX) - tx) <= tol) {
         await press(t);
+        await t.until(v => v.state !== "carry", { max: 5, what: "the block to leave the hook" });
         return { shown, ans: String(v.ans), dropX: Number(v.dropX), tx };
       }
     }
@@ -105,4 +106,14 @@ for (const compiler of [true, false]) test(`times table tower: a tall tower scro
   // Floors far below are not shown.
   t.expect(rows.every((r, j) => r === 0 || ys[j] > -200), `rows ${rows} ys ${ys.map(Math.round)}`);
   await t.screenshot(shot(`ttt-tall-${compiler}`));
+});
+
+test("times table tower: a very quick click (down and up between two frames) still counts", async t => {
+  await t.page(w => w.vm.setCompilerOptions({ enabled: true }));
+  await t.load(GAME); await t.greenFlag(); await t.frames(10);
+  await t.mouse(150, -60, true); await t.mouse(150, -60, false);      // on the sky, between frames
+  await t.until(v => v.phase === "play", { max: 5, what: "a quick click to start the game" });
+  await t.until(v => v.state === "carry", { max: 90, what: "the first block" });
+  await t.mouse(0, 40, true); await t.mouse(0, 40, false);
+  await t.until(v => v.state === "fall", { max: 5, what: "a quick click to drop" });
 });

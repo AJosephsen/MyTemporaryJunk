@@ -36,7 +36,7 @@ function stageScripts(): Blocks {
 
   B.script(whenFlag(), [
     set("phase", "title"), set("shake", 0), set("frame", 0), set("hideAbove", 400), set("score", 0), set("shown", 0),
-    set("hearts", 3), set("level", 1), set("state", "wait"), set("waitT", 0), set("held", 1), set("cam", 0),
+    set("hearts", 3), set("level", 1), set("state", "wait"), set("waitT", 0), set("tap", 0), set("cam", 0),
     set("hookT", 0), set("swingSpeed", 2.5), set("cw", START_W), set("dropX", 0), set("dropY", HOOK_Y),
     ...floor.clear(), switchBackdrop("day"),
     call("title screen"),
@@ -44,9 +44,9 @@ function stageScripts(): Blocks {
       change("frame", 1),
       set("shake", mul(v("shake"), 0.85)), ifThen(lt(v("shake"), 0.4), [set("shake", 0)]),
       set("shakeX", random(mul(v("shake"), -1), v("shake"))), set("shakeY", random(mul(v("shake"), -1), v("shake"))),
-      // A press is the moment the mouse button or Space goes down.
-      set("press", 0),
-      ifElse(or(mouseDown(), key("space")), [ifThen(eq(v("held"), 0), [set("press", 1)]), set("held", 1)], [set("held", 0)]),
+      // A press is a click (on anything) or Space since the last frame. Events, not "mouse down?": a quick tap can
+      // start and end between two frames.
+      set("press", v("tap")), set("tap", 0),
       cond([
         [eq(v("phase"), "play"), [call("play")]],
         [or(eq(v("phase"), "title"), eq(v("phase"), "ready")), [
@@ -62,6 +62,10 @@ function stageScripts(): Blocks {
       broadcast("tick"),
     ]),
   ], 20, 20);
+
+  B.script(d.whenStageClicked(), [set("tap", 1)], 20, 900);
+  B.script(d.whenKey("space"), [set("tap", 1)], 20, 980);
+  B.script(whenReceive("text click"), [set("tap", 1)], 20, 1060);
 
   define("title screen", [
     ...write(d, { text: "word-tower1", x: 0, y: 70, size: 100, group: G.title1 }),
@@ -376,21 +380,24 @@ function hudScripts(): Blocks {
   return B;
 }
 
+// A click on any sprite counts as a tap (a sprite under the mouse gets the click, not the Stage).
+const tappable = (B: Blocks) => { const d = dsl(B); B.script(d.whenClicked(), [d.set("tap", 1)], 300, 20); return B; };
+
 const A = art(P);
 const flash = (c: string) => `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><rect width="480" height="360" fill="${c}"/></svg>`;
 const sb3 = P.build({
   backdrop: A.backdrop,
   stage: stageScripts(),
   sprites: [
-    P.sprite("Ground", { blocks: groundScripts(), costumes: A.ground, layer: 1, x: 0, y: GROUND_Y }),
-    P.sprite("Floor", { blocks: floorScripts(), costumes: A.floor, layer: 2, visible: false }),
-    P.sprite("Hook", { blocks: hookScripts(), costumes: A.hook, layer: 3, x: 0, y: HOOK_Y + H / 2 }),
-    P.sprite("Drop", { blocks: dropScripts(), costumes: A.floor, layer: 4, visible: false }),
-    P.sprite("Hud", { blocks: hudScripts(), costumes: A.hud, layer: 5, x: 0, y: 157 }),
-    P.sprite("Heart", { blocks: heartScripts(), costumes: A.heart, layer: 6, visible: false }),
+    P.sprite("Ground", { blocks: tappable(groundScripts()), costumes: A.ground, layer: 1, x: 0, y: GROUND_Y }),
+    P.sprite("Floor", { blocks: tappable(floorScripts()), costumes: A.floor, layer: 2, visible: false }),
+    P.sprite("Hook", { blocks: tappable(hookScripts()), costumes: A.hook, layer: 3, x: 0, y: HOOK_Y + H / 2 }),
+    P.sprite("Drop", { blocks: tappable(dropScripts()), costumes: A.floor, layer: 4, visible: false }),
+    P.sprite("Hud", { blocks: tappable(hudScripts()), costumes: A.hud, layer: 5, x: 0, y: 157 }),
+    P.sprite("Heart", { blocks: tappable(heartScripts()), costumes: A.heart, layer: 6, visible: false }),
     P.sprite("Spark", { blocks: sparkScripts(P), costumes: sparkCostumes(P), layer: 7, visible: false }),
     P.sprite("Text", { blocks: textScripts(P), costumes: textCostumes(P, "times-table-tower"), layer: 8, visible: false }),
-    P.sprite("Flash", { blocks: flashScripts(), costumes: [P.costume("white", flash("#fff"), 240, 180), P.costume("red", flash("#ef4444"), 240, 180)], layer: 9, visible: false }),
+    P.sprite("Flash", { blocks: tappable(flashScripts()), costumes: [P.costume("white", flash("#fff"), 240, 180), P.costume("red", flash("#ef4444"), 240, 180)], layer: 9, visible: false }),
   ],
   listValues: {
     ...kitLists(),

@@ -299,6 +299,7 @@ export function dsl(B: Blocks) {
     // The value of a custom block's input, inside its definition.
     arg: (name: string) => B.add("argument_reporter_string_number", {}, { VALUE: [name, null] }),
     whenFlag: () => B.add("event_whenflagclicked"),
+    whenKey: (k: string) => B.add("event_whenkeypressed", {}, { KEY_OPTION: [k, null] }),
     switchBackdrop: (name: In) => B.add("looks_switchbackdropto", { BACKDROP: typeof name === "string"
       ? [1, B.shadow("looks_backdrops", { BACKDROP: [name, null] })]
       : [3, num(name)[1], B.shadow("looks_backdrops", { BACKDROP: ["", null] })] }),

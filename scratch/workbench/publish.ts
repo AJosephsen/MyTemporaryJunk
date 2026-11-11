@@ -122,6 +122,12 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
 .qr { flex: none; display: grid; gap: 4px; justify-items: center; color: var(--muted); font-size: 0.8rem; text-decoration: none; }
 .qr svg { width: 116px; height: 116px; border-radius: 8px; background: #fff; }
 @media (max-width: 520px) { .qr svg { width: 84px; height: 84px; } }
+.qr-big { display: none; position: fixed; inset: 0; z-index: 10; background: #fff; color: #1f2937; text-decoration: none;
+  place-items: center; align-content: center; gap: 2vh; padding: 3vh; }
+.qr-big:target { display: grid; }
+.qr-big svg { width: min(92vw, 78vh); height: auto; }
+.qr-big .url { font: 600 clamp(1.4rem, 4vh, 3rem) var(--display); }
+.qr-big .hint { font-size: clamp(0.9rem, 2vh, 1.2rem); color: #6b7280; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; margin-top: 16px; }
 .card { display: grid; gap: 4px; align-content: start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
   padding: 10px 10px 14px; color: inherit; text-decoration: none; }
@@ -141,8 +147,11 @@ a { color: var(--accent); }
       <h1>Scratch Fun</h1>
       <p>Step-by-step Scratch tutorials for kids, and finished games to download, open in the Scratch editor and remix. Every tutorial step has its own project file, so you can always catch up.</p>
     </div>
-    <a class="qr" href="${SITE}">${qr}<span>Open on a phone</span></a>
+    <a class="qr" href="#qr" title="Show the QR code big">${qr}<span>Open on a phone</span></a>
   </header>
+  <!-- The big QR code for a classroom screen: shown while the address ends in #qr (CSS :target, no script);
+       a click anywhere goes back. -->
+  <a id="qr" class="qr-big" href="#" title="Close">${qr}<span class="url">${SITE.replace("https://", "")}</span><span class="hint">Click anywhere to close</span></a>
   <section>
     <h2>Tutorials</h2>
     <div class="grid">

@@ -13,6 +13,7 @@ import { ROOT, startServer } from "./server.ts";
 const OUT = resolve(process.argv[2] ?? "");
 if (!process.argv[2] || !existsSync(OUT)) throw new Error("usage: npm run publish -- <existing out folder>");
 const SOURCE = "https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/";
+const SITE = "https://ajosephsen.github.io/scratch-fun/";   // where the site lives (GitHub Pages); the QR code points here
 
 // The finished games: [file name in games/, source .sb3, title, one line].
 const GAMES: [string, string, string, string][] = [
@@ -95,6 +96,9 @@ await server.close();
 await browser.close();
 
 // ---------------------------------------------------------------- index.html and README.md
+// A QR code for the site, drawn as a plain SVG picture (black on white, so phones can read it in dark mode too).
+const qr = (await createRequire(import.meta.url)("qrcode").toString(SITE, { type: "svg", margin: 2, errorCorrectionLevel: "M" }) as string)
+  .replace("<svg ", `<svg role="img" aria-label="QR code for ${SITE}" `);
 const card = (href: string, img: string, title: string, sub: string, text: string) =>
   `<a class="card" href="${href}"><img src="${img}" alt="" loading="lazy" width="480" height="360"><span class="t">${esc(title)}</span>` +
   `<span class="s">${esc(sub)}</span><span class="d">${esc(text)}</span></a>`;
@@ -113,7 +117,11 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.55 var(-
 main { max-width: 1040px; margin: 0 auto; display: grid; gap: 40px; }
 h1, h2 { font-family: var(--display); font-weight: 600; margin: 0; }
 h1 { font-size: clamp(2.2rem, 6vw, 3.2rem); }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
 header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
+.qr { flex: none; display: grid; gap: 4px; justify-items: center; color: var(--muted); font-size: 0.8rem; text-decoration: none; }
+.qr svg { width: 116px; height: 116px; border-radius: 8px; background: #fff; }
+@media (max-width: 520px) { .qr svg { width: 84px; height: 84px; } }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; margin-top: 16px; }
 .card { display: grid; gap: 4px; align-content: start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
   padding: 10px 10px 14px; color: inherit; text-decoration: none; }
@@ -129,8 +137,11 @@ a { color: var(--accent); }
 <body>
 <main>
   <header>
-    <h1>Scratch Fun</h1>
-    <p>Step-by-step Scratch tutorials for kids, and finished games to download, open in the Scratch editor and remix. Every tutorial step has its own project file, so you can always catch up.</p>
+    <div>
+      <h1>Scratch Fun</h1>
+      <p>Step-by-step Scratch tutorials for kids, and finished games to download, open in the Scratch editor and remix. Every tutorial step has its own project file, so you can always catch up.</p>
+    </div>
+    <a class="qr" href="${SITE}">${qr}<span>Open on a phone</span></a>
   </header>
   <section>
     <h2>Tutorials</h2>

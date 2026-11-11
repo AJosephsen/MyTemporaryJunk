@@ -13,7 +13,7 @@ import { Blocks, dsl, type Project, type In } from "../../lib/sb3.ts";
 
 type D = ReturnType<typeof dsl>;
 const font = JSON.parse(readFileSync(new URL("font/font.json", import.meta.url), "utf8")) as {
-  glyphs: { char: string; name: string; width: number }[]; words: { text: string; name: string; width: number }[] };
+  glyphs: { char: string; name: string; width: number }[]; words: { text: string; name: string; width: number; game?: string }[] };
 const png = (name: string) => readFileSync(new URL(`font/${name}.png`, import.meta.url));
 export const GROUPS = 40;
 export const SPACING = 0.86;          // glyphs overlap a little: their outlines touch
@@ -60,9 +60,10 @@ export function kitLists() {
 }
 
 // ---------------------------------------------------------------- the Text sprite
-export function textCostumes(P: Project) {
+/** The glyphs and banner words; words made for one game only go into that game. */
+export function textCostumes(P: Project, game: string) {
   return [...font.glyphs.map(g => P.bitmap(g.name, png(g.name), g.width / 2, 30)),
-    ...font.words.map(w => P.bitmap(`word-${w.name}`, png(`word-${w.name}`), w.width / 2, 30))];
+    ...font.words.filter(w => !w.game || w.game === game).map(w => P.bitmap(`word-${w.name}`, png(`word-${w.name}`), w.width / 2, 30))];
 }
 export function textScripts(P: Project): Blocks {
   const B = new Blocks(P).local("isClone", "group", "gen", "mode", "follow", "offX", "offY", "base", "vy", "life");

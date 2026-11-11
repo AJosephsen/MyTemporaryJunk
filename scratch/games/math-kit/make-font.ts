@@ -10,8 +10,11 @@ export const GLYPHS: [string, string][] = [
   ["+", "plus"], ["−", "minus"], ["×", "times"], ["÷", "divide"], ["=", "equals"], ["?", "query"], ["x", "x"],
   ["!", "bang"], [",", "comma"], ["★", "star"],
 ];
-export const WORDS: [string, string][] = [
-  ["NUMBER", "title1"], ["BLASTER", "title2"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
+// Words with a game name only go into that game's costumes (see textCostumes).
+export const WORDS: [string, string, string?][] = [
+  ["NUMBER", "title1", "number-blaster"], ["BLASTER", "title2", "number-blaster"],
+  ["TIMES TABLE", "tower1", "times-table-tower"], ["TOWER", "tower2", "times-table-tower"], ["QUICK!", "quick"],
+  ["WOBBLY!", "wobbly"], ["FLOOR", "floor"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
   ["LEVEL", "level"], ["LEVEL UP!", "levelup"], ["BONUS", "bonus"], ["GAME OVER", "gameover"], ["CLICK TO PLAY", "clickplay"],
   ["SPEED BONUS", "speed"], ["SCORE", "score"], ["BEST", "best"], ["OOPS!", "oops"], ["SHIELD LOST", "shield"],
 ];
@@ -42,16 +45,16 @@ const draw = (text: string, height: number) => page.evaluate(([text, H]: [string
   return { url: c.toDataURL("image/png"), w };
 }, [text, height] as [string, number]);
 
-const out: { glyphs: { char: string; name: string; width: number }[]; words: { text: string; name: string; width: number }[] } = { glyphs: [], words: [] };
+const out: { glyphs: { char: string; name: string; width: number }[]; words: { text: string; name: string; width: number; game?: string }[] } = { glyphs: [], words: [] };
 for (const [char, name] of GLYPHS) {
   const r = await draw(char, 120);
   writeFileSync(new URL(`font/${name}.png`, import.meta.url), Buffer.from(r.url.split(",")[1], "base64"));
   out.glyphs.push({ char, name, width: r.w / 2 });
 }
-for (const [text, name] of WORDS) {
+for (const [text, name, game] of WORDS) {
   const r = await draw(text, 120);
   writeFileSync(new URL(`font/word-${name}.png`, import.meta.url), Buffer.from(r.url.split(",")[1], "base64"));
-  out.words.push({ text, name, width: r.w / 2 });
+  out.words.push({ text, name, width: r.w / 2, ...(game ? { game } : {}) });
 }
 writeFileSync(new URL("font/font.json", import.meta.url), JSON.stringify(out, null, 1));
 await browser.close();

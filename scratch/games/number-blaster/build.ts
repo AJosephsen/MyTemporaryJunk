@@ -425,7 +425,7 @@ const sb3 = P.build({
     P.sprite("Laser", { blocks: laserScripts(), costumes: A.laser, layer: 4, visible: false }),
     P.sprite("Hud", { blocks: hudScripts(), costumes: A.hud, layer: 4, x: 0, y: 157 }),
     P.sprite("Spark", { blocks: sparkScripts(P), costumes: sparkCostumes(P), layer: 5, visible: false }),
-    P.sprite("Text", { blocks: textScripts(P), costumes: textCostumes(P), layer: 6, visible: false }),
+    P.sprite("Text", { blocks: textScripts(P), costumes: textCostumes(P, "number-blaster"), layer: 6, visible: false }),
     P.sprite("Shield", { blocks: shieldScripts(), costumes: A.shield, layer: 7, visible: false }),
     P.sprite("Flash", { blocks: flashScripts(), costumes: A.flash, layer: 8, visible: false }),
   ],

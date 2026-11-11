@@ -105,12 +105,41 @@
   {
    "text": "NUMBER",
    "name": "title1",
-   "width": 200.5
+   "width": 200.5,
+   "game": "number-blaster"
   },
   {
    "text": "BLASTER",
    "name": "title2",
-   "width": 212.5
+   "width": 212.5,
+   "game": "number-blaster"
+  },
+  {
+   "text": "TIMES TABLE",
+   "name": "tower1",
+   "width": 296.5,
+   "game": "times-table-tower"
+  },
+  {
+   "text": "TOWER",
+   "name": "tower2",
+   "width": 176.5,
+   "game": "times-table-tower"
+  },
+  {
+   "text": "QUICK!",
+   "name": "quick",
+   "width": 161
+  },
+  {
+   "text": "WOBBLY!",
+   "name": "wobbly",
+   "width": 212
+  },
+  {
+   "text": "FLOOR",
+   "name": "floor",
+   "width": 165.5
   },
   {
    "text": "COMBO",

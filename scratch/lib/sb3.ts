@@ -205,6 +205,7 @@ export function dsl(B: Blocks) {
     deleteAll: (list: string) => B.add("data_deletealloflist", {}, { LIST: [list, P.listId(list)] }),
     addTo: (list: string, x: In) => B.add("data_addtolist", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     replace: (list: string, idx: In, x: In) => B.add("data_replaceitemoflist", { INDEX: num(idx), ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
+    insertAt: (list: string, idx: In, x: In) => B.add("data_insertatlist", { INDEX: num(idx), ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
     deleteOf: (list: string, idx: In) => B.add("data_deleteoflist", { INDEX: num(idx) }, { LIST: [list, P.listId(list)] }),
     // item # of (x) in [list v]: its position in the list, 0 when it isn't there
     itemNum: (list: string, x: In) => B.add("data_itemnumoflist", { ITEM: txt(x) }, { LIST: [list, P.listId(list)] }),
@@ -336,8 +337,21 @@ export function dsl(B: Blocks) {
     for (let i = 0; i < k - 1; i++) out.push(api.deleteOf(STACK, "last"));
     return out;
   };
+  // Expression macros: plain arithmetic, so they work anywhere a number goes. Each input is used twice (copied).
+  const max = (a: In, b: In): Ref => api.div(api.add(api.add(a, b), api.abs(api.sub(a, b))), 2);
+  /** if c1 then a1, else if c2 then a2, ..., else otherwise: nested if/else blocks. */
+  function cond(cases: [Ref, Ref[]][], otherwise: Ref[] = []): Ref {
+    const [[c, a], ...rest] = cases;
+    if (rest.length === 0) return otherwise.length ? api.ifElse(c, a, otherwise) : api.ifThen(c, a);
+    return api.ifElse(c, a, [cond(rest, otherwise)]);
+  }
+  const min = (a: In, b: In): Ref => api.div(api.sub(api.add(a, b), api.abs(api.sub(a, b))), 2);
   return {
     ...api,
+    max, min,
+    clamp: (x: In, lo: In, hi: In): Ref => max(lo, min(x, hi)),
+    /** if c1 then a1, else if c2 then a2, ..., else otherwise: nested if/else blocks. */
+    cond,
     fn,
     /** The last value custom block `proccode` returned. */
     result: (proccode: string) => ({ v: retVar(proccode) }) as VarRef,

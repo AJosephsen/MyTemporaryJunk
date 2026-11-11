@@ -28,6 +28,7 @@ const GAMES: [string, string, string, string][] = [
   ["splat-patrol", "games/splat-patrol/splat-patrol.sb3", "Splat Patrol", "Splat the raccoon bandits, not the villagers."],
   ["splat-patrol-deluxe", "games/splat-patrol/splat-patrol-deluxe.sb3", "Splat Patrol Deluxe", "Raccoons in disguise, combos, splashes and more."],
   ["number-blaster", "games/number-blaster/number-blaster.sb3", "Number Blaster", "Maths arcade: blast the falling sums with the right answer."],
+  ["times-table-tower", "games/times-table-tower/times-table-tower.sb3", "Times Table Tower", "Maths stacking: drop the block when it shows the answer."],
 ];
 // The tutorials, in the order of the list (easiest first).
 const TUTORIALS = ["sky-guard", "sheepdog", "maze-maker", "splat-patrol", "beanstalk-bounce", "comet-rally", "dust-hopper", "lantern-deep"];

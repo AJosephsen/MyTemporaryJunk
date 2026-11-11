@@ -66,7 +66,9 @@ export function textCostumes(P: Project, game: string) {
     ...font.words.filter(w => !w.game || w.game === game).map(w => P.bitmap(`word-${w.name}`, png(`word-${w.name}`), w.width / 2, 30))];
 }
 export function textScripts(P: Project): Blocks {
-  const B = new Blocks(P).local("isClone", "group", "gen", "mode", "follow", "offX", "offY", "base", "vy", "life");
+  // Working variables are local too, so they never clash with a game's own variables.
+  const B = new Blocks(P).local("isClone", "group", "gen", "mode", "follow", "offX", "offY", "base", "vy", "life",
+    "t", "tSize", "w", "i", "k", "cx", "gw", "x0", "y0", "g");
   const d = dsl(B);
   const { v, add, sub, mul, div, eq, gt, lt, not, and, set, change, ifThen, ifElse, until, repeat, whenFlag, whenReceive,
     whenCloned, hide, show, goto, cloneMyself, deleteClone, costume, costumeTo, setSize, setEffect, item, length, itemNum,
@@ -162,7 +164,7 @@ const SPARK_COSTUMES: [string, string, number, number][] = [
 ];
 export const sparkCostumes = (P: Project) => SPARK_COSTUMES.map(([n, s, x, y]) => P.costume(n, s, x, y));
 export function sparkScripts(P: Project): Blocks {
-  const B = new Blocks(P).local("isClone", "kind", "vx", "vy", "life", "fade", "spin");
+  const B = new Blocks(P).local("isClone", "kind", "vx", "vy", "life", "fade", "spin", "n");
   const d = dsl(B);
   const { v, add, mul, eq, lt, set, change, ifThen, ifElse, repeat, until, whenFlag, whenReceive, whenCloned, hide, show,
     goto, cloneMyself, deleteClone, costume, costumeTo, setSize, setEffect, item, length, random, join, deleteOf, define,

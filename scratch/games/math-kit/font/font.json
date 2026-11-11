@@ -99,6 +99,11 @@
    "char": "★",
    "name": "star",
    "width": 63.5
+  },
+  {
+   "char": "°",
+   "name": "deg",
+   "width": 32.5
   }
  ],
  "words": [
@@ -156,17 +161,56 @@
   {
    "text": "MAKE",
    "name": "make",
-   "width": 140.5
+   "width": 140.5,
+   "game": "number-bonds-pop"
   },
   {
    "text": "GOLD!",
    "name": "gold",
-   "width": 151
+   "width": 151,
+   "game": "number-bonds-pop"
   },
   {
    "text": "RAINBOW!",
    "name": "rainbow",
-   "width": 235.5
+   "width": 235.5,
+   "game": "number-bonds-pop"
+  },
+  {
+   "text": "SHAPE",
+   "name": "shape1",
+   "width": 160,
+   "game": "shape-builder"
+  },
+  {
+   "text": "BUILDER",
+   "name": "shape2",
+   "width": 199.5,
+   "game": "shape-builder"
+  },
+  {
+   "text": "DROP",
+   "name": "drop",
+   "width": 134.5,
+   "game": "shape-builder"
+  },
+  {
+   "text": "TURNED",
+   "name": "turned",
+   "width": 194.5,
+   "game": "shape-builder"
+  },
+  {
+   "text": "EXACT!",
+   "name": "exact",
+   "width": 178,
+   "game": "shape-builder"
+  },
+  {
+   "text": "IT FITS!",
+   "name": "fits",
+   "width": 172.5,
+   "game": "shape-builder"
   },
   {
    "text": "COMBO",

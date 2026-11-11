@@ -1,0 +1,8 @@
+{
+  "title": "Shape Builder",
+  "tagline": "Turn each piece until it matches its outline, then drop it in. How many degrees does it need?",
+  "project": "shape-builder.sb3",
+  "left": [],
+  "right": [],
+  "keys": "Click the turn buttons or use ← → · Space or DROP drops the piece · from level 3, pick the right turn (or keys 1 2 3)"
+}

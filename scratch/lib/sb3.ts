@@ -92,14 +92,34 @@ export class Blocks {
   add(opcode: string, inputs: Record<string, any[]> = {}, fields: Record<string, any> = {}, extra: Record<string, any> = {}): Ref {
     const id = this.project.nid("b");
     this.map[id] = { opcode, next: null, parent: null, inputs, fields, shadow: false, topLevel: false, ...extra };
-    for (const slot of Object.values(inputs))
-      for (const x of slot.slice(1)) if (typeof x === "string" && this.map[x]) {
-        // A block can only be in one place. (TurboWarp's compiler copes with a block used twice; Scratch does not.)
-        if (this.map[x].parent !== null && this.map[x].parent !== id)
-          throw new Error(`block ${x} (${this.map[x].opcode}) is used in two places; build it twice instead`);
-        this.map[x].parent = id;
+    for (const [name, slot] of Object.entries(inputs))
+      for (let i = 1; i < slot.length; i++) {
+        const x = slot[i];
+        if (typeof x !== "string" || !this.map[x]) continue;
+        // A block can only be in one place (TurboWarp's compiler copes with a block used twice; Scratch does not),
+        // so a block that is already in use is copied. A stack (SUBSTACK) is copied with the blocks under it.
+        const y = this.map[x].parent !== null && this.map[x].parent !== id ? this.copy(x, name.startsWith("SUBSTACK")) : x;
+        if (y !== x) inputs[name] = slot.map((v, j) => j === i ? y : v);
+        this.map[y].parent = id;
       }
     return { id };
+  }
+
+  /** A fresh copy of block `id` with copies of its inputs (and, with `withNext`, of the blocks below it). */
+  copy(id: string, withNext = false): string {
+    const b = this.map[id], nid = this.project.nid("b");
+    const inputs: Record<string, any[]> = {};
+    for (const [name, slot] of Object.entries(b.inputs as Record<string, any[]>))
+      inputs[name] = slot.map((v, j) => {
+        if (j === 0 || typeof v !== "string" || !this.map[v]) return v;
+        const c = this.copy(v, name.startsWith("SUBSTACK"));
+        this.map[c].parent = nid;
+        return c;
+      });
+    this.map[nid] = { ...structuredClone({ ...b, inputs: {} }), inputs, parent: null, next: null, topLevel: false };
+    delete this.map[nid].x; delete this.map[nid].y;
+    if (withNext && b.next) { const n = this.copy(b.next, true); this.map[nid].next = n; this.map[n].parent = nid; }
+    return nid;
   }
 
   shadow(opcode: string, fields: Record<string, any>): string {
@@ -107,10 +127,17 @@ export class Blocks {
   }
 
   chain(stmts: Ref[]): string {
+    // A statement that already sits in another script, or earlier in this one, is copied (see add).
+    const seen = new Set<string>(), out: Ref[] = [];
+    stmts.forEach((s, i) => {
+      const parent = this.map[s.id].parent;
+      const copy = seen.has(s.id) || (i > 0 && parent !== null && parent !== out[i - 1].id);
+      out.push(copy ? { id: this.copy(s.id) } : s);
+      seen.add(out[i].id);
+    });
+    stmts = out;
     stmts.forEach((s, i) => {
       const b = this.map[s.id];
-      if (i > 0 && b.parent !== null && b.parent !== stmts[i - 1].id)
-        throw new Error(`block ${s.id} (${b.opcode}) is used in two places; build it twice instead`);
       if (i > 0) b.parent = stmts[i - 1].id;
       if (i < stmts.length - 1) b.next = stmts[i + 1].id;
     });

@@ -8,7 +8,7 @@ import { createRequire } from "node:module";
 export const GLYPHS: [string, string][] = [
   ..."0123456789".split("").map(c => [c, c] as [string, string]),
   ["+", "plus"], ["−", "minus"], ["×", "times"], ["÷", "divide"], ["=", "equals"], ["?", "query"], ["x", "x"],
-  ["!", "bang"], [",", "comma"], ["★", "star"], ["°", "deg"],
+  ["!", "bang"], [",", "comma"], ["★", "star"], ["°", "deg"], ["<", "lt"], [">", "gt"], [".", "dot"], ["/", "slash"],
 ];
 // Words with a game name only go into that game's costumes (see textCostumes).
 export const WORDS: [string, string, string?][] = [
@@ -17,7 +17,9 @@ export const WORDS: [string, string, string?][] = [
   ["WOBBLY!", "wobbly"], ["FLOOR", "floor"], ["NUMBER BONDS", "bonds1", "number-bonds-pop"], ["POP!", "bonds2", "number-bonds-pop"],
   ["MAKE", "make", "number-bonds-pop"], ["GOLD!", "gold", "number-bonds-pop"], ["RAINBOW!", "rainbow", "number-bonds-pop"],
   ["SHAPE", "shape1", "shape-builder"], ["BUILDER", "shape2", "shape-builder"], ["DROP", "drop", "shape-builder"],
-  ["TURNED", "turned", "shape-builder"], ["EXACT!", "exact", "shape-builder"], ["IT FITS!", "fits", "shape-builder"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
+  ["TURNED", "turned", "shape-builder"], ["EXACT!", "exact", "shape-builder"], ["IT FITS!", "fits", "shape-builder"],
+  ["GREATER", "gator1", "greater-gator"], ["GATOR", "gator2", "greater-gator"], ["SAME!", "same", "greater-gator"],
+  ["TOO SLOW!", "slow", "greater-gator"], ["YUM!", "yum", "greater-gator"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
   ["LEVEL", "level"], ["LEVEL UP!", "levelup"], ["BONUS", "bonus"], ["GAME OVER", "gameover"], ["CLICK TO PLAY", "clickplay"],
   ["SPEED BONUS", "speed"], ["SCORE", "score"], ["BEST", "best"], ["OOPS!", "oops"], ["SHIELD LOST", "shield"],
 ];

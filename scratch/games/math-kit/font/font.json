@@ -104,6 +104,26 @@
    "char": "°",
    "name": "deg",
    "width": 32.5
+  },
+  {
+   "char": "<",
+   "name": "lt",
+   "width": 42
+  },
+  {
+   "char": ">",
+   "name": "gt",
+   "width": 42
+  },
+  {
+   "char": ".",
+   "name": "dot",
+   "width": 25
+  },
+  {
+   "char": "/",
+   "name": "slash",
+   "width": 37.5
   }
  ],
  "words": [
@@ -211,6 +231,36 @@
    "name": "fits",
    "width": 172.5,
    "game": "shape-builder"
+  },
+  {
+   "text": "GREATER",
+   "name": "gator1",
+   "width": 215.5,
+   "game": "greater-gator"
+  },
+  {
+   "text": "GATOR",
+   "name": "gator2",
+   "width": 160.5,
+   "game": "greater-gator"
+  },
+  {
+   "text": "SAME!",
+   "name": "same",
+   "width": 149,
+   "game": "greater-gator"
+  },
+  {
+   "text": "TOO SLOW!",
+   "name": "slow",
+   "width": 262,
+   "game": "greater-gator"
+  },
+  {
+   "text": "YUM!",
+   "name": "yum",
+   "width": 125.5,
+   "game": "greater-gator"
   },
   {
    "text": "COMBO",

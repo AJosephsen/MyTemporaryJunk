@@ -35,7 +35,8 @@ export class Project {
       rotationCenterX: cx * 2, rotationCenterY: cy * 2 };
   }
 
-  sprite(name: string, opts: { blocks?: Blocks; costumes: any[]; layer: number; x?: number; y?: number; visible?: boolean }) {
+  sprite(name: string, opts: { blocks?: Blocks; costumes: any[]; layer: number; x?: number; y?: number; visible?: boolean;
+    rotationStyle?: "all around" | "left-right" | "don't rotate" }) {
     // A block with no parent that does not start a script was created but never placed.
     const strays = Object.values(opts.blocks?.map ?? {}).filter((b: any) => b.parent === null && !b.topLevel);
     if (strays.length) throw new Error(`${name}: ${strays.length} stray blocks (${strays.map((b: any) => b.opcode).join(", ")})`);
@@ -44,7 +45,7 @@ export class Project {
       // Variables "for this sprite only": every clone gets its own copy.
       variables: Object.fromEntries(Object.entries(opts.blocks?.locals ?? {}).map(([n, id]) => [id, [n, 0]])),
       currentCostume: 0, costumes: opts.costumes, sounds: [], volume: 100, layerOrder: opts.layer, visible: opts.visible ?? true,
-      x: opts.x ?? 0, y: opts.y ?? 0, size: 100, direction: 90, draggable: false, rotationStyle: "all around",
+      x: opts.x ?? 0, y: opts.y ?? 0, size: 100, direction: 90, draggable: false, rotationStyle: opts.rotationStyle ?? "all around",
     };
   }
 
@@ -301,6 +302,7 @@ export function dsl(B: Blocks) {
     // The value of a custom block's input, inside its definition.
     arg: (name: string) => B.add("argument_reporter_string_number", {}, { VALUE: [name, null] }),
     whenFlag: () => B.add("event_whenflagclicked"),
+    setRotationStyle: (style: "all around" | "left-right" | "don't rotate") => B.add("motion_setrotationstyle", {}, { STYLE: [style, null] }),
     whenKey: (k: string) => B.add("event_whenkeypressed", {}, { KEY_OPTION: [k, null] }),
     switchBackdrop: (name: In) => B.add("looks_switchbackdropto", { BACKDROP: typeof name === "string"
       ? [1, B.shadow("looks_backdrops", { BACKDROP: [name, null] })]

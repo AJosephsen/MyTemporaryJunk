@@ -1,0 +1,8 @@
+{
+  "title": "Greater Gator",
+  "tagline": "The hungry gator only eats the bigger number. Help it choose before the lily pads reach it!",
+  "project": "greater-gator.sb3",
+  "left": [],
+  "right": [],
+  "keys": "Click the bigger pad (or ← →) · from level 5, click the gator (or ↓ / Space) when both are the same"
+}

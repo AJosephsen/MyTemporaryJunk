@@ -93,6 +93,7 @@ export class Blocks {
 
   add(opcode: string, inputs: Record<string, any[]> = {}, fields: Record<string, any> = {}, extra: Record<string, any> = {}): Ref {
     const id = this.project.nid("b");
+    for (const k of Object.keys(inputs)) if (inputs[k] === undefined) delete inputs[k];
     this.map[id] = { opcode, next: null, parent: null, inputs, fields, shadow: false, topLevel: false, ...extra };
     for (const [name, slot] of Object.entries(inputs))
       for (let i = 1; i < slot.length; i++) {
@@ -131,7 +132,7 @@ export class Blocks {
   chain(stmts: Ref[]): string {
     // A statement that already sits in another script, or earlier in this one, is copied (see add).
     stmts = (stmts as any[]).flat(Infinity);   // a nested list of statements (e.g. ret(...) not spread) is fine
-    if (stmts.length === 0) throw new Error("an empty list of blocks (use ifThen instead of ifElse with an empty branch)");
+    if (stmts.length === 0) throw new Error("an empty list of blocks");
     const seen = new Set<string>(), out: Ref[] = [];
     stmts.forEach((s, i) => {
       const parent = this.map[s.id].parent;
@@ -174,7 +175,8 @@ export function dsl(B: Blocks) {
   const cmp = (op: string) => (a: In, b: In) => B.add(op, { OPERAND1: txt(a), OPERAND2: txt(b) });
   const logic = (op: string) => (a: Ref, b: Ref) => B.add(op, { OPERAND1: bool(a), OPERAND2: bool(b) });
   const mathop = (fn: string) => (x: In) => B.add("operator_mathop", { NUM: num(x) }, { OPERATOR: [fn, null] });
-  const sub = (stmts: Ref[]) => [2, B.chain(stmts)];
+  // An empty branch (an empty C block) leaves its input out, as Scratch saves it.
+  const sub = (stmts: Ref[]): any => { const flat = (stmts as any[]).flat(Infinity); return flat.length ? [2, B.chain(flat)] : undefined; };
   const api = {
     v: (name: string): VarRef => ({ v: name }),
     add: arith("operator_add"), sub: arith("operator_subtract"),

@@ -20,7 +20,9 @@ export const WORDS: [string, string, string?][] = [
   ["TURNED", "turned", "shape-builder"], ["EXACT!", "exact", "shape-builder"], ["IT FITS!", "fits", "shape-builder"],
   ["GREATER", "gator1", "greater-gator"], ["GATOR", "gator2", "greater-gator"], ["SAME!", "same", "greater-gator"],
   ["TOO SLOW!", "slow"], ["YUM!", "yum"],
-  ["NUMBER LINE", "line1", "number-line-jumper"], ["JUMPER", "line2", "number-line-jumper"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
+  ["NUMBER LINE", "line1", "number-line-jumper"], ["JUMPER", "line2", "number-line-jumper"],
+  ["PIZZA", "pizza1", "pizza-fractions"], ["FRACTIONS", "pizza2", "pizza-fractions"], ["SERVE", "serve", "pizza-fractions"],
+  ["THANKS!", "thanks", "pizza-fractions"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
   ["LEVEL", "level"], ["LEVEL UP!", "levelup"], ["BONUS", "bonus"], ["GAME OVER", "gameover"], ["CLICK TO PLAY", "clickplay"],
   ["SPEED BONUS", "speed"], ["SCORE", "score"], ["BEST", "best"], ["OOPS!", "oops"], ["SHIELD LOST", "shield"],
 ];

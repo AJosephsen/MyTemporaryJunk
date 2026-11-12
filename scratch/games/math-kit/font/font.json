@@ -273,6 +273,30 @@
    "game": "number-line-jumper"
   },
   {
+   "text": "PIZZA",
+   "name": "pizza1",
+   "width": 143,
+   "game": "pizza-fractions"
+  },
+  {
+   "text": "FRACTIONS",
+   "name": "pizza2",
+   "width": 264.5,
+   "game": "pizza-fractions"
+  },
+  {
+   "text": "SERVE",
+   "name": "serve",
+   "width": 150.5,
+   "game": "pizza-fractions"
+  },
+  {
+   "text": "THANKS!",
+   "name": "thanks",
+   "width": 204.5,
+   "game": "pizza-fractions"
+  },
+  {
    "text": "COMBO",
    "name": "combo",
    "width": 178

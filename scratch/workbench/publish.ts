@@ -32,6 +32,7 @@ const GAMES: [string, string, string, string][] = [
   ["number-bonds-pop", "games/number-bonds-pop/number-bonds-pop.sb3", "Number Bonds Pop", "Maths bubbles: pop two that make the target."],
   ["shape-builder", "games/shape-builder/shape-builder.sb3", "Shape Builder", "Angles: turn each piece to fit its outline."],
   ["greater-gator", "games/greater-gator/greater-gator.sb3", "Greater Gator", "Comparing: the gator eats the bigger number."],
+  ["number-line-jumper", "games/number-line-jumper/number-line-jumper.sb3", "Number Line Jumper", "Number line: where will the frog land?"],
 ];
 // The tutorials, in the order of the list (easiest first).
 const TUTORIALS = ["sky-guard", "sheepdog", "maze-maker", "splat-patrol", "beanstalk-bounce", "comet-rally", "dust-hopper", "lantern-deep"];

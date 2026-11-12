@@ -253,14 +253,24 @@
   {
    "text": "TOO SLOW!",
    "name": "slow",
-   "width": 262,
-   "game": "greater-gator"
+   "width": 262
   },
   {
    "text": "YUM!",
    "name": "yum",
-   "width": 125.5,
-   "game": "greater-gator"
+   "width": 125.5
+  },
+  {
+   "text": "NUMBER LINE",
+   "name": "line1",
+   "width": 309,
+   "game": "number-line-jumper"
+  },
+  {
+   "text": "JUMPER",
+   "name": "line2",
+   "width": 193.5,
+   "game": "number-line-jumper"
   },
   {
    "text": "COMBO",

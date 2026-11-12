@@ -1,0 +1,8 @@
+{
+  "title": "Number Line Jumper",
+  "tagline": "Where will the frog land? Click the right lily pad on the number line before time runs out.",
+  "project": "number-line-jumper.sb3",
+  "left": [],
+  "right": [],
+  "keys": "Click the pad where the frog lands (or ← → and Space) · flies are a bonus · later: negatives, two jumps, 2s, 5s and 10s"
+}

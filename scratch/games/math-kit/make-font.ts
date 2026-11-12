@@ -19,7 +19,8 @@ export const WORDS: [string, string, string?][] = [
   ["SHAPE", "shape1", "shape-builder"], ["BUILDER", "shape2", "shape-builder"], ["DROP", "drop", "shape-builder"],
   ["TURNED", "turned", "shape-builder"], ["EXACT!", "exact", "shape-builder"], ["IT FITS!", "fits", "shape-builder"],
   ["GREATER", "gator1", "greater-gator"], ["GATOR", "gator2", "greater-gator"], ["SAME!", "same", "greater-gator"],
-  ["TOO SLOW!", "slow", "greater-gator"], ["YUM!", "yum", "greater-gator"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
+  ["TOO SLOW!", "slow"], ["YUM!", "yum"],
+  ["NUMBER LINE", "line1", "number-line-jumper"], ["JUMPER", "line2", "number-line-jumper"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
   ["LEVEL", "level"], ["LEVEL UP!", "levelup"], ["BONUS", "bonus"], ["GAME OVER", "gameover"], ["CLICK TO PLAY", "clickplay"],
   ["SPEED BONUS", "speed"], ["SCORE", "score"], ["BEST", "best"], ["OOPS!", "oops"], ["SHIELD LOST", "shield"],
 ];

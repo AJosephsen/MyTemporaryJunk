@@ -16,9 +16,9 @@ import { art, ENEMIES, MAX_HP, MAX_GUN, SECTORS } from "./art.ts";
 
 const P = new Project();
 type D = ReturnType<typeof dsl>;
-export const PB = 32, EN = 20, EB = 56, PU = 4;
+export const PB = 32, EN = 20, EB = 56, PU = 8;
 // Energy each volley uses at each gun level (level 1 is free): doubling, so high levels burn out fast.
-const GUN_COST = [0, 0.5, 1, 2, 4, 8], ENERGY_FULL = 100, ENERGY_AFTER_DROP = 60;
+const GUN_COST = [0, 0.05, 1, 2, 4, 8], ENERGY_FULL = 100, ENERGY_AFTER_DROP = 60;   // the double shot hardly ever runs out
 const SHIP_MIN_Y = -160, SHIP_MAX_Y = 110, FIRE_EVERY = 6, SHOT_SPEED = 13, BOSS_EVERY = 5;
 const G = { score: 1, mult: 2, waveWord: 3, waveNum: 4, banner: 5, bannerNum: 6, title1: 7, title2: 8, click: 9,
   best: 10, bestWord: 11, pop: 12, chainWord: 13, chainNum: 14, praise: 15 };
@@ -114,6 +114,8 @@ function stageScripts(): Blocks {
       ...write(d, { text: "word-warning", x: 0, y: 40, size: 120, group: G.banner }), pulse(d, G.banner, 50),
     ], [
       set("wstate", "fight"), set("groupsLeft", add(4, v("wave"))), set("spawnT", 70),
+      // Once a wave (from wave 2), at a random moment, a cluster of power-ups: a super shot for a while.
+      set("clusterAt", -1), ifThen(gt(v("wave"), 1), [set("clusterAt", random(1, sub(v("groupsLeft"), 1)))]),
       ...write(d, { text: "word-wave", x: -40, y: 40, size: 100, group: G.banner }),
       ...write(d, { text: v("wave"), x: 90, y: 40, size: 120, group: G.bannerNum }),
       pulse(d, G.banner, 40), pulse(d, G.bannerNum, 40), set("bannerT", 60),
@@ -140,6 +142,7 @@ function stageScripts(): Blocks {
       [eq(v("k"), K.spinner), [call("spawn %s %s %s %s", K.spinner, random(-100, 100), 220, 0)]],
     ], [set("i", 0), repeat(8, [call("spawn %s %s %s %s", K.swarm, random(-200, 200), add(200, mul(22, v("i"))), 0), change("i", 1)])]),
     change("groupsLeft", -1),
+    ifThen(eq(v("groupsLeft"), v("clusterAt")), [call("power cluster %s", random(-170, 170))]),
     set("spawnT", max(45, sub(150, mul(8, v("wave"))))),
   ], { warp: true, x: 1100, y: 200 });
 
@@ -387,6 +390,12 @@ function stageScripts(): Blocks {
     ifThen(gt(v("s"), 0), [pu.set("on", v("s"), 1), pu.set("x", v("s"), arg("x")), pu.set("y", v("s"), arg("y")), pu.set("kind", v("s"), arg("k")), pu.set("t", v("s"), 0)]),
   ], { args: ["x", "y", "k"], warp: true, x: 4100, y: 500 });
 
+  // Three power-ups close together, falling from the top.
+  define("power cluster %s", [
+    call("drop %s %s %s", sub(arg("x"), 24), 200, 1), call("drop %s %s %s", add(arg("x"), 24), 200, 1),
+    call("drop %s %s %s", arg("x"), 232, 1),
+  ], { args: ["x"], warp: true, x: 4100, y: 650 });
+
   define("move powerups", [
     set("i", 1),
     repeat(PU, [
@@ -424,7 +433,7 @@ function stageScripts(): Blocks {
   // ---------------------------------------------------------------- the boss
   define("boss enter", [
     change("bosses", 1), set("bossMax", add(260, mul(200, sub(v("bosses"), 1)))), set("bossHp", v("bossMax")),
-    set("bossX", 0), set("bossY", 280), set("bossT", 0), set("bossOn", 1), set("bossHit", 0), set("wstate", "boss"),
+    set("bossX", 0), set("bossY", 280), set("bossT", 0), set("bossOn", 1), set("bossHit", 0), set("wstate", "boss"), set("bossPhase", 1),
   ], { warp: true, x: 4700, y: 20 });
 
   define("boss", [
@@ -433,6 +442,10 @@ function stageScripts(): Blocks {
     ifElse(lt(v("bossT"), 90), [set("bossY", sub(280, mul(div(v("bossT"), 90), 192)))], [
       set("bossX", mul(120, sin(mul(sub(v("bossT"), 90), 1.2)))), set("bossY", add(88, mul(10, sin(mul(v("bossT"), 2.3))))),
       set("bf", div(v("bossHp"), v("bossMax"))),
+      // Power for the fight: one now and then, and a cluster when a new phase starts.
+      ifThen(eq(mod(v("bossT"), 330), 0), [call("drop %s %s %s", random(-180, 180), 200, 1)]),
+      ifThen(or(and(eq(v("bossPhase"), 1), lt(v("bf"), 0.67)), and(eq(v("bossPhase"), 2), lt(v("bf"), 0.34))), [
+        change("bossPhase", 1), call("power cluster %s", random(-150, 150))]),
       // Phase 1: aimed shots from both cannons and a ring now and then.
       ifThen(eq(mod(v("bossT"), max(26, sub(44, mul(4, v("bosses"))))), 0), [
         set("q", -1), repeat(2, [

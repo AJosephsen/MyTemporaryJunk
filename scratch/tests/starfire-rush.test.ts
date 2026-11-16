@@ -120,14 +120,16 @@ test("starfire rush: wave 5 is a boss: a warning, three phases, a big bonus, a n
   await t.screenshot(shot("sfr-warning"));
   await t.until(v => v.wstate === "boss", { max: 200, what: "the boss" });
   await setVar(t, "gun", 6);
-  let phaseShot = false;
+  let phaseShot = false, mostPower = 0;
   for (let f = 0; f < 200 && (await t.get("wstate")) === "boss"; f++) {
     await setVar(t, "shieldT", 999); await setVar(t, "gun", 6);
     await t.mouse(Number(await t.get("bossX")), -40); await t.frames(5);
     const hp = Number(await t.get("bossHp")), max = Number(await t.get("bossMax"));
+    mostPower = Math.max(mostPower, (await list(t, "pu.on")).map(Number).reduce((a, b) => a + b));
     if (!phaseShot && hp < max * 0.3) { await t.screenshot(shot("sfr-boss")); phaseShot = true; }
   }
   await t.until(v => v.wstate === "bossdown", { max: 10, what: "the boss to go down" });
+  t.expect(mostPower >= 3, `power-ups fall during the fight (${mostPower} at once)`);
   await t.frames(85);
   await t.screenshot(shot("sfr-bossdown"));
   const v = await t.until(v => Number(v.wave) === 6, { max: 400, what: "wave 6" });
@@ -165,7 +167,23 @@ test("starfire rush: high gun levels burn energy fast; when it runs out the gun 
   let f5 = 0; while (Number(await t.get("gun")) === 5 && f5 < 300) { await t.frames(5); f5 += 5; }
   t.log({ level6Frames: f6 + 30, level5Frames: f5 });
   t.expect(f6 + 30 < 120 && f5 > 60 && f5 < 120, `level 6 lasted ${f6 + 30} frames, level 5 ${f5}`);
+  // The double shot hardly ever runs out: 10 seconds at level 2 use almost nothing.
+  await setVar(t, "gun", 2); await setVar(t, "energy", 100);
+  await t.frames(300);
+  t.expect(Number(await t.get("gun")) === 2 && Number(await t.get("energy")) > 95, `level 2 after 10 s: energy ${await t.get("energy")}`);
   // A power-up fills the energy again.
   v = await t.vars(); await putRow(t, "pu", { x: v.px, y: Number(v.py) + 10, kind: 1, t: 0 }); await t.frames(3);
   t.expect(Number(await t.get("energy")) > 90, `energy ${await t.get("energy")} after a power-up`);
+});
+
+test("starfire rush: once a wave a cluster of three power-ups falls", async t => {
+  await startGame(t);
+  await setVar(t, "hp", 99); await setVar(t, "wave", 1); await setVar(t, "groupsLeft", 0);
+  await t.page(w => { for (const v of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (v.name === "en.on") v.value.fill(0); });
+  await t.until(v => Number(v.wave) === 2, { max: 300, what: "wave 2" });
+  let most = 0;
+  for (let f = 0; f < 120 && most < 3; f++) { await t.frames(10); await setVar(t, "hp", 99);
+    most = Math.max(most, (await list(t, "pu.kind")).map(Number).filter((k, i) => k === 1).length && (await list(t, "pu.on")).map(Number).reduce((a, b) => a + b)); }
+  t.expect(most >= 3, `a power cluster in wave 2 (${most} power-ups at once)`);
+  await t.screenshot(shot("sfr-cluster"));
 });

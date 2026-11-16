@@ -297,6 +297,78 @@
    "game": "pizza-fractions"
   },
   {
+   "text": "STARFIRE",
+   "name": "sf1",
+   "width": 217,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "RUSH",
+   "name": "sf2",
+   "width": 129,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "WAVE",
+   "name": "wave",
+   "width": 146,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "CLEAR!",
+   "name": "clear",
+   "width": 172,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "WARNING!",
+   "name": "warning",
+   "width": 238,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "BOSS DOWN!",
+   "name": "bossdown",
+   "width": 290.5,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "POWER UP!",
+   "name": "powerup",
+   "width": 259,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "MAX POWER!",
+   "name": "maxpower",
+   "width": 301.5,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "SHIELD!",
+   "name": "shieldon",
+   "width": 178.5,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "BOMB!",
+   "name": "bomb",
+   "width": 155,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "REPAIR!",
+   "name": "repair",
+   "width": 179.5,
+   "game": "starfire-rush"
+  },
+  {
+   "text": "CHAIN",
+   "name": "chain",
+   "width": 150.5,
+   "game": "starfire-rush"
+  },
+  {
    "text": "COMBO",
    "name": "combo",
    "width": 178

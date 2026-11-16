@@ -34,6 +34,7 @@ const GAMES: [string, string, string, string][] = [
   ["greater-gator", "games/greater-gator/greater-gator.sb3", "Greater Gator", "Comparing: the gator eats the bigger number."],
   ["number-line-jumper", "games/number-line-jumper/number-line-jumper.sb3", "Number Line Jumper", "Number line: where will the frog land?"],
   ["pizza-fractions", "games/pizza-fractions/pizza-fractions.sb3", "Pizza Fractions", "Fractions: pepperoni on just the right slices."],
+  ["starfire-rush", "games/starfire-rush/starfire-rush.sb3", "Starfire Rush", "Shoot 'em up: waves, bosses, power-ups."],
 ];
 // The tutorials, in the order of the list (easiest first).
 const TUTORIALS = ["sky-guard", "sheepdog", "maze-maker", "splat-patrol", "beanstalk-bounce", "comet-rally", "dust-hopper", "lantern-deep"];

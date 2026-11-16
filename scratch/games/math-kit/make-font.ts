@@ -22,7 +22,8 @@ export const WORDS: [string, string, string?][] = [
   ["TOO SLOW!", "slow"], ["YUM!", "yum"],
   ["NUMBER LINE", "line1", "number-line-jumper"], ["JUMPER", "line2", "number-line-jumper"],
   ["PIZZA", "pizza1", "pizza-fractions"], ["FRACTIONS", "pizza2", "pizza-fractions"], ["SERVE", "serve", "pizza-fractions"],
-  ["THANKS!", "thanks", "pizza-fractions"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
+  ["THANKS!", "thanks", "pizza-fractions"],
+  ["STARFIRE", "sf1", "starfire-rush"], ["RUSH", "sf2", "starfire-rush"], ["WAVE", "wave", "starfire-rush"], ["CLEAR!", "clear", "starfire-rush"], ["WARNING!", "warning", "starfire-rush"], ["BOSS DOWN!", "bossdown", "starfire-rush"], ["POWER UP!", "powerup", "starfire-rush"], ["MAX POWER!", "maxpower", "starfire-rush"], ["SHIELD!", "shieldon", "starfire-rush"], ["BOMB!", "bomb", "starfire-rush"], ["REPAIR!", "repair", "starfire-rush"], ["CHAIN", "chain", "starfire-rush"], ["COMBO", "combo"], ["PERFECT!", "perfect"], ["GREAT!", "great"],
   ["LEVEL", "level"], ["LEVEL UP!", "levelup"], ["BONUS", "bonus"], ["GAME OVER", "gameover"], ["CLICK TO PLAY", "clickplay"],
   ["SPEED BONUS", "speed"], ["SCORE", "score"], ["BEST", "best"], ["OOPS!", "oops"], ["SHIELD LOST", "shield"],
 ];

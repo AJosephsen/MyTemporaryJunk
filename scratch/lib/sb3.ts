@@ -359,6 +359,9 @@ export function dsl(B: Blocks) {
     clamp: (x: In, lo: In, hi: In): Ref => max(lo, min(x, hi)),
     /** if c1 then a1, else if c2 then a2, ..., else otherwise: nested if/else blocks. */
     cond,
+    /** A value chosen by conditions (Scratch has no "if" reporter): blocks that set variable `name` to the value of the
+     *  first case whose test holds, else to `otherwise`. Read it with v(name). */
+    choose: (name: string, cases: [Ref, In][], otherwise: In): Ref => cond(cases.map(([c, x]) => [c, [api.set(name, x)]] as [Ref, Ref[]]), [api.set(name, otherwise)]),
     fn,
     /** The last value custom block `proccode` returned. */
     result: (proccode: string) => ({ v: retVar(proccode) }) as VarRef,

@@ -1,0 +1,151 @@
+// Tests for Starfire Rush (vertical shoot 'em up).
+import { test, type T } from "../workbench/testing.ts";
+
+const GAME = "games/starfire-rush/starfire-rush.sb3";
+const shot = (name: string) => `/tmp/claude-0/-home-user/af299c66-140a-5320-8b1f-a09d589ac156/scratchpad/${name}.png`;
+const list = (t: T, name: string) => t.get(name) as Promise<any[]>;
+const setVar = (t: T, name: string, value: any) => t.page((w, [n, x]) => {
+  for (const v of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (v.name === n) v.value = x; }, [name, value]);
+
+async function startGame(t: T, compiler = true) {
+  await t.page((w, on) => w.vm.setCompilerOptions({ enabled: on }), compiler);
+  await t.load(GAME); await t.greenFlag(); await t.frames(5);
+  await t.mouse(0, -120); await t.click(0, -120);
+  await t.until(v => v.phase === "play", { max: 10, what: "play" });
+}
+// Steers the ship under the lowest enemy for n frames (an autopilot, so tests can play).
+async function autopilot(t: T, n: number) {
+  for (let f = 0; f < n; f += 3) {
+    const [on, xs, ys] = await Promise.all(["en.on", "en.x", "en.y"].map(l => list(t, l)));
+    let best = -1;
+    for (let i = 0; i < on.length; i++) if (Number(on[i]) === 1 && Number(ys[i]) < 175 && (best < 0 || Number(ys[i]) < Number(ys[best]))) best = i;
+    await t.mouse(best >= 0 ? Number(xs[best]) : 0, -130);
+    await t.frames(3);
+  }
+}
+
+test("starfire rush: the title shows; a click starts wave 1 and the ship fires on its own", async t => {
+  await t.page(w => w.vm.setCompilerOptions({ enabled: true }));
+  await t.load(GAME); await t.greenFlag(); await t.frames(20);
+  await t.screenshot(shot("sfr-title"));
+  await t.mouse(0, -120); await t.click(0, -120);
+  await t.until(v => v.phase === "play", { max: 10, what: "play" });
+  await t.frames(20);
+  const shots = (await list(t, "pb.on")).map(Number).reduce((a, b) => a + b);
+  t.expect(Number(await t.get("wave")) === 1 && shots > 0, `wave ${await t.get("wave")}, ${shots} shots in the air`);
+});
+
+test("starfire rush: the ship shoots down wave 1 and scores", async t => {
+  await startGame(t);
+  await autopilot(t, 240);
+  const v = await t.vars();
+  t.log({ score: v.score, wave: v.wave, hp: v.hp, gun: v.gun, chain: v.chain });
+  t.expect(Number(v.score) > 0, `score ${v.score}`);
+  await t.screenshot(shot("sfr-wave1"));
+});
+
+// Puts something into a pool row directly (a power-up or an enemy shot), to test what happens when it meets the ship.
+const putRow = (t: T, pool: string, fields: Record<string, any>) => t.page((w, [p, f]) => {
+  const vars = Object.values(w.vm.runtime.getTargetForStage().variables) as any[];
+  const on = vars.find(v => v.name === `${p}.on`).value; const i = on.findIndex((x: any) => Number(x) === 0);
+  for (const [k, x] of Object.entries(f as any)) vars.find(v => v.name === `${p}.${k}`).value[i] = x;
+  on[i] = 1;
+}, [pool, fields]);
+
+test("starfire rush: power-ups: power raises the gun (more shots), repair heals, shield blocks shots", async t => {
+  await startGame(t);
+  await t.frames(30);
+  const v = await t.vars();
+  await putRow(t, "pu", { x: v.px, y: Number(v.py) + 10, kind: 1, t: 0 });
+  await t.frames(3);
+  t.expect(Number(await t.get("gun")) === 2, `gun ${await t.get("gun")}`);
+  for (let g = 3; g <= 6; g++) { const w = await t.vars(); await putRow(t, "pu", { x: w.px, y: Number(w.py) + 10, kind: 1, t: 0 }); await t.frames(3); }
+  t.expect(Number(await t.get("gun")) === 6, `max gun ${await t.get("gun")}`);
+  await t.frames(20);
+  const shots = (await list(t, "pb.on")).map(Number).reduce((a, b) => a + b);
+  t.expect(shots >= 20, `${shots} shots in the air at gun 6`);
+  await t.screenshot(shot("sfr-gun6"));
+  // Hit by a shot: health and a gun level go.
+  let w = await t.vars();
+  await putRow(t, "eb", { x: w.px, y: Number(w.py) + 5, vx: 0, vy: -1, k: 1, dir: 180 });
+  await t.frames(2);
+  w = await t.vars();
+  t.expect(Number(w.hp) === 5 && Number(w.gun) === 5 && Number(w.inv) > 0, `hp ${w.hp}, gun ${w.gun}, inv ${w.inv}`);
+  // Repair heals 2 (at most 6).
+  await putRow(t, "pu", { x: w.px, y: Number(w.py) + 10, kind: 2, t: 0 });
+  await t.frames(3);
+  t.expect(Number(await t.get("hp")) === 6, `hp ${await t.get("hp")}`);
+  // Shield: shots near the ship vanish, no damage.
+  await setVar(t, "inv", 0);
+  w = await t.vars();
+  await putRow(t, "pu", { x: w.px, y: Number(w.py) + 10, kind: 3, t: 0 });
+  await t.frames(3);
+  w = await t.vars();
+  await putRow(t, "eb", { x: w.px, y: Number(w.py) + 30, vx: 0, vy: -2, k: 1, dir: 180 });
+  await t.frames(10);
+  t.expect(Number(await t.get("hp")) === 6 && Number(await t.get("shieldT")) > 0, `shielded: hp ${await t.get("hp")}`);
+});
+
+test("starfire rush: a bomb clears enemy shots and hurts every enemy", async t => {
+  await startGame(t);
+  await t.frames(60);
+  for (let i = 0; i < 6; i++) await putRow(t, "eb", { x: -150 + i * 60, y: 100, vx: 0, vy: -0.5, k: 1, dir: 180 });
+  const w = await t.vars();
+  await putRow(t, "pu", { x: w.px, y: Number(w.py) + 10, kind: 4, t: 0 });
+  await t.frames(3);
+  const shots = (await list(t, "eb.on")).map(Number).reduce((a, b) => a + b);
+  t.expect(shots === 0, `${shots} enemy shots left`);
+});
+
+test("starfire rush: clearing a wave gives a bonus and the next wave; new enemy kinds join", async t => {
+  await startGame(t);
+  await setVar(t, "hp", 99);
+  for (let f = 0; f < 60 && Number(await t.get("wave")) < 2; f++) await autopilot(t, 30);
+  t.expect(Number(await t.get("wave")) === 2, `wave ${await t.get("wave")}`);
+  // Later waves bring the other kinds.
+  await setVar(t, "wave", 7);
+  for (let f = 0; f < 40; f++) { await autopilot(t, 30); await setVar(t, "hp", 99); if ((await list(t, "en.kind")).map(Number).some((k, i) => k >= 5)) break; }
+  const kinds = new Set((await list(t, "en.kind")).map(Number));
+  t.log([...kinds]);
+  t.expect([...kinds].some(k => k >= 5), `tanks or spinners by wave 8: ${[...kinds]}`);
+  await t.screenshot(shot("sfr-wave8"));
+});
+
+test("starfire rush: wave 5 is a boss: a warning, three phases, a big bonus, a new sector", async t => {
+  await startGame(t);
+  await setVar(t, "wave", 4); await setVar(t, "groupsLeft", 0);
+  await t.page(w => { for (const v of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (v.name === "en.on") v.value.fill(0); });
+  await t.until(v => v.wstate === "warning", { max: 200, what: "the warning" });
+  await t.frames(20);
+  await t.screenshot(shot("sfr-warning"));
+  await t.until(v => v.wstate === "boss", { max: 200, what: "the boss" });
+  await setVar(t, "gun", 6);
+  let phaseShot = false;
+  for (let f = 0; f < 200 && (await t.get("wstate")) === "boss"; f++) {
+    await setVar(t, "shieldT", 999); await setVar(t, "gun", 6);
+    await t.mouse(Number(await t.get("bossX")), -40); await t.frames(5);
+    const hp = Number(await t.get("bossHp")), max = Number(await t.get("bossMax"));
+    if (!phaseShot && hp < max * 0.3) { await t.screenshot(shot("sfr-boss")); phaseShot = true; }
+  }
+  await t.until(v => v.wstate === "bossdown", { max: 10, what: "the boss to go down" });
+  await t.frames(85);
+  await t.screenshot(shot("sfr-bossdown"));
+  const v = await t.until(v => Number(v.wave) === 6, { max: 400, what: "wave 6" });
+  t.expect(Number(v.score) >= 20000 && Number(v.sector) === 2, `score ${v.score}, sector ${v.sector}`);
+});
+
+test("starfire rush: fast enough in the interpreter (scratch.mit.edu) with a busy screen", async t => {
+  await startGame(t, false);
+  await setVar(t, "wave", 9); await setVar(t, "gun", 6); await setVar(t, "hp", 99); await setVar(t, "groupsLeft", 99);
+  // A busy screen: every enemy row taken by spinners and gunners (tough, and they all shoot), the shots flying.
+  for (let i = 0; i < 20; i++) await putRow(t, "en", { kind: i % 2 ? 6 : 4, x: -200 + (i % 10) * 44, y: 40 + Math.floor(i / 10) * 50,
+    bx: -200 + (i % 10) * 44, sy: 40 + Math.floor(i / 10) * 50, hp: 999, t: 0, fire: i * 3, hit: 0, st: 1, vx: 1, vy: -1 });
+  await autopilot(t, 60);
+  const t0 = Date.now();
+  await autopilot(t, 150);
+  const ms = (Date.now() - t0) / 150;
+  const busy = [(await list(t, "pb.on")), (await list(t, "en.on")), (await list(t, "eb.on"))].map(l => l.map(Number).reduce((a, b) => a + b));
+  t.log({ msPerFrame: ms.toFixed(1), shots: busy[0], enemies: busy[1], enemyShots: busy[2], clones: await t.page(w => w.vm.runtime._cloneCounter) });
+  t.expect(ms < 33, `${ms.toFixed(1)} ms a frame`);
+  await t.page(w => w.vm.setCompilerOptions({ enabled: true }));
+});

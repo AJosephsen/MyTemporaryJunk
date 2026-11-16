@@ -86,6 +86,9 @@ const cells = (n: number, of: number, on: string, w = 16) => svg(of * (w + 3) + 
   Array.from({ length: of }, (_, i) => `<rect x="${2 + i * (w + 3)}" y="2" width="${w}" height="12" rx="3" fill="${i < n ? on : "#1e293b"}" stroke="#0f172a" stroke-width="1.5"/>`).join(""));
 const bossBar = (n: number) => svg(300, 14, `<rect x="1" y="1" width="298" height="12" rx="6" fill="#1e293b" stroke="#fda4af" stroke-width="1.5"/>` +
   (n > 0 ? `<rect x="3" y="3" width="${(294 * n / 20).toFixed(1)}" height="8" rx="4" fill="#f43f5e"/>` : ""));
+// The gun's energy: a thin meter under the gun pips.
+const energyBar = (n: number) => svg(72, 8, `<rect x="1" y="1" width="70" height="6" rx="3" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>` +
+  (n > 0 ? `<rect x="2" y="2" width="${(68 * n / 20).toFixed(1)}" height="4" rx="2" fill="${n > 5 ? "#38bdf8" : "#f43f5e"}"/>` : ""));
 const flash = (c: string) => svg(480, 360, `<rect width="480" height="360" fill="${c}"/>`);
 const hud = svg(480, 40, `<rect width="480" height="40" fill="#020617" opacity="0.55"/><rect y="38" width="480" height="2" fill="#38bdf8" opacity="0.7"/>`);
 
@@ -103,6 +106,7 @@ export function art(P: Project) {
     powerup: POWERUPS.map(([n, s]) => P.costume(n, s, 15, 15)),
     hpBar: Array.from({ length: MAX_HP + 1 }, (_, n) => P.costume(`hp${n}`, cells(n, MAX_HP, n > 2 ? "#22c55e" : n > 1 ? "#f59e0b" : "#ef4444"), 0, 8)),
     gunBar: Array.from({ length: MAX_GUN + 1 }, (_, n) => P.costume(`gun${n}`, cells(n, MAX_GUN, "#facc15", 8), 0, 8)),
+    energyBar: Array.from({ length: 21 }, (_, n) => P.costume(`energy${n}`, energyBar(n), 0, 4)),
     bossBar: Array.from({ length: 21 }, (_, n) => P.costume(`boss${n}`, bossBar(n), 150, 7)),
     hud: [P.costume("hud", hud, 240, 20)],
     flash: [P.costume("white", flash("#fff"), 240, 180), P.costume("red", flash("#ef4444"), 240, 180)],

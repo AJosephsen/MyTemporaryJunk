@@ -17,6 +17,8 @@ import { art, ENEMIES, MAX_HP, MAX_GUN, SECTORS } from "./art.ts";
 const P = new Project();
 type D = ReturnType<typeof dsl>;
 export const PB = 32, EN = 20, EB = 56, PU = 4;
+// Energy each volley uses at each gun level (level 1 is free): doubling, so high levels burn out fast.
+const GUN_COST = [0, 0.5, 1, 2, 4, 8], ENERGY_FULL = 100, ENERGY_AFTER_DROP = 60;
 const SHIP_MIN_Y = -160, SHIP_MAX_Y = 110, FIRE_EVERY = 6, SHOT_SPEED = 13, BOSS_EVERY = 5;
 const G = { score: 1, mult: 2, waveWord: 3, waveNum: 4, banner: 5, bannerNum: 6, title1: 7, title2: 8, click: 9,
   best: 10, bestWord: 11, pop: 12, chainWord: 13, chainNum: 14, praise: 15 };
@@ -46,7 +48,7 @@ function stageScripts(): Blocks {
 
   B.script(whenFlag(), [
     set("phase", "title"), set("shake", 0), set("frame", 0), set("hideAbove", 400), set("score", 0), set("shown", 0),
-    set("tap", 0), set("px", 0), set("py", -120), set("hp", MAX_HP), set("gun", 1), set("inv", 0), set("shieldT", 0),
+    set("tap", 0), set("px", 0), set("py", -120), set("hp", MAX_HP), set("gun", 1), set("energy", 0), set("inv", 0), set("shieldT", 0),
     set("bossOn", 0), set("useMouse", 1), set("lastMx", 0), set("lastMy", 0), set("sector", 1), set("chain", 0), set("mult", 1),
     call("clear pools"), switchBackdrop(SECTORS[0]),
     call("title screen"),
@@ -94,7 +96,7 @@ function stageScripts(): Blocks {
     ...[G.title1, G.title2, G.click, G.best, G.bestWord, G.banner, G.bannerNum, G.mult, G.pop, G.praise, G.chainWord, G.chainNum]
       .flatMap(g => clear(d, g)),
     call("clear pools"),
-    set("score", 0), set("shown", -1), set("hp", MAX_HP), set("gun", 1), set("inv", 60), set("shieldT", 0),
+    set("score", 0), set("shown", -1), set("hp", MAX_HP), set("gun", 1), set("energy", 0), set("inv", 60), set("shieldT", 0),
     set("px", 0), set("py", -120), set("chain", 0), set("chainT", 0), set("mult", 1), set("wave", 0), set("bosses", 0),
     set("sector", 1), switchBackdrop(SECTORS[0]),
     set("phase", "play"),
@@ -217,6 +219,13 @@ function stageScripts(): Blocks {
           pb.set("vx", v("s"), mul(SHOT_SPEED, sin(item("gunAng", v("g"))))), pb.set("vy", v("s"), mul(SHOT_SPEED, cos(item("gunAng", v("g"))))),
         ]),
         change("g", 1)]),
+      // Above level 1 every volley uses energy; when it runs out the gun drops a level.
+      ifThen(gt(v("gun"), 1), [
+        change("energy", mul(-1, item("gunCost", v("gun")))),
+        ifThen(not(gt(v("energy"), 0)), [
+          change("gun", -1), set("energy", ENERGY_AFTER_DROP), ifThen(eq(v("gun"), 1), [set("energy", 0)]),
+          ...emit(d, "spark", v("px"), v("py"), 6)]),
+      ]),
     ]),
   ], { warp: true, x: 2300, y: 600 });
 
@@ -394,7 +403,7 @@ function stageScripts(): Blocks {
     set("ck", arg("k")),
     ...emit(d, "ring", v("px"), v("py"), 1), ...emit(d, "spark", v("px"), v("py"), 10),
     cond([
-      [eq(v("ck"), 1), [ifElse(lt(v("gun"), MAX_GUN), [change("gun", 1),
+      [eq(v("ck"), 1), [set("energy", ENERGY_FULL), ifElse(lt(v("gun"), MAX_GUN), [change("gun", 1),
         ifElse(eq(v("gun"), MAX_GUN), [...write(d, { text: "word-maxpower", x: v("px"), y: add(v("py"), 50), size: 56, group: G.praise, mode: "float" })],
           [...write(d, { text: "word-powerup", x: v("px"), y: add(v("py"), 50), size: 56, group: G.praise, mode: "float" })])],
         [change("score", 2000), ...write(d, { text: "+2000", x: v("px"), y: add(v("py"), 50), size: 50, group: G.praise, mode: "float" })])]],
@@ -555,13 +564,16 @@ function bossScripts(): Blocks {
     d.setEffect("BRIGHTNESS", d.mul(20, d.v("bossHit"))), at(d, d.v("bossX"), d.v("bossY")), d.show()], [d.hide()])], 20, 100);
   return B;
 }
-function barScripts(kind: "hp" | "gun" | "boss"): Blocks {
+function barScripts(kind: "hp" | "gun" | "boss" | "energy"): Blocks {
   const B = new Blocks(P), d = dsl(B);
-  const pos = kind === "hp" ? [-232, -168] : kind === "gun" ? [-100, -168] : [0, 128];
+  const pos = kind === "hp" ? [-232, -168] : kind === "gun" ? [-100, -163] : kind === "energy" ? [-100, -175] : [0, 128];
   B.script(d.whenFlag(), [d.hide(), d.goto(pos[0], pos[1])], 20, 20);
   const shown = kind === "boss" ? d.and(d.eq(d.v("bossOn"), 1), d.eq(d.v("phase"), "play")) : d.eq(d.v("phase"), "play");
-  const value = kind === "hp" ? d.v("hp") : kind === "gun" ? d.v("gun") : d.ceiling(d.mul(20, d.div(d.v("bossHp"), d.v("bossMax"))));
-  B.script(d.whenReceive("tick"), [d.ifElse(shown, [d.costumeTo(d.join(kind, d.max(0, value))), d.show()], [d.hide()])], 20, 100);
+  const value = kind === "hp" ? d.v("hp") : kind === "gun" ? d.v("gun") : kind === "energy" ? d.ceiling(d.mul(20, d.div(d.v("energy"), ENERGY_FULL)))
+    : d.ceiling(d.mul(20, d.div(d.v("bossHp"), d.v("bossMax"))));
+  // The energy meter only shows above gun level 1, and blinks when nearly empty.
+  const visible = kind === "energy" ? [d.ifElse(d.and(d.gt(d.v("gun"), 1), d.not(d.and(d.lt(d.v("energy"), 25), d.lt(d.mod(d.v("frame"), 8), 4)))), [d.show()], [d.hide()])] : [d.show()];
+  B.script(d.whenReceive("tick"), [d.ifElse(shown, [d.costumeTo(d.join(kind, d.max(0, d.min(20, value)))), ...visible], [d.hide()])], 20, 100);
   return B;
 }
 function flashScripts(): Blocks {
@@ -596,6 +608,7 @@ const sb3 = P.build({
     P.sprite("Hud", { blocks: clickable(hudScripts()), costumes: A.hud, layer: 10, x: 0, y: 160 }),
     P.sprite("HpBar", { blocks: clickable(barScripts("hp")), costumes: A.hpBar, layer: 11, visible: false }),
     P.sprite("GunBar", { blocks: clickable(barScripts("gun")), costumes: A.gunBar, layer: 12, visible: false }),
+    P.sprite("EnergyBar", { blocks: clickable(barScripts("energy")), costumes: A.energyBar, layer: 12, visible: false }),
     P.sprite("BossBar", { blocks: clickable(barScripts("boss")), costumes: A.bossBar, layer: 13, visible: false }),
     P.sprite("Text", { blocks: textScripts(P), costumes: textCostumes(P, "starfire-rush"), layer: 14, visible: false }),
     P.sprite("Flash", { blocks: clickable(flashScripts()), costumes: A.flash, layer: 15, visible: false }),
@@ -609,7 +622,7 @@ const sb3 = P.build({
     enHp: ENEMIES.map(e => e.hp), enR: ENEMIES.map(e => e.r), enScore: ENEMIES.map(e => e.score),
     gunStart: GUNS.map((_, i) => GUNS.slice(0, i).reduce((n, g) => n + g.length, 0) + 1), gunCount: GUNS.map(g => g.length),
     gunDx: gunFlat.map(s => s[0]), gunAng: gunFlat.map(s => s[1]),
-    signs: [1, -1], sectors: SECTORS,
+    signs: [1, -1], sectors: SECTORS, gunCost: GUN_COST,
   },
   shown: [],
 });

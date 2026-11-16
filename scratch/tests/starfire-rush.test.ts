@@ -149,3 +149,23 @@ test("starfire rush: fast enough in the interpreter (scratch.mit.edu) with a bus
   t.expect(ms < 33, `${ms.toFixed(1)} ms a frame`);
   await t.page(w => w.vm.setCompilerOptions({ enabled: true }));
 });
+
+test("starfire rush: high gun levels burn energy fast; when it runs out the gun drops a level", async t => {
+  await startGame(t);
+  await setVar(t, "groupsLeft", 0); await setVar(t, "hp", 99);
+  for (let g = 2; g <= 6; g++) { const w = await t.vars(); await putRow(t, "pu", { x: w.px, y: Number(w.py) + 10, kind: 1, t: 0 }); await t.frames(3); }
+  let v = await t.vars();
+  t.expect(Number(v.gun) === 6 && Number(v.energy) > 80, `gun ${v.gun}, energy ${v.energy}`);
+  await t.frames(30);
+  await t.screenshot(shot("sfr-energy"));
+  // Level 6 lasts about 2.5 s (12–13 volleys of 8), level 5 about twice as long from 60 energy.
+  let f6 = 0; while (Number(await t.get("gun")) === 6 && f6 < 200) { await t.frames(5); f6 += 5; }
+  v = await t.vars();
+  t.expect(Number(v.gun) === 5 && Number(v.energy) > 50, `after ${f6 + 30} frames: gun ${v.gun}, energy ${v.energy}`);
+  let f5 = 0; while (Number(await t.get("gun")) === 5 && f5 < 300) { await t.frames(5); f5 += 5; }
+  t.log({ level6Frames: f6 + 30, level5Frames: f5 });
+  t.expect(f6 + 30 < 120 && f5 > 60 && f5 < 120, `level 6 lasted ${f6 + 30} frames, level 5 ${f5}`);
+  // A power-up fills the energy again.
+  v = await t.vars(); await putRow(t, "pu", { x: v.px, y: Number(v.py) + 10, kind: 1, t: 0 }); await t.frames(3);
+  t.expect(Number(await t.get("energy")) > 90, `energy ${await t.get("energy")} after a power-up`);
+});

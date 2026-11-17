@@ -44,6 +44,8 @@ test("starfire rush: the ship shoots down wave 1 and scores", async t => {
   await t.screenshot(shot("sfr-wave1"));
 });
 
+// Holds the wave where it is: no new groups, no wave clear, no power cluster.
+const holdWave = async (t: T) => { await setVar(t, "groupsLeft", 99); await setVar(t, "spawnT", 99999); await setVar(t, "clusterAt", -1); };
 // Puts something into a pool row directly (a power-up or an enemy shot), to test what happens when it meets the ship.
 const putRow = (t: T, pool: string, fields: Record<string, any>) => t.page((w, [p, f]) => {
   const vars = Object.values(w.vm.runtime.getTargetForStage().variables) as any[];
@@ -168,6 +170,7 @@ test("starfire rush: high gun levels burn energy fast; when it runs out the gun 
   t.log({ level6Frames: f6 + 30, level5Frames: f5 });
   t.expect(f6 + 30 < 120 && f5 > 60 && f5 < 120, `level 6 lasted ${f6 + 30} frames, level 5 ${f5}`);
   // The double shot hardly ever runs out: 10 seconds at level 2 use almost nothing.
+  await holdWave(t); await t.page(w => { for (const v of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (v.name === "pu.on" || v.name === "en.on") v.value.fill(0); });
   await setVar(t, "gun", 2); await setVar(t, "energy", 100);
   await t.frames(300);
   t.expect(Number(await t.get("gun")) === 2 && Number(await t.get("energy")) > 95, `level 2 after 10 s: energy ${await t.get("energy")}`);
@@ -186,4 +189,47 @@ test("starfire rush: once a wave a cluster of three power-ups falls", async t =>
     most = Math.max(most, (await list(t, "pu.kind")).map(Number).filter((k, i) => k === 1).length && (await list(t, "pu.on")).map(Number).reduce((a, b) => a + b)); }
   t.expect(most >= 3, `a power cluster in wave 2 (${most} power-ups at once)`);
   await t.screenshot(shot("sfr-cluster"));
+});
+
+test("starfire rush: steel: none before wave 3, then it comes; it stops shots both ways and cannot be destroyed", async t => {
+  await startGame(t);
+  await setVar(t, "hp", 99);
+  await autopilot(t, 200);
+  t.expect((await list(t, "ob.on")).map(Number).every(x => x === 0), "no steel in wave 1");
+  await setVar(t, "wave", 3); await setVar(t, "steelT", 1);
+  await t.frames(3);
+  t.expect((await list(t, "ob.on")).map(Number).some(x => x === 1), "steel in wave 3");
+  // A plate right above the ship: the ship's shots stop on it.
+  await t.page(w => { for (const v of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (v.name.startsWith("ob.") || v.name === "en.on" || v.name === "eb.on") v.value.fill(0); });
+  await holdWave(t); await setVar(t, "steelT", 99999);
+  await putRow(t, "ob", { x: 0, y: 40, kind: 2, hw: 60, hh: 20 });
+  await t.mouse(0, -120); await t.frames(30);
+  const above = (await list(t, "pb.on")).map(Number).filter((on, i) => on === 1).length;
+  const ys = (await list(t, "pb.y")).map(Number).filter((y, i) => true);
+  const onl = (await list(t, "pb.on")).map(Number), xs = (await list(t, "pb.x")).map(Number);
+  t.expect(onl.every((on, i) => on === 0 || ys[i] < 40 || Math.abs(xs[i]) > 60), `no shot gets through the plate (${above} in the air)`);
+  // An enemy shot falling onto it stops too; the plate is still there.
+  const plateY = Number((await list(t, "ob.y"))[0]);
+  await putRow(t, "eb", { x: 0, y: plateY + 45, vx: 0, vy: -3, k: 1, dir: 180 });
+  await t.frames(20);
+  t.expect((await list(t, "eb.on")).map(Number).every(x => x === 0), "the enemy shot stopped on the steel");
+  t.expect((await list(t, "ob.on")).map(Number).filter(x => x === 1).length === 1, "the steel cannot be shot down");
+  await t.screenshot(shot("sfr-steel"));
+});
+
+test("starfire rush: the ship cannot fly through steel; pinned at the bottom it is crushed", async t => {
+  await startGame(t);
+  await setVar(t, "hp", 99); await holdWave(t);
+  await t.page(w => { for (const v of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (v.name === "en.on" || v.name === "eb.on") v.value.fill(0); });
+  await putRow(t, "ob", { x: 0, y: -20, kind: 3, hw: 75, hh: 27 });
+  await t.mouse(0, -120); await t.frames(20);
+  await t.mouse(0, 100); await t.frames(20);
+  const py = Number(await t.get("py"));
+  t.expect(py < -20 - 27, `the ship stays below the steel (y ${py.toFixed(0)})`);
+  // The steel keeps coming down; the ship is pinned against the bottom: a hit, and out to the side.
+  await setVar(t, "inv", 0);
+  const hp0 = Number(await t.get("hp"));
+  for (let f = 0; f < 60 && Number(await t.get("hp")) === hp0; f++) await t.frames(5);
+  const v = await t.vars();
+  t.expect(Number(v.hp) === hp0 - 1 && Math.abs(Number(v.px)) > 75, `crushed: hp ${v.hp}, ship at x ${Number(v.px).toFixed(0)}`);
 });

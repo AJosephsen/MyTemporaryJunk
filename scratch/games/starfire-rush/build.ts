@@ -12,11 +12,12 @@ import { writeFileSync } from "node:fs";
 import { Project, Blocks, dsl, type In } from "../../lib/sb3.ts";
 import { record } from "../../lib/records.ts";
 import { textCostumes, textScripts, sparkCostumes, sparkScripts, kitLists, write, clear, pulse, emit } from "../math-kit/kit.ts";
-import { art, ENEMIES, MAX_HP, MAX_GUN, SECTORS } from "./art.ts";
+import { art, ENEMIES, MAX_HP, MAX_GUN, SECTORS, STEEL } from "./art.ts";
 
 const P = new Project();
 type D = ReturnType<typeof dsl>;
-export const PB = 32, EN = 20, EB = 56, PU = 8;
+export const PB = 32, EN = 20, EB = 56, PU = 8, OB = 4;
+const STEEL_SPEED = 1.2, SHIP_HW = 15, SHIP_HH = 18, SHIP_STEP = 14;
 // Energy each volley uses at each gun level (level 1 is free): doubling, so high levels burn out fast.
 const GUN_COST = [0, 0.05, 1, 2, 4, 8], ENERGY_FULL = 100, ENERGY_AFTER_DROP = 60;   // the double shot hardly ever runs out
 const SHIP_MIN_Y = -160, SHIP_MAX_Y = 110, FIRE_EVERY = 6, SHOT_SPEED = 13, BOSS_EVERY = 5;
@@ -35,6 +36,8 @@ const pbRec = (d: D) => record(d, "pb", ["on", "x", "y", "vx", "vy"] as const);
 const enRec = (d: D) => record(d, "en", ["on", "kind", "x", "y", "bx", "sy", "vx", "vy", "hp", "t", "fire", "hit", "st"] as const);
 const ebRec = (d: D) => record(d, "eb", ["on", "x", "y", "vx", "vy", "k", "dir"] as const);
 const puRec = (d: D) => record(d, "pu", ["on", "x", "y", "kind", "t"] as const);
+// Steel: obstacles that cannot be shot; kind is the costume, hw/hh half its width and height.
+const obRec = (d: D) => record(d, "ob", ["on", "x", "y", "kind", "hw", "hh"] as const);
 const K = Object.fromEntries(ENEMIES.map((e, i) => [e.name, i + 1])) as Record<string, number>;
 
 // ---------------------------------------------------------------- Stage: the game
@@ -43,7 +46,7 @@ function stageScripts(): Blocks {
   const { v, add, sub, mul, div, eq, lt, gt, or, and, not, join, set, change, ifThen, ifElse, repeat, until, whenFlag,
     whenReceive, forever, broadcast, wait, random, replace, define, call, ceiling, floor, round, mod, abs, sin, cos, atan,
     switchBackdrop, arg, cond, choose, max, min, clamp, ret, compute, fn, mouseX, mouseY, key, item, length } = d;
-  const pb = pbRec(d), en = enRec(d), eb = ebRec(d), pu = puRec(d);
+  const pb = pbRec(d), en = enRec(d), eb = ebRec(d), pu = puRec(d), ob = obRec(d);
   const E = (f: Parameters<typeof en.get>[0]) => en.get(f, v("j"));
 
   B.script(whenFlag(), [
@@ -77,7 +80,7 @@ function stageScripts(): Blocks {
   B.script(d.whenKey("space"), [set("tap", 1)], 20, 1080);
 
   define("clear pools", [
-    ...([[pb, PB], [en, EN], [eb, EB], [pu, PU]] as const).flatMap(([r, n]) =>
+    ...([[pb, PB], [en, EN], [eb, EB], [pu, PU], [ob, OB]] as const).flatMap(([r, n]) =>
       [set("i", 1), repeat(n, [(r as any).set("on", v("i"), 0), change("i", 1)])]),
     set("bossOn", 0),
   ], { warp: true, x: 560, y: 1500 });
@@ -115,6 +118,7 @@ function stageScripts(): Blocks {
     ], [
       set("wstate", "fight"), set("groupsLeft", add(4, v("wave"))), set("spawnT", 70),
       // Once a wave (from wave 2), at a random moment, a cluster of power-ups: a super shot for a while.
+      set("steelT", random(120, 300)),
       set("clusterAt", -1), ifThen(gt(v("wave"), 1), [set("clusterAt", random(1, sub(v("groupsLeft"), 1)))]),
       ...write(d, { text: "word-wave", x: -40, y: 40, size: 100, group: G.banner }),
       ...write(d, { text: v("wave"), x: 90, y: 40, size: 120, group: G.bannerNum }),
@@ -166,6 +170,12 @@ function stageScripts(): Blocks {
     cond([
       [eq(v("wstate"), "fight"), [
         change("spawnT", -1),
+        // Steel from wave 3: rare at first, more often later; from wave 7 sometimes two with a gap between.
+        ifThen(gt(v("wave"), 2), [change("steelT", -1), ifThen(not(gt(v("steelT"), 0)), [
+          set("steelT", add(max(150, sub(560, mul(35, v("wave")))), random(0, 120))),
+          ifElse(and(gt(v("wave"), 6), lt(random(1, 100), 36)), [
+            call("spawn steel %s %s", random(-170, -90), random(1, 2)), call("spawn steel %s %s", random(90, 170), random(1, 2))],
+            [call("spawn steel %s %s", random(-150, 150), random(1, 4))])])]),
         ifThen(and(not(gt(v("spawnT"), 0)), gt(v("groupsLeft"), 0)), [call("spawn group")]),
         ifThen(and(eq(v("groupsLeft"), 0), eq(en.find("on", 1), 0)), [call("wave clear")]),
       ]],
@@ -180,6 +190,7 @@ function stageScripts(): Blocks {
     call("move enemies"),
     call("move bullets"),
     call("move powerups"),
+    call("move steel"),
     // Timers.
     ifThen(gt(v("inv"), 0), [change("inv", -1)]),
     ifThen(gt(v("shieldT"), 0), [change("shieldT", -1)]),
@@ -205,9 +216,12 @@ function stageScripts(): Blocks {
     ifThen(or(key("up arrow"), key("w")), [change("ky", 1)]), ifThen(or(key("down arrow"), key("s")), [change("ky", -1)]),
     ifThen(or(not(eq(v("kx"), 0)), not(eq(v("ky"), 0))), [set("useMouse", 0)]),
     ifElse(eq(v("useMouse"), 1), [
-      change("px", mul(sub(mouseX(), v("px")), 0.35)), change("py", mul(sub(mouseY(), v("py")), 0.35))], [
+      // Eased towards the mouse, but never more than SHIP_STEP a frame (so it cannot jump over steel).
+      change("px", clamp(mul(sub(mouseX(), v("px")), 0.35), -SHIP_STEP, SHIP_STEP)),
+      change("py", clamp(mul(sub(mouseY(), v("py")), 0.35), -SHIP_STEP, SHIP_STEP))], [
       change("px", mul(v("kx"), 6)), change("py", mul(v("ky"), 6))]),
     set("px", clamp(v("px"), -225, 225)), set("py", clamp(v("py"), SHIP_MIN_Y, SHIP_MAX_Y)),
+    call("steel push"),
   ], { warp: true, x: 2300, y: 20 });
 
   define("fire guns", [
@@ -331,6 +345,8 @@ function stageScripts(): Blocks {
       ifThen(eq(pb.get("on", v("i")), 1), [
         pb.change("x", v("i"), pb.get("vx", v("i"))), pb.change("y", v("i"), pb.get("vy", v("i"))),
         ifThen(or(gt(pb.get("y", v("i")), 190), gt(abs(pb.get("x", v("i"))), 250)), [pb.set("on", v("i"), 0)]),
+        ...compute("inSteel", [fn("in steel %s %s", pb.get("x", v("i")), pb.get("y", v("i")))]),
+        ifThen(eq(v("inSteel"), 1), [pb.set("on", v("i"), 0), ifThen(eq(mod(v("i"), 3), 0), [...emit(d, "spark", pb.get("x", v("i")), pb.get("y", v("i")), 1)])]),
         set("j", 1),
         repeat(EN, [
           ifThen(and(eq(pb.get("on", v("i")), 1), eq(E("on"), 1)), [
@@ -355,6 +371,8 @@ function stageScripts(): Blocks {
       ifThen(eq(eb.get("on", v("i")), 1), [
         eb.change("x", v("i"), eb.get("vx", v("i"))), eb.change("y", v("i"), eb.get("vy", v("i"))),
         ifThen(or(gt(abs(eb.get("y", v("i"))), 200), gt(abs(eb.get("x", v("i"))), 250)), [eb.set("on", v("i"), 0)]),
+        ...compute("inSteel", [fn("in steel %s %s", eb.get("x", v("i")), eb.get("y", v("i")))]),
+        ifThen(eq(v("inSteel"), 1), [eb.set("on", v("i"), 0)]),
         ifThen(and(eq(eb.get("on", v("i")), 1), eq(v("phase"), "play")), [
           set("bdx", abs(sub(eb.get("x", v("i")), v("px")))), set("bdy", abs(sub(eb.get("y", v("i")), v("py")))),
           ifElse(gt(v("shieldT"), 0), [
@@ -389,6 +407,48 @@ function stageScripts(): Blocks {
     set("s", pu.find("on", 0)),
     ifThen(gt(v("s"), 0), [pu.set("on", v("s"), 1), pu.set("x", v("s"), arg("x")), pu.set("y", v("s"), arg("y")), pu.set("kind", v("s"), arg("k")), pu.set("t", v("s"), 0)]),
   ], { args: ["x", "y", "k"], warp: true, x: 4100, y: 500 });
+
+  // ---------------------------------------------------------------- steel
+  define("spawn steel %s %s", [
+    set("s", ob.find("on", 0)),
+    ifThen(gt(v("s"), 0), [
+      ob.set("on", v("s"), 1), ob.set("kind", v("s"), arg("k")), ob.set("x", v("s"), arg("x")),
+      ob.set("hw", v("s"), item("steelHw", arg("k"))), ob.set("hh", v("s"), item("steelHh", arg("k"))),
+      ob.set("y", v("s"), add(190, item("steelHh", arg("k")))),
+    ]),
+  ], { args: ["x", "k"], warp: true, x: 4700, y: 1900 });
+  define("move steel", [
+    set("o", 1), repeat(OB, [ifThen(eq(ob.get("on", v("o")), 1), [
+      ob.change("y", v("o"), -STEEL_SPEED), ifThen(lt(ob.get("y", v("o")), -260), [ob.set("on", v("o"), 0)])]), change("o", 1)]),
+  ], { warp: true, x: 4700, y: 2200 });
+  // 1 if the point (x, y) is inside a steel obstacle, else 0.
+  define("in steel %s %s", [
+    set("hit", 0), set("o", 1),
+    repeat(OB, [ifThen(and(eq(ob.get("on", v("o")), 1), and(lt(abs(sub(arg("x"), ob.get("x", v("o")))), ob.get("hw", v("o"))),
+      lt(abs(sub(arg("y"), ob.get("y", v("o")))), ob.get("hh", v("o"))))), [set("hit", 1)]), change("o", 1)]),
+    ...ret("in steel %s %s", v("hit")),
+  ], { args: ["x", "y"], warp: true, x: 4700, y: 2400 });
+  // The ship cannot fly into steel: it is pushed out the shortest way. Pinned against the bottom, it is crushed.
+  define("steel push", [
+    set("o", 1),
+    repeat(OB, [
+      ifThen(eq(ob.get("on", v("o")), 1), [
+        set("odx", sub(v("px"), ob.get("x", v("o")))), set("ody", sub(v("py"), ob.get("y", v("o")))),
+        set("penX", sub(add(ob.get("hw", v("o")), SHIP_HW), abs(v("odx")))), set("penY", sub(add(ob.get("hh", v("o")), SHIP_HH), abs(v("ody")))),
+        ifThen(and(gt(v("penX"), 0), gt(v("penY"), 0)), [
+          ifElse(lt(v("penX"), v("penY")),
+            [ifElse(lt(v("odx"), 0), [change("px", mul(-1, v("penX")))], [change("px", v("penX"))])],
+            [ifElse(lt(v("ody"), 0), [change("py", mul(-1, v("penY")))], [change("py", v("penY"))])]),
+          // Pushed off the screen: crushed. A hit, and out to the side.
+          ifThen(or(lt(v("py"), SHIP_MIN_Y), gt(abs(v("px")), 225)), [
+            call("ship hit %s", 1), set("py", SHIP_MIN_Y),
+            ifElse(lt(ob.get("x", v("o")), 0), [set("px", add(ob.get("x", v("o")), add(ob.get("hw", v("o")), SHIP_HW + 4)))],
+              [set("px", sub(ob.get("x", v("o")), add(ob.get("hw", v("o")), SHIP_HW + 4)))]),
+            set("px", clamp(v("px"), -225, 225))]),
+        ]),
+      ]),
+      change("o", 1)]),
+  ], { warp: true, x: 4700, y: 2700 });
 
   // Three power-ups close together, falling from the top.
   define("power cluster %s", [
@@ -529,6 +589,8 @@ const enemies = () => poolSprite(EN, d => { const r = enRec(d), i = d.v("i");
 const enemyShots = () => poolSprite(EB, d => { const r = ebRec(d), i = d.v("i");
   return [d.ifElse(d.eq(r.get("on", i), 1), [d.costumeTo(r.get("k", i)), d.point(d.add(90, r.get("dir", i))),
     at(d, r.get("x", i), r.get("y", i)), d.show()], [d.hide()])]; });
+const steelSprite = () => poolSprite(OB, d => { const r = obRec(d), i = d.v("i");
+  return [d.ifElse(d.eq(r.get("on", i), 1), [d.costumeTo(r.get("kind", i)), at(d, r.get("x", i), r.get("y", i)), d.show()], [d.hide()])]; });
 const powerups = () => poolSprite(PU, d => { const r = puRec(d), i = d.v("i");
   return [d.ifElse(d.eq(r.get("on", i), 1), [d.costumeTo(r.get("kind", i)), d.setSize(d.add(100, d.mul(8, d.sin(d.mul(r.get("t", i), 12))))),
     at(d, r.get("x", i), r.get("y", i)), d.show()], [d.hide()])]; });
@@ -610,6 +672,7 @@ const sb3 = P.build({
   stage: stageScripts(),
   sprites: [
     P.sprite("Stars", { blocks: clickable(starScripts()), costumes: A.stars, layer: 1, visible: false }),
+    P.sprite("Steel", { blocks: clickable(steelSprite()), costumes: A.steel, layer: 2, visible: false }),
     P.sprite("Powerup", { blocks: clickable(powerups()), costumes: A.powerup, layer: 2, visible: false }),
     P.sprite("Enemy", { blocks: clickable(enemies()), costumes: A.enemy, layer: 3, visible: false }),
     P.sprite("Boss", { blocks: clickable(bossScripts()), costumes: A.boss, layer: 4, visible: false }),
@@ -632,6 +695,8 @@ const sb3 = P.build({
     ...Object.fromEntries((["on", "kind", "x", "y", "bx", "sy", "vx", "vy", "hp", "t", "fire", "hit", "st"]).map(f => [`en.${f}`, Array(EN).fill(0)])),
     ...Object.fromEntries((["on", "x", "y", "vx", "vy", "k", "dir"]).map(f => [`eb.${f}`, Array(EB).fill(0)])),
     ...Object.fromEntries((["on", "x", "y", "kind", "t"]).map(f => [`pu.${f}`, Array(PU).fill(0)])),
+    ...Object.fromEntries((["on", "x", "y", "kind", "hw", "hh"]).map(f => [`ob.${f}`, Array(OB).fill(0)])),
+    steelHw: STEEL.map(s => s.w / 2), steelHh: STEEL.map(s => s.h / 2),
     enHp: ENEMIES.map(e => e.hp), enR: ENEMIES.map(e => e.r), enScore: ENEMIES.map(e => e.score),
     gunStart: GUNS.map((_, i) => GUNS.slice(0, i).reduce((n, g) => n + g.length, 0) + 1), gunCount: GUNS.map(g => g.length),
     gunDx: gunFlat.map(s => s[0]), gunAng: gunFlat.map(s => s[1]),

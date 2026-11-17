@@ -80,6 +80,18 @@ const POWERUPS: [string, string][] = [
   ["bomb", capsule("#dc2626", `<circle cx="14" cy="17" r="6" fill="#fff"/><path d="M17 11 L21 7" stroke="#fff" stroke-width="2.5"/><circle cx="22" cy="6" r="2" fill="#fde047"/>`)],
 ];
 
+// ---------------------------------------------------------------- steel obstacles (cannot be shot)
+export const STEEL = [
+  { name: "block", w: 70, h: 70 }, { name: "plate", w: 120, h: 40 }, { name: "slab", w: 150, h: 54 }, { name: "girder", w: 200, h: 30 },
+];
+const steel = (w: number, h: number) => svg(w + 4, h + 4,
+  `<defs><linearGradient id="m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cbd5e1"/><stop offset="0.5" stop-color="#94a3b8"/><stop offset="1" stop-color="#475569"/></linearGradient>` +
+  `<pattern id="h" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="16" fill="#facc15"/><rect x="8" width="8" height="16" fill="#1e293b"/></pattern></defs>` +
+  `<rect x="2" y="2" width="${w}" height="${h}" rx="5" fill="url(#m)" stroke="#0f172a" stroke-width="3"/>` +
+  `<rect x="7" y="7" width="${w - 10}" height="${Math.min(8, h / 5)}" rx="2" fill="url(#h)" opacity="0.9"/>` +
+  `<rect x="7" y="${h - 3 - Math.min(8, h / 5)}" width="${w - 10}" height="${Math.min(8, h / 5)}" rx="2" fill="url(#h)" opacity="0.9"/>` +
+  [[10, h / 2 + 2], [w - 6, h / 2 + 2], [w / 2 + 2, h / 2 + 2]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#e2e8f0" stroke="#334155" stroke-width="1.5"/>`).join(""));
+
 // ---------------------------------------------------------------- bars
 export const MAX_HP = 6, MAX_GUN = 6;
 const cells = (n: number, of: number, on: string, w = 16) => svg(of * (w + 3) + 4, 16,
@@ -107,6 +119,7 @@ export function art(P: Project) {
     hpBar: Array.from({ length: MAX_HP + 1 }, (_, n) => P.costume(`hp${n}`, cells(n, MAX_HP, n > 2 ? "#22c55e" : n > 1 ? "#f59e0b" : "#ef4444"), 0, 8)),
     gunBar: Array.from({ length: MAX_GUN + 1 }, (_, n) => P.costume(`gun${n}`, cells(n, MAX_GUN, "#facc15", 8), 0, 8)),
     energyBar: Array.from({ length: 21 }, (_, n) => P.costume(`energy${n}`, energyBar(n), 0, 4)),
+    steel: STEEL.map(st => P.costume(st.name, steel(st.w, st.h), st.w / 2 + 2, st.h / 2 + 2)),
     bossBar: Array.from({ length: 21 }, (_, n) => P.costume(`boss${n}`, bossBar(n), 150, 7)),
     hud: [P.costume("hud", hud, 240, 20)],
     flash: [P.costume("white", flash("#fff"), 240, 180), P.costume("red", flash("#ef4444"), 240, 180)],

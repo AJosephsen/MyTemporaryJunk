@@ -25,6 +25,8 @@ async function placed(t: T) {
   const [on, kind, x, y, dir] = await Promise.all(["on", "kind", "x", "y", "dir"].map(f => list(t, `fw.${f}`)));
   return on.map((o, i) => ({ i, on: Number(o), kind: Number(kind[i]), x: Number(x[i]), y: Number(y[i]), dir: Number(dir[i]) })).filter(f => f.on === 1);
 }
+// Sets the level before the title click starts it.
+const setLevel = (t: T, n: number) => t.page((w, n) => { for (const x of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (x.name === "level") x.value = n; }, n);
 const waitPhase = (t: T, max = 900) => t.until(v => v.phase !== "test" && v.phase !== "go", { max, what: "the show to end" });
 
 test("chain spark deluxe: the title; a click opens level 1 with its tray", async t => {
@@ -94,4 +96,53 @@ test("chain spark deluxe: GO for real: too little is TRY AGAIN (the layout stays
   t.expect(Number(v.score) >= Number(v.target), `score ${v.score} for target ${v.target}`);
   await t.frames(20);
   await t.screenshot(shot("csd-welldone"));
+});
+
+// A simple chain for any level: from the fuse, fireworks about 60 px apart in a zigzag across the sky; fountains and
+// rockets turned (in 45° clicks) towards the next one. Returns the TEST score.
+const ORDER = [2, 1, 3, 4, 5, 0];   // fountain, shell, crossette, willow, spinner, rocket (tray index)
+async function simpleChain(t: T) {
+  const v = await t.vars();
+  const fx = Number(v.fuseX), fy = Number(v.fuseY), inv = (await list(t, "inv")).map(Number);
+  const kinds: number[] = []; const left = [...inv];
+  while (left.some(n => n > 0)) for (const k of ORDER) if (left[k] > 0) { kinds.push(k); left[k]--; }
+  const dx = fx > 50 ? -1 : 1;
+  const pts = kinds.map((_, i) => {
+    let x = fx + dx * (i === 0 ? 6 : 20 + i * 52), y = Math.max(-105, Math.min(140, fy + (i === 0 ? 32 : 30 + (i % 2 ? 40 : -20))));
+    if (Math.abs(x) > 215) { x = Math.sign(x) * 215; }
+    return [x, y];
+  });
+  for (let i = 0; i < kinds.length; i++) {
+    const [x, y] = pts[i];
+    await place(t, kinds[i], x, y);
+    if (kinds[i] === 2 || kinds[i] === 0) {
+      const [nx, ny] = pts[Math.min(i + 1, pts.length - 1)];
+      const dir = ((Math.atan2(nx - x, ny - y) * 180 / Math.PI) + 360) % 360;
+      for (let c = 0; c < Math.round(dir / 45) % 8; c++) await click(t, x, y);
+    }
+  }
+  return kinds.length;
+}
+
+test("chain spark deluxe: every level can be beaten with a simple chain (and the new kinds go off)", async t => {
+  const results: any[] = [];
+  for (let level = 1; level <= 5; level++) {
+    await t.page((w, on) => w.vm.setCompilerOptions({ enabled: on }), true);
+    await t.load(GAME); await t.greenFlag(); await t.frames(5);
+    await setLevel(t, level);
+    await t.mouse(0, 0, true); await t.frames(1); await t.mouse(0, 0, false);
+    await t.until(v => v.phase === "build", { max: 10, what: "build" });
+    if (level === 2) { await t.frames(5); await t.screenshot(shot("csd-level2")); }
+    const n = await simpleChain(t);
+    await click(t, BUTTON_X[0], TRAY_Y);
+    let mid = false;
+    for (let f = 0; f < 150 && (await t.get("phase")) === "test"; f++) {
+      await t.frames(8);
+      if (!mid && level >= 3 && Number(await t.get("lit")) >= Math.min(n, 4)) { await t.screenshot(shot(`csd-show${level}`)); mid = true; }
+    }
+    const v = await t.vars();
+    results.push({ level, placed: n, lit: Number(v.lit), score: Number(v.score), target: Number(v.target) });
+  }
+  t.log(results);
+  for (const r of results) t.expect(r.score >= r.target, `level ${r.level}: ${r.score} for ${r.target} (${r.lit}/${r.placed} lit)`);
 });

@@ -23,15 +23,18 @@ const skyline = (() => {
   }
   return out.join("");
 })();
-const harbour = (top: string, bottom: string) => svg(480, 360,
+// Aurora curtains: soft green and teal bands across the sky.
+const aurora = [["#34d399", 60, 0.35], ["#2dd4bf", 95, 0.28], ["#a3e635", 40, 0.2]].map(([c, y, o]) =>
+  `<path d="M-20 ${y} C80 ${Number(y) - 40} 160 ${Number(y) + 50} 260 ${y} S420 ${Number(y) - 30} 500 ${Number(y) + 20} L500 ${Number(y) + 70} C400 ${Number(y) + 40} 300 ${Number(y) + 110} 200 ${Number(y) + 60} S40 ${Number(y) + 40} -20 ${Number(y) + 80}z" fill="${c}" opacity="${o}"/>`).join("");
+const harbour = (top: string, bottom: string, extra = "") => svg(480, 360,
   `<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient>` +
   `<linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1631"/><stop offset="1" stop-color="#050913"/></linearGradient></defs>` +
-  `<rect width="480" height="282" fill="url(#s)"/>${stars}${skyline}<rect y="282" width="480" height="40" fill="url(#w)"/>` +
+  `<rect width="480" height="282" fill="url(#s)"/>${stars}${extra}${skyline}<rect y="282" width="480" height="40" fill="url(#w)"/>` +
   Array.from({ length: 10 }, (_, i) => `<path d="M${(i * 53) % 450 + 8} ${290 + (i * 9) % 26} h${14 + (i % 3) * 8}" stroke="#fbbf24" stroke-width="1.2" opacity="0.25"/>`).join("") +
   `<rect y="322" width="480" height="38" fill="#111827"/><rect y="322" width="480" height="2" fill="#475569"/>`);
 export const SKIES = ["dusk", "midnight", "aurora"];
 const backdrops: [string, string][] = [
-  ["dusk", harbour("#0b1033", "#3b1d5e")], ["midnight", harbour("#020617", "#0f172a")], ["aurora", harbour("#02131a", "#0b3b3a")],
+  ["dusk", harbour("#0b1033", "#3b1d5e")], ["midnight", harbour("#020617", "#0f172a")], ["aurora", harbour("#020b14", "#06262b", aurora)],
 ];
 
 // ---------------------------------------------------------------- fireworks (pointing right)

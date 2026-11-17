@@ -25,9 +25,16 @@ export const BUTTON_X = [150, 208], BUTTON_Y = TRAY_Y, BUTTON_W = 26, BUTTON_H =
 export const POINTS: Record<string, number> = { rocket: 5, shell: 30, fountain: 20, crossette: 25, willow: 25, spinner: 20 };
 export const FINALE = 200, SHOW_POINTS = 2;
 // Levels: [sky, fuse x, fuse y, target, counts per kind (rocket, shell, fountain, crossette, willow, spinner)].
+// Each level brings one new kind (shown with "NEW!" at the start). Targets: about 85% of what a simple chain scores
+// (see the test "every level can be beaten"); a well spread-out show does better.
 export const LEVELS: [string, number, number, number, number[]][] = [
   ["dusk", -200, -100, 600, [2, 3, 1, 0, 0, 0]],
+  ["dusk", 0, -105, 450, [2, 2, 0, 2, 0, 0]],          // crossette
+  ["midnight", 200, -100, 650, [1, 2, 1, 1, 2, 0]],     // willow
+  ["midnight", -200, 110, 1000, [2, 1, 1, 1, 1, 2]],     // spinner
+  ["aurora", 0, 40, 1350, [2, 2, 2, 2, 2, 2]],          // everything
 ];
+export const NEW_KIND = [0, 4, 5, 6, 0];   // the kind each level introduces (0: none)
 const G = { score: 1, levelWord: 2, levelNum: 3, targetWord: 4, targetNum: 5, banner: 6, bannerNum: 7, title1: 8, title2: 9,
   click: 10, b1: 11, b2: 12, pop: 13, mode: 14, slot: 20 };   // slot k: 20 + k
 const fwRec = (d: D) => record(d, "fw", ["on", "kind", "x", "y", "dir", "hx", "hy", "hdir", "st", "t", "a"] as const);
@@ -108,6 +115,9 @@ function stageScripts(): Blocks {
     ...write(d, { text: "word-target", x: -20, y: 162, size: 26, group: G.targetWord }),
     ...write(d, { text: v("target"), x: 50, y: 162, size: 32, group: G.targetNum }),
     set("score", 0), set("shown", -1), set("phase", "build"), set("lit", 0), set("fuse", 0), call("buttons"),
+    // A new kind of firework this level: "NEW!" next to it in the tray.
+    set("newKind", item("lvNew", v("L"))),
+    ifThen(gt(v("newKind"), 0), [...write(d, { text: "word-new", x: item("slotX", v("newKind")), y: TRAY_Y + 28, size: 30, group: G.mode }), pulse(d, G.mode, 50)]),
   ], { warp: true, x: 560, y: 400 });
 
   define("write tray", [
@@ -392,7 +402,7 @@ const sb3 = P.build({
     ...Object.fromEntries((["on", "x", "y", "vx", "vy", "life", "col", "kind"]).map(f => [`sp.${f}`, Array(SP).fill(0)])),
     inv: KINDS.map(() => 0), slotX: SLOT_X, buttonX: BUTTON_X, points: KINDS.map(k => POINTS[k]),
     lvSky: LEVELS.map(l => l[0]), lvFuseX: LEVELS.map(l => l[1]), lvFuseY: LEVELS.map(l => l[2]), lvTarget: LEVELS.map(l => l[3]),
-    lvInv: LEVELS.flatMap(l => l[4]), lvMax: LEVELS.flatMap(l => l[4]),
+    lvInv: LEVELS.flatMap(l => l[4]), lvMax: LEVELS.flatMap(l => l[4]), lvNew: NEW_KIND,
   },
   shown: [],
 });

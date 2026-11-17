@@ -94,8 +94,15 @@ test("chain spark deluxe: GO for real: too little is TRY AGAIN (the layout stays
   const v = await waitPhase(t, 1200);
   t.log({ score: v.score, target: v.target, lit: v.lit, placed: v.placed });
   t.expect(Number(v.score) >= Number(v.target), `score ${v.score} for target ${v.target}`);
+  // All six went off: the finale lights up the sky. Then the stars (score / target: 1, 1.25, 1.5).
+  t.expect(Number(v.lit) === Number(v.placed) && Number(v.flash) > 20, `finale flash ${v.flash}`);
   await t.frames(20);
   await t.screenshot(shot("csd-welldone"));
+  const ratio = Number(v.score) / Number(v.target), want = ratio >= 1.5 ? 3 : ratio >= 1.25 ? 2 : 1;
+  t.expect(Number((await list(t, "lvStars"))[0]) === want, `stars ${(await list(t, "lvStars"))[0]}, want ${want} for ${ratio.toFixed(2)}`);
+  await t.until(v => v.phase === "build" && Number(v.level) === 2, { max: 200, what: "level 2" });
+  await t.frames(3);
+  await t.screenshot(shot("csd-next"));
 });
 
 // A simple chain for any level: from the fuse, fireworks about 60 px apart in a zigzag across the sky; fountains and

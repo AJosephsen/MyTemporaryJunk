@@ -23,7 +23,7 @@ export const SLOT_X = KINDS.map((_, i) => -205 + i * 60);
 export const BUTTON_X = [150, 208], BUTTON_Y = TRAY_Y, BUTTON_W = 26, BUTTON_H = 15;
 // Points when a firework goes off (rockets few: they are the fuses).
 export const POINTS: Record<string, number> = { rocket: 5, shell: 30, fountain: 20, crossette: 25, willow: 25, spinner: 20 };
-export const FINALE = 200, SHOW_POINTS = 2;
+export const FINALE = 200, SHOW_POINTS = 2, STAR2 = 1.25, STAR3 = 1.5;
 // Levels: [sky, fuse x, fuse y, target, counts per kind (rocket, shell, fountain, crossette, willow, spinner)].
 // Each level brings one new kind (shown with "NEW!" at the start). Targets: about 85% of what a simple chain scores
 // (see the test "every level can be beaten"); a well spread-out show does better.
@@ -36,7 +36,7 @@ export const LEVELS: [string, number, number, number, number[]][] = [
 ];
 export const NEW_KIND = [0, 4, 5, 6, 0];   // the kind each level introduces (0: none)
 const G = { score: 1, levelWord: 2, levelNum: 3, targetWord: 4, targetNum: 5, banner: 6, bannerNum: 7, title1: 8, title2: 9,
-  click: 10, b1: 11, b2: 12, pop: 13, mode: 14, slot: 20 };   // slot k: 20 + k
+  click: 10, b1: 11, b2: 12, pop: 13, mode: 14, stars: 15, best: 16, slot: 20 };   // slot k: 20 + k
 const fwRec = (d: D) => record(d, "fw", ["on", "kind", "x", "y", "dir", "hx", "hy", "hdir", "st", "t", "a"] as const);
 const spRec = (d: D) => record(d, "sp", ["on", "x", "y", "vx", "vy", "life", "col", "kind"] as const);
 const K = Object.fromEntries(KINDS.map((k, i) => [k, i + 1])) as Record<string, number>;
@@ -53,7 +53,7 @@ function stageScripts(): Blocks {
 
   B.script(whenFlag(), [
     set("phase", "title"), set("frame", 0), set("hideAbove", 400), set("score", 0), set("shown", 0), set("level", 1),
-    set("pressQ", 0), set("drag", 0), set("burning", 0), set("sparks", 0), set("shake", 0), set("best", 0),
+    set("pressQ", 0), set("drag", 0), set("burning", 0), set("sparks", 0), set("shake", 0), set("best", 0), set("flash", 0),
     call("clear all"), switchBackdrop(SKIES[0]),
     call("title screen"),
     forever([
@@ -61,6 +61,7 @@ function stageScripts(): Blocks {
       set("shake", mul(v("shake"), 0.85)), ifThen(lt(v("shake"), 0.4), [set("shake", 0)]),
       set("shakeX", random(mul(v("shake"), -1), v("shake"))), set("shakeY", random(mul(v("shake"), -1), v("shake"))),
       set("press", v("pressQ")), set("pressQ", 0),
+      set("flash", mul(v("flash"), 0.85)),
       cond([
         [eq(v("phase"), "build"), [call("build")]],
         [or(eq(v("phase"), "test"), eq(v("phase"), "go")), [call("show")]],
@@ -112,6 +113,9 @@ function stageScripts(): Blocks {
     call("write tray"),
     ...write(d, { text: "word-level", x: 110, y: 162, size: 26, group: G.levelWord }),
     ...write(d, { text: v("level"), x: 160, y: 162, size: 32, group: G.levelNum }),
+    // The best stars for this level so far.
+    ifElse(gt(item("lvStars", v("L")), 0), [...write(d, { text: item("starText", item("lvStars", v("L"))), x: 212, y: 162, size: 26, group: G.best })],
+      [...clear(d, G.best)]),
     ...write(d, { text: "word-target", x: -20, y: 162, size: 26, group: G.targetWord }),
     ...write(d, { text: v("target"), x: 50, y: 162, size: 32, group: G.targetNum }),
     set("score", 0), set("shown", -1), set("phase", "build"), set("lit", 0), set("fuse", 0), call("buttons"),
@@ -222,13 +226,13 @@ function stageScripts(): Blocks {
         // Off the screen: it pops early.
         ifThen(or(gt(abs(F("x")), 235), or(gt(F("y"), 175), lt(F("y"), -175))), [fw.set("t", v("i"), 45)]),
       ], [call("burst %s %s %s %s %s %s %s", F("x"), F("y"), 10, 3.5, 22, "red", 0), call("done")])]],
-      [eq(v("fk"), K.shell), [ifThen(eq(v("ft"), 12), [call("burst %s %s %s %s %s %s %s", F("x"), F("y"), 20, 4, 26, "purple", 0), set("shake", max(v("shake"), 3)), call("done")])]],
+      [eq(v("fk"), K.shell), [ifThen(eq(v("ft"), 12), [call("burst %s %s %s %s %s %s %s", F("x"), F("y"), 20, 4, 26, "purple", 0), set("shake", max(v("shake"), 3)), set("flash", max(v("flash"), 14)), call("done")])]],
       [eq(v("fk"), K.fountain), [ifElse(lt(v("ft"), 90), [
         call("spark %s %s %s %s %s %s %s", F("x"), F("y"), add(F("dir"), random(-18, 18)), random(3.8, 5), 20, "green", 0)], [call("done")])]],
       [eq(v("fk"), K.crossette), [ifThen(eq(v("ft"), 10), [
         set("q", 0), repeat(4, [call("spark %s %s %s %s %s %s %s", F("x"), F("y"), add(F("dir"), mul(90, v("q"))), 3.5, 18, "big-blue", 1), change("q", 1)]),
         call("done")])]],
-      [eq(v("fk"), K.willow), [ifThen(eq(v("ft"), 14), [call("burst %s %s %s %s %s %s %s", F("x"), F("y"), 16, 2.2, 75, "gold", 2), call("done")])]],
+      [eq(v("fk"), K.willow), [ifThen(eq(v("ft"), 14), [call("burst %s %s %s %s %s %s %s", F("x"), F("y"), 16, 2.2, 75, "gold", 2), set("flash", max(v("flash"), 10)), call("done")])]],
     ], [ifElse(lt(v("ft"), 130), [
       // Spinner: turns on the spot, throwing sparks.
       fw.change("a", v("i"), 23), fw.set("dir", v("i"), F("a")),
@@ -240,12 +244,15 @@ function stageScripts(): Blocks {
   define("ignite %s", [
     fw.set("st", arg("n"), 1), fw.set("t", arg("n"), 0), fw.set("a", arg("n"), fw.get("dir", arg("n"))), change("burning", 1), change("lit", 1),
     change("score", item("points", fw.get("kind", arg("n")))),
+    ...emit(d, "ring", fw.get("x", arg("n")), fw.get("y", arg("n")), 1),
   ], { args: ["n"], warp: true, x: 1700, y: 2200 });
 
   define("show over", [
     ifThen(and(eq(v("lit"), v("placed")), gt(v("placed"), 2)), [change("score", FINALE),
       ...write(d, { text: "word-finale", x: 0, y: 60, size: 100, group: G.banner }), pulse(d, G.banner, 50),
-      ...emit(d, "confetti", 0, 170, 20)]),
+      ...emit(d, "confetti", 0, 170, 20),
+      call("burst %s %s %s %s %s %s %s", -140, 70, 18, 4.5, 30, "big-red", 0), call("burst %s %s %s %s %s %s %s", 0, 110, 18, 4.5, 30, "big-gold", 0),
+      call("burst %s %s %s %s %s %s %s", 140, 70, 18, 4.5, 30, "big-green", 0), set("flash", 45), set("shake", 10)]),
     ifElse(eq(v("phase"), "test"), [
       // A test: what it would score. Then back to the same layout with RESET (or GO for real).
       set("phase", "tested"), call("buttons"),
@@ -263,10 +270,14 @@ function stageScripts(): Blocks {
 
   B.script(whenReceive("result"), [
     ifElse(not(lt(v("score"), v("target"))), [
-      ...write(d, { text: "word-welldone", x: 0, y: 30, size: 100, group: G.banner }), pulse(d, G.banner, 50),
+      ...write(d, { text: "word-welldone", x: 0, y: 40, size: 100, group: G.banner }), pulse(d, G.banner, 50),
+      // Stars: 1 for the target, 2 for 25% more, 3 for 50% more.
+      set("got", 1), ifThen(not(lt(v("score"), mul(v("target"), STAR2))), [set("got", 2)]), ifThen(not(lt(v("score"), mul(v("target"), STAR3))), [set("got", 3)]),
+      ifThen(gt(v("got"), item("lvStars", v("L"))), [replace("lvStars", v("L"), v("got"))]),
+      ...write(d, { text: item("starText", v("got")), x: 0, y: -25, size: 90, group: G.stars }), pulse(d, G.stars, 60),
       ...emit(d, "confetti", -150, 170, 15), ...emit(d, "confetti", 150, 170, 15),
       ifThen(gt(v("score"), v("best")), [set("best", v("score"))]),
-      wait(2.5), change("level", 1), call("start level"),
+      wait(3), ...clear(d, G.stars), change("level", 1), call("start level"),
     ], [
       ...write(d, { text: "word-tryagain", x: 0, y: 30, size: 90, group: G.banner }), pulse(d, G.banner, 40),
       wait(2), call("reset"),
@@ -380,6 +391,13 @@ function ringScripts(): Blocks {
     d.goto(r.get("x", d.v("hover")), r.get("y", d.v("hover"))), d.turn(3), d.show()], [d.hide()])], 20, 100);
   return B;
 }
+// The sky lights up with big bursts: "flash" (0..100) is how bright, and fades every frame.
+function flashScripts(): Blocks {
+  const B = new Blocks(P), d = dsl(B);
+  B.script(d.whenFlag(), [d.goto(0, 0), d.hide()], 20, 20);
+  B.script(d.whenReceive("tick"), [d.ifElse(d.gt(d.v("flash"), 1), [d.setEffect("GHOST", d.sub(100, d.v("flash"))), d.show()], [d.hide()])], 20, 100);
+  return B;
+}
 const clickable = (B: Blocks) => { const d = dsl(B); B.script(d.whenClicked(), [d.broadcast("other click")], 300, 20); return B; };
 
 const A = art(P);
@@ -394,6 +412,7 @@ const sb3 = P.build({
     P.sprite("Spark", { blocks: clickable(sparks()), costumes: A.spark, layer: 5, visible: false }),
     P.sprite("Button", { blocks: clickable(buttonScripts()), costumes: A.button, layer: 6, visible: false }),
     P.sprite("Glitter", { blocks: sparkScripts(P), costumes: sparkCostumes(P), layer: 7, visible: false }),
+    P.sprite("Flash", { blocks: clickable(flashScripts()), costumes: A.flash, layer: 9, visible: false }),
     P.sprite("Text", { blocks: textScripts(P), costumes: textCostumes(P, "chain-spark-deluxe"), layer: 8, visible: false }),
   ],
   listValues: {
@@ -403,6 +422,7 @@ const sb3 = P.build({
     inv: KINDS.map(() => 0), slotX: SLOT_X, buttonX: BUTTON_X, points: KINDS.map(k => POINTS[k]),
     lvSky: LEVELS.map(l => l[0]), lvFuseX: LEVELS.map(l => l[1]), lvFuseY: LEVELS.map(l => l[2]), lvTarget: LEVELS.map(l => l[3]),
     lvInv: LEVELS.flatMap(l => l[4]), lvMax: LEVELS.flatMap(l => l[4]), lvNew: NEW_KIND,
+    lvStars: LEVELS.map(() => 0), starText: ["★", "★★", "★★★"],
   },
   shown: [],
 });

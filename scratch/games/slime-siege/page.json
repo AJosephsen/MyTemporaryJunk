@@ -1,0 +1,8 @@
+{
+  "title": "Slime Siege",
+  "tagline": "Slimes zigzag towards your keep! Drag cannons anywhere: they turn, find the slimes and shoot. Upgrade and repair them.",
+  "project": "slime-siege.sb3",
+  "left": [],
+  "right": [],
+  "keys": "Drag a cannon from the shop (bottom left) anywhere on the meadow · pick a tool, then click a cannon: speed, damage, pierce, strength, repair"
+}

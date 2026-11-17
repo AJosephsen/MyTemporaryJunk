@@ -1,4 +1,4 @@
-<title>Slime Lanes Tutorial</title>
+<title>Slime Siege Tutorial</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400&display=swap">
@@ -92,75 +92,79 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 <main>
   <header class="intro">
     <span class="eyebrow">Scratch tutorial for kids (9+) · 7 steps · basic blocks only</span>
-    <h1>Slime Lanes</h1>
-    <p>Slimes are crawling in from the right along four lanes towards your castle! Drag crystal towers onto the field to stop them. Destroyed slimes give coins for more towers, repairs and upgrades: faster shooting, stronger bolts, bolts that fly through, and sturdier towers.</p>
+    <h1>Slime Siege</h1>
+    <p>Slimes are zigzagging across the meadow towards your keep! Drag cannons anywhere you like: they turn to find the slimes and shoot them. Destroyed slimes give coins for more cannons, repairs and upgrades: faster shooting, stronger bolts, bolts that fly through, and sturdier cannons.</p>
     <p>Every step is a game you can play, and every step has a file you can download if you get stuck. You need the Scratch editor: <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>.</p>
     <div class="checkpoint">
-      <p>Start here: the starter project has the slimes, the tower, the tools and the field. No code yet.</p>
-      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/starter.sb3">Download starter.sb3</a>
+      <p>Start here: the starter project has the keep, the slimes, the cannon, the tools and the meadow. No code yet.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/starter.sb3">Download starter.sb3</a>
     </div>
   </header>
 
   <section class="stack" aria-label="Steps">
     <h3>The steps</h3>
     <ol class="plan">
-      <li><a href="#step-1"><span class="name">Slimes</span></a><span class="what">Clones on lanes</span></li>
-      <li><a href="#step-2"><span class="name">Towers</span></a><span class="what">Drag and snap</span></li>
-      <li><a href="#step-3"><span class="name">Shooting</span></a><span class="what">Bolts are clones of their tower</span></li>
-      <li><a href="#step-4"><span class="name">Hits and coins</span></a><span class="what">Touching color</span></li>
+      <li><a href="#step-1"><span class="name">Slimes</span></a><span class="what">Point towards, then wiggle</span></li>
+      <li><a href="#step-2"><span class="name">Towers</span></a><span class="what">Drag anywhere</span></li>
+      <li><a href="#step-3"><span class="name">Aiming</span></a><span class="what">A costume that looks for you</span></li>
+      <li><a href="#step-4"><span class="name">Shooting</span></a><span class="what">Bolts are clones of their cannon</span></li>
       <li><a href="#step-5"><span class="name">Chewing and repair</span></a><span class="what">Each clone keeps its own health</span></li>
-      <li><a href="#step-6"><span class="name">Upgrades</span></a><span class="what">A tool, then a tower</span></li>
+      <li><a href="#step-6"><span class="name">Upgrades</span></a><span class="what">A tool, then a cannon</span></li>
       <li><a href="#step-7"><span class="name">Waves</span></a><span class="what">One number makes it harder</span></li>
     </ol>
   </section>
 
   <section class="step" id="step-1">
     <div class="step-head"><span class="num">1</span><h2>Slimes</h2></div>
-    <div class="idea"><b>Big idea: clones on lanes</b><span>The Slime sprite hides and, every few seconds, picks one of four lanes and makes a <b>clone</b> of itself there. The lanes are 60 apart: <b>set y to 90 − 60 × pick random 0 to 3</b>. Each clone starts at the right and crawls left until it reaches the castle wall.</span></div>
-    <p class="make"><span><b>Make:</b> nothing new yet. The starter has the Slime, Tower, Tool and Ring sprites and the field.</span></p>
+    <div class="idea"><b>Big idea: point towards, then wiggle</b><span>The Slime sprite hides and, every few seconds, makes a <b>clone</b> at a random place on the right edge. Each clone heads for the keep: <b>point towards Keep</b>, then <b>turn</b> a little left or right, then <b>move</b>. The turn comes from a wave, <b>40 × sin(timer × 200)</b>, so the slimes zigzag.</span></div>
+    <p class="make"><span><b>Make:</b> nothing new yet. The starter has the Keep, Slime, Tower, Tool and Ring sprites and the meadow.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Slime <span class="tag new">new</span></div>
 <pre class="blocks">when flag clicked
 hide
-go to x: (228) y: (0)
 forever
   wait (pick random (2) to (3.5)) seconds
-  set y to ((90) - ((60) * (pick random (0) to (3))))
+  go to x: (228) y: (pick random (-105) to (165))
   create clone of (myself v)
 end</pre></div>
 <div class="blocks-panel"><div class="label">Slime <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 set [health v] to (3)
 set [ouch v] to (0)
-set [speed v] to (0.6)
+set [speed v] to (0.7)
+set [wiggle v] to (pick random (0) to (360))
 switch costume to (green v)
 show
-repeat until &lt;(x position) &lt; (-185)&gt;
-  change x by ((-1) * (speed))
+repeat until &lt;touching (Keep v)?&gt;
+  point towards (Keep v)
+  turn right ((40) * ([sin v] of ((wiggle) + ((timer) * (200))))) degrees
+  move (speed) steps
 end
 delete this clone</pre></div>
 </div>
     <ul class="do">
-      <li>Try more lanes or fewer: what do you need to change?</li>
+      <li>Each slime starts its wave at a different point (<b>wiggle</b> is random), so they don't all zigzag together.</li>
+      <li>Try a bigger number than 40: how wild can they zigzag?</li>
     </ul>
     <figure>
-      <img src="step1.png" alt="Slimes crawling along the lanes." width="720" height="541" loading="lazy">
-      <figcaption>Slimes on their way to the castle.</figcaption>
+      <img src="step1.png" alt="Slimes zigzagging across the meadow towards the keep." width="720" height="541" loading="lazy">
+      <figcaption>Slimes on their way to the keep.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 1.</p>
-      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step1.sb3">Download step1.sb3</a>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step1.sb3">Download step1.sb3</a>
     </div>
   </section>
   <section class="step" id="step-2">
     <div class="step-head"><span class="num">2</span><h2>Towers</h2></div>
-    <div class="idea"><b>Big idea: drag and snap</b><span>Click the tower in the shop and a new one appears under your mouse. Its clone script says <b>repeat until not mouse down: go to mouse-pointer</b>: it follows you until you let go. Then it <b>snaps</b> to the nearest square with <b>round</b>.</span></div>
-    <p class="make"><span><b>Make:</b> the variable <code>coins</code>, and <code>role</code>, <code>hp</code>, <code>maxhp</code>, <code>delay</code>, <code>power</code> and <code>pierce</code> for this sprite only.</span></p>
+    <div class="idea"><b>Big idea: drag anywhere</b><span>Click the cannon in the shop and a new one appears under your mouse. Its clone script says <b>repeat until not mouse down: go to mouse-pointer</b>: it follows you until you let go, wherever you like on the meadow.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>coins</code>, and <code>role</code>, <code>hp</code>, <code>maxhp</code>, <code>delay</code>, <code>power</code>, <code>pierce</code> and <code>locked</code> for this sprite only.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Tower <span class="tag new">new</span></div>
 <pre class="blocks">when flag clicked
 set [role v] to [shop]
 go to x: (-205) y: (-152)
+point in direction (90)
 switch costume to (tower v)
 set size to (80) %
 show
@@ -184,9 +188,7 @@ if &lt;(role) = [new]&gt; then
   repeat until &lt;not &lt;mouse down?&gt;&gt;
     go to (mouse-pointer v)
   end
-  set x to (((round (((x position) - (-210)) / (60))) * (60)) + (-210))
-  set y to (((round (((y position) - (-90)) / (60))) * (60)) + (-90))
-  if &lt;&lt;&lt;(y position) &lt; (-95)&gt; or &lt;(y position) &gt; (95)&gt;&gt; or &lt;&lt;(x position) &lt; (-150)&gt; or &lt;touching (Tower v)?&gt;&gt;&gt; then
+  if &lt;&lt;(y position) &lt; (-105)&gt; or &lt;&lt;touching (Tower v)?&gt; or &lt;touching (Keep v)?&gt;&gt;&gt; then
     delete this clone
   end
   change [coins v] by (-25)
@@ -196,31 +198,32 @@ if &lt;(role) = [new]&gt; then
   set [delay v] to (0.7)
   set [power v] to (1)
   set [pierce v] to (0)
+  set [locked v] to (0)
+  point in direction (180)
 end
 if &lt;(role) = [bolt]&gt; then
-  change x by (24)
-  repeat until &lt;(x position) &gt; (235)&gt;
-    change x by (8)
+  move (24) steps
+  repeat until &lt;touching (edge v)?&gt;
+    move (9) steps
   end
   delete this clone
 end</pre></div>
 </div>
     <ul class="do">
-      <li>Snapping: x becomes <b>round((x + 210) ÷ 60) × 60 − 210</b>, the nearest square. y works the same way.</li>
-      <li>Let go off the field, or on top of another tower, and the new tower goes back: it is deleted before you pay.</li>
+      <li>Let go on the toolbar, on another cannon or on the keep, and the new cannon goes back: it is deleted before you pay.</li>
     </ul>
     <figure>
-      <img src="step2.png" alt="Two towers placed on the field." width="720" height="541" loading="lazy">
-      <figcaption>Drag towers onto the squares.</figcaption>
+      <img src="step2.png" alt="Three cannons placed on the meadow." width="720" height="541" loading="lazy">
+      <figcaption>Drag cannons wherever you like.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 2.</p>
-      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step2.sb3">Download step2.sb3</a>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step2.sb3">Download step2.sb3</a>
     </div>
   </section>
   <section class="step" id="step-3">
-    <div class="step-head"><span class="num">3</span><h2>Shooting</h2></div>
-    <div class="idea"><b>Big idea: bolts are clones of their tower</b><span>Every 0.7 seconds a tower turns into a bolt for a moment: <b>set role to bolt</b>, bolt costume, <b>create clone of myself</b>, then back to a tower. The clone starts right where its tower is and flies right along the lane, towards the slimes.</span></div>
+    <div class="step-head"><span class="num">3</span><h2>Aiming</h2></div>
+    <div class="idea"><b>Big idea: a costume that looks for you</b><span>A cannon can't ask where a slime is, so it looks. Every frame it puts on its long, see-through <b>beam</b> costume, checks <b>touching Slime</b>, and puts its own costume back, all before the screen is drawn. A slime in the beam: <b>locked</b>, so it stays pointed there. No slime: it turns a little and looks again, like a radar.</span></div>
     <p class="make"><span><b>Make:</b> nothing new.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
@@ -229,9 +232,7 @@ if &lt;(role) = [new]&gt; then
   repeat until &lt;not &lt;mouse down?&gt;&gt;
     go to (mouse-pointer v)
   end
-  set x to (((round (((x position) - (-210)) / (60))) * (60)) + (-210))
-  set y to (((round (((y position) - (-90)) / (60))) * (60)) + (-90))
-  if &lt;&lt;&lt;(y position) &lt; (-95)&gt; or &lt;(y position) &gt; (95)&gt;&gt; or &lt;&lt;(x position) &lt; (-150)&gt; or &lt;touching (Tower v)?&gt;&gt;&gt; then
+  if &lt;&lt;(y position) &lt; (-105)&gt; or &lt;&lt;touching (Tower v)?&gt; or &lt;touching (Keep v)?&gt;&gt;&gt; then
     delete this clone
   end
   change [coins v] by (-25)
@@ -241,57 +242,59 @@ if &lt;(role) = [new]&gt; then
   set [delay v] to (0.7)
   set [power v] to (1)
   set [pierce v] to (0)
+  set [locked v] to (0)
+  point in direction (180)
   forever
-    wait (delay) seconds
-    set [role v] to [bolt]
-    if &lt;(power) = (2)&gt; then
-      switch costume to (power v)
+    switch costume to (beam v)
+    if &lt;touching (Slime v)?&gt; then
+      set [locked v] to (1)
     else
-      switch costume to (bolt v)
+      set [locked v] to (0)
     end
-    create clone of (myself v)
-    set [role v] to [tower]
-    if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
-      switch costume to (cracked v)
-    else
-      switch costume to (tower v)
+    switch costume to (tower v)
+    if &lt;(locked) = (0)&gt; then
+      turn right (6) degrees
     end
   end
 end
 if &lt;(role) = [bolt]&gt; then
-  change x by (24)
-  repeat until &lt;(x position) &gt; (235)&gt;
-    change x by (8)
+  move (24) steps
+  repeat until &lt;touching (edge v)?&gt;
+    move (9) steps
   end
   delete this clone
 end</pre></div>
 </div>
     <ul class="do">
-      <li>Why a clone of the tower and not of a Bolt sprite? A clone copies its parent: its place, and its own variables. Later the bolts will copy their tower's upgrades this way.</li>
+      <li>The beam is a cone that starts at the cannon's centre, so it turns with the cannon.</li>
+      <li>A longer beam costume means the cannon sees further. That would make a good upgrade!</li>
     </ul>
     <figure>
-      <img src="step3.png" alt="A tower shooting bolts along its lane." width="720" height="541" loading="lazy">
-      <figcaption>Bolts fly along the lane towards the slimes.</figcaption>
+      <img src="step3.png" alt="A cannon aiming at a slime." width="720" height="541" loading="lazy">
+      <figcaption>The cannon finds a slime and aims at it.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 3.</p>
-      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step3.sb3">Download step3.sb3</a>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step3.sb3">Download step3.sb3</a>
     </div>
   </section>
   <section class="step" id="step-4">
-    <div class="step-head"><span class="num">4</span><h2>Hits and coins</h2></div>
-    <div class="idea"><b>Big idea: touching color</b><span>A slime that touches the bolts' bright yellow loses 1 health. At 0 it is gone and you get 10 coins. A slime that gets through the castle wall costs one of your 5 lives.</span></div>
-    <p class="make"><span><b>Make:</b> the variable <code>lives</code>, and <code>health</code> and <code>ouch</code> for the Slime only.</span></p>
+    <div class="step-head"><span class="num">4</span><h2>Shooting</h2></div>
+    <div class="idea"><b>Big idea: bolts are clones of their cannon</b><span>When it is locked on, every 0.7 seconds the cannon becomes a bolt for a moment and makes a clone of itself. The clone starts where the cannon is and points the same way, so it flies straight at the slime. A slime touching the bolts' bright yellow loses health, and at 0 you get 10 coins.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>lives</code>, and <code>health</code>, <code>ouch</code>, <code>speed</code> and <code>wiggle</code> for the Slime only.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Slime <span class="tag changed">changed</span></div>
 <pre class="blocks">when I start as a clone
 set [health v] to (3)
 set [ouch v] to (0)
-set [speed v] to (0.6)
+set [speed v] to (0.7)
+set [wiggle v] to (pick random (0) to (360))
 switch costume to (green v)
 show
-repeat until &lt;(x position) &lt; (-185)&gt;
-  change x by ((-1) * (speed))
+repeat until &lt;touching (Keep v)?&gt;
+  point towards (Keep v)
+  turn right ((40) * ([sin v] of ((wiggle) + ((timer) * (200))))) degrees
+  move (speed) steps
   if &lt;(ouch) &gt; (0)&gt; then
     change [ouch v] by (-1)
   end
@@ -314,6 +317,7 @@ delete this clone</pre></div>
 <pre class="blocks">when flag clicked
 set [role v] to [shop]
 go to x: (-205) y: (-152)
+point in direction (90)
 switch costume to (tower v)
 set size to (80) %
 show
@@ -325,79 +329,57 @@ stop [all v]</pre></div>
 <div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [new]&gt; then
-  repeat until &lt;not &lt;mouse down?&gt;&gt;
-    go to (mouse-pointer v)
+  repeat until &lt;(role) = [tower]&gt;
+    wait (0.05) seconds
   end
-  set x to (((round (((x position) - (-210)) / (60))) * (60)) + (-210))
-  set y to (((round (((y position) - (-90)) / (60))) * (60)) + (-90))
-  if &lt;&lt;&lt;(y position) &lt; (-95)&gt; or &lt;(y position) &gt; (95)&gt;&gt; or &lt;&lt;(x position) &lt; (-150)&gt; or &lt;touching (Tower v)?&gt;&gt;&gt; then
-    delete this clone
-  end
-  change [coins v] by (-25)
-  set [role v] to [tower]
-  set [hp v] to (20)
-  set [maxhp v] to (20)
-  set [delay v] to (0.7)
-  set [power v] to (1)
-  set [pierce v] to (0)
   forever
     wait (delay) seconds
-    set [role v] to [bolt]
-    if &lt;(power) = (2)&gt; then
-      switch costume to (power v)
-    else
-      switch costume to (bolt v)
-    end
-    create clone of (myself v)
-    set [role v] to [tower]
-    if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
-      switch costume to (cracked v)
-    else
+    if &lt;(locked) = (1)&gt; then
+      set [role v] to [bolt]
+      if &lt;(power) = (2)&gt; then
+        switch costume to (power v)
+      else
+        switch costume to (bolt v)
+      end
+      create clone of (myself v)
+      set [role v] to [tower]
       switch costume to (tower v)
     end
   end
-end
-if &lt;(role) = [bolt]&gt; then
-  change x by (24)
-  repeat until &lt;(x position) &gt; (235)&gt;
-    change x by (8)
-    if &lt;&lt;touching (Slime v)?&gt; and &lt;(pierce) = (0)&gt;&gt; then
-      wait (0.05) seconds
-      delete this clone
-    end
-  end
-  delete this clone
 end</pre></div>
 </div>
     <ul class="do">
-      <li><b>ouch</b> is a short pause after a hit, so one bolt counts once.</li>
+      <li>A slime that reaches the keep costs one of your 5 lives.</li>
       <li>A bolt stops at the first slime, and waits a moment so the slime notices it.</li>
     </ul>
     <figure>
-      <img src="step4.png" alt="Slimes being hit, with coins and lives." width="720" height="541" loading="lazy">
-      <figcaption>Bolts destroy slimes for coins.</figcaption>
+      <img src="step4.png" alt="A cannon shooting at the slimes." width="720" height="541" loading="lazy">
+      <figcaption>Bolts fly where the cannon points.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 4.</p>
-      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step4.sb3">Download step4.sb3</a>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step4.sb3">Download step4.sb3</a>
     </div>
   </section>
   <section class="step" id="step-5">
     <div class="step-head"><span class="num">5</span><h2>Chewing and repair</h2></div>
-    <div class="idea"><b>Big idea: each clone keeps its own health</b><span>A slime that reaches a tower's purple stone base stops and chews: <b>touching color</b> again. The tower checks <b>touching Slime</b> and loses health while it is being chewed. Below half it cracks, and at 0 it is gone. Pick the <b>Repair</b> tool and click a tower to mend it for 10 coins.</span></div>
+    <div class="idea"><b>Big idea: each clone keeps its own health</b><span>A slime that bumps into a cannon's purple base stops and chews (<b>touching color</b>). The cannon checks <b>touching Slime</b> and loses health while it is being chewed. Below half it cracks, and at 0 it is gone. Pick the <b>Repair</b> tool and click a cannon to mend it for 10 coins.</span></div>
     <p class="make"><span><b>Make:</b> the variable <code>tool</code>.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Slime <span class="tag changed">changed</span></div>
 <pre class="blocks">when I start as a clone
 set [health v] to (3)
 set [ouch v] to (0)
-set [speed v] to (0.6)
+set [speed v] to (0.7)
+set [wiggle v] to (pick random (0) to (360))
 switch costume to (green v)
 show
-repeat until &lt;(x position) &lt; (-185)&gt;
+repeat until &lt;touching (Keep v)?&gt;
+  point towards (Keep v)
+  turn right ((40) * ([sin v] of ((wiggle) + ((timer) * (200))))) degrees
   if &lt;touching color [#8b5cf6]?&gt; then
   else
-    change x by ((-1) * (speed))
+    move (speed) steps
   end
   if &lt;(ouch) &gt; (0)&gt; then
     change [ouch v] by (-1)
@@ -421,6 +403,7 @@ delete this clone</pre></div>
 <pre class="blocks">when flag clicked
 set [role v] to [shop]
 go to x: (-205) y: (-152)
+point in direction (90)
 switch costume to (tower v)
 set size to (80) %
 show
@@ -523,22 +506,22 @@ forever
 end</pre></div>
 </div>
     <ul class="do">
-      <li>Every tower has its own <b>hp</b>, because it is a variable <b>for this sprite only</b>: each clone has its own copy.</li>
-      <li>A tower can have more than one <b>when I start as a clone</b> script: one shoots, one checks for chewing.</li>
+      <li>Every cannon has its own <b>hp</b>: it is a variable <b>for this sprite only</b>, so each clone has its own copy.</li>
+      <li>A cannon has several <b>when I start as a clone</b> scripts: one aims, one shoots, one checks for chewing.</li>
     </ul>
     <figure>
-      <img src="step5.png" alt="A tower defending its lane, the Repair tool in the toolbar." width="720" height="541" loading="lazy">
-      <figcaption>Repair a chewed tower.</figcaption>
+      <img src="step5.png" alt="A slime chewing a cannon, the Repair tool in the toolbar." width="720" height="541" loading="lazy">
+      <figcaption>Repair a chewed cannon.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 5.</p>
-      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step5.sb3">Download step5.sb3</a>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step5.sb3">Download step5.sb3</a>
     </div>
   </section>
   <section class="step" id="step-6">
     <div class="step-head"><span class="num">6</span><h2>Upgrades</h2></div>
-    <div class="idea"><b>Big idea: a tool, then a tower</b><span>Four more tools: <b>Speed</b> (shoots twice as often), <b>Damage</b> (red bolts that take 2 health), <b>Pierce</b> (bolts fly through slimes) and <b>Strength</b> (double health). Pick a tool, then click a tower: only that tower gets the upgrade.</span></div>
-    <p class="make"><span><b>Make:</b> nothing new: the upgrades change the tower's own variables.</span></p>
+    <div class="idea"><b>Big idea: a tool, then a cannon</b><span>Four more tools: <b>Speed</b> (shoots twice as often), <b>Damage</b> (red bolts that take 2 health), <b>Pierce</b> (bolts fly through slimes) and <b>Strength</b> (double health). Pick a tool, then click a cannon: only that cannon gets the upgrade.</span></div>
+    <p class="make"><span><b>Make:</b> nothing new: the upgrades change the cannon's own variables.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
 <pre class="blocks">when this sprite clicked
@@ -625,32 +608,40 @@ switch costume to (repair v)
 create clone of (myself v)</pre></div>
 </div>
     <ul class="do">
-      <li>The bolts are clones of their tower, so they copy its <b>power</b> and <b>pierce</b>.</li>
-      <li>Each upgrade makes the tower a little bigger, so you can see which ones are upgraded.</li>
+      <li>The bolts are clones of their cannon, so they copy its <b>power</b> and <b>pierce</b>.</li>
+      <li>Each upgrade makes the cannon a little bigger, so you can see which ones are upgraded.</li>
     </ul>
     <figure>
-      <img src="step6.png" alt="An upgraded tower shooting red bolts, the Strength tool picked." width="720" height="541" loading="lazy">
-      <figcaption>Upgrade your best towers.</figcaption>
+      <img src="step6.png" alt="An upgraded cannon with red bolts." width="720" height="541" loading="lazy">
+      <figcaption>Upgrade your best cannons.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 6.</p>
-      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step6.sb3">Download step6.sb3</a>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step6.sb3">Download step6.sb3</a>
     </div>
   </section>
   <section class="step" id="step-7">
     <div class="step-head"><span class="num">7</span><h2>Waves</h2></div>
-    <div class="idea"><b>Big idea: one number makes it harder</b><span>After every 8 slimes the <b>wave</b> goes up. Slimes get more health (1 + 2 × wave), get faster and change colour, and every fifth wave starts with a big boss slime. The slimes also come more often.</span></div>
+    <div class="idea"><b>Big idea: one number makes it harder</b><span>After every 8 slimes the <b>wave</b> goes up: more health, faster, new colours. From wave 3 they also come from the top and the bottom, and every fifth wave starts with a big boss slime.</span></div>
     <p class="make"><span><b>Make:</b> the variable <code>wave</code>.</span></p>
     <div class="scripts">
 <div class="blocks-panel"><div class="label">Slime <span class="tag changed">changed</span></div>
 <pre class="blocks">when flag clicked
 hide
-go to x: (228) y: (0)
 set [wave v] to (1)
 set [spawned v] to (0)
 forever
   wait ((((0.6) + ((3) - ((0.25) * (wave)))) + ([abs v] of ((0.6) - ((3) - ((0.25) * (wave)))))) / (2)) seconds
-  set y to ((90) - ((60) * (pick random (0) to (3))))
+  go to x: (228) y: (pick random (-105) to (165))
+  if &lt;(wave) &gt; (2)&gt; then
+    if &lt;(pick random (1) to (4)) = (1)&gt; then
+      go to x: (pick random (-60) to (220)) y: (172)
+    else
+      if &lt;(pick random (1) to (4)) = (1)&gt; then
+        go to x: (pick random (-60) to (220)) y: (-110)
+      end
+    end
+  end
   change [spawned v] by (1)
   if &lt;((spawned) mod (8)) = (0)&gt; then
     change [wave v] by (1)
@@ -661,10 +652,11 @@ end</pre></div>
 <pre class="blocks">when I start as a clone
 set [health v] to (3)
 set [ouch v] to (0)
-set [speed v] to (0.6)
+set [speed v] to (0.7)
+set [wiggle v] to (pick random (0) to (360))
 switch costume to (green v)
 set [health v] to ((1) + ((2) * (wave)))
-set [speed v] to ((((1.6) + ((0.4) + ((0.12) * (wave)))) - ([abs v] of ((1.6) - ((0.4) + ((0.12) * (wave)))))) / (2))
+set [speed v] to ((((1.8) + ((0.55) + ((0.12) * (wave)))) - ([abs v] of ((1.8) - ((0.55) + ((0.12) * (wave)))))) / (2))
 if &lt;(wave) &gt; (2)&gt; then
   switch costume to (blue v)
 end
@@ -674,13 +666,15 @@ end
 if &lt;&lt;((wave) mod (5)) = (0)&gt; and &lt;((spawned) mod (8)) = (1)&gt;&gt; then
   switch costume to (boss v)
   set [health v] to ((12) * (wave))
-  set [speed v] to (0.35)
+  set [speed v] to (0.4)
 end
 show
-repeat until &lt;(x position) &lt; (-185)&gt;
+repeat until &lt;touching (Keep v)?&gt;
+  point towards (Keep v)
+  turn right ((40) * ([sin v] of ((wiggle) + ((timer) * (200))))) degrees
   if &lt;touching color [#8b5cf6]?&gt; then
   else
-    change x by ((-1) * (speed))
+    move (speed) steps
   end
   if &lt;(ouch) &gt; (0)&gt; then
     change [ouch v] by (-1)
@@ -704,6 +698,7 @@ delete this clone</pre></div>
 <pre class="blocks">when flag clicked
 set [role v] to [shop]
 go to x: (-205) y: (-152)
+point in direction (90)
 switch costume to (tower v)
 set size to (80) %
 show
@@ -718,22 +713,22 @@ stop [all v]</pre></div>
       <li>This is the whole game. How many waves can you hold?</li>
     </ul>
     <figure>
-      <img src="step7.png" alt="Towers in every lane at wave 3." width="720" height="541" loading="lazy">
-      <figcaption>Hold the castle!</figcaption>
+      <img src="step7.png" alt="Cannons around the keep at wave 3." width="720" height="541" loading="lazy">
+      <figcaption>Hold the keep!</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 7.</p>
-      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step7.sb3">Download step7.sb3</a>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step7.sb3">Download step7.sb3</a>
     </div>
   </section>
 
   <section class="stack">
     <h3>Make it your own</h3>
     <ul class="try">
-      <li>A wall: a cheap tower that does not shoot but has lots of health.</li>
-      <li>Selling: a Sell tool that removes a tower and gives back half its price.</li>
+      <li>A Range upgrade: a second, longer beam costume.</li>
+      <li>A wall: a cheap cannon that does not shoot but has lots of health, to slow the slimes down.</li>
+      <li>Selling: a Sell tool that removes a cannon and gives back half its price.</li>
       <li>Fast slimes that are weak, and slow slimes that are strong.</li>
-      <li>Show each tower's health with <b>say</b> when you point at it.</li>
     </ul>
   </section>
 

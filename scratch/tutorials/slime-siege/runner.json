@@ -1,0 +1,14 @@
+{
+  "title": "Slime Siege Runner",
+  "heading": "Slime Siege",
+  "help": "Pick a step and click Green flag. Drag a cannon from the shop (bottom left) anywhere on the meadow; pick a tool, then click a cannon.",
+  "steps": {
+    "1": { "name": "Slimes", "note": "Clones head for the keep: point towards, then turn by a wave." },
+    "2": { "name": "Towers", "note": "Click the shop and drag: follow the mouse until you let go." },
+    "3": { "name": "Aiming", "note": "The cannon scans; its long beam costume finds slimes with touching." },
+    "4": { "name": "Shooting", "note": "Bolts are clones of their cannon; touching the bolt colour hurts slimes." },
+    "5": { "name": "Chewing and repair", "note": "Slimes chew cannons in their way; Repair mends them." },
+    "6": { "name": "Upgrades", "note": "Speed, Damage, Pierce, Strength: each cannon keeps its own." },
+    "7": { "name": "Waves", "note": "Tougher, faster slimes from more sides; a boss every fifth wave. The whole game." }
+  }
+}

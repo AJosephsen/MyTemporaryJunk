@@ -91,12 +91,12 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 
 <main>
   <header class="intro">
-    <span class="eyebrow">Scratch tutorial for kids (9+) · 7 steps · basic blocks only</span>
+    <span class="eyebrow">Scratch tutorial for kids (9+) · 8 steps · basic blocks only</span>
     <h1>Slime Siege</h1>
-    <p>Slimes are zigzagging across the meadow towards your keep! Drag cannons anywhere you like: they turn to find the slimes and shoot them. Destroyed slimes give coins for more cannons, repairs and upgrades: faster shooting, stronger bolts, bolts that fly through, and sturdier cannons.</p>
+    <p>Slimes are zigzagging across the meadow towards your keep! Drag cannons anywhere you like: fixed cannons shoot the way you point them, and seeker cannons aim at the slime in front. Destroyed slimes give coins for more cannons, repairs and upgrades: faster shooting, stronger bolts, bolts that fly through, and sturdier cannons.</p>
     <p>Every step is a game you can play, and every step has a file you can download if you get stuck. You need the Scratch editor: <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>.</p>
     <div class="checkpoint">
-      <p>Start here: the starter project has the keep, the slimes, the cannon, the tools and the meadow. No code yet.</p>
+      <p>Start here: the starter project has the keep, the slimes, the cannons, the target, the tools and the meadow. No code yet.</p>
       <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/starter.sb3">Download starter.sb3</a>
     </div>
   </header>
@@ -105,19 +105,20 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     <h3>The steps</h3>
     <ol class="plan">
       <li><a href="#step-1"><span class="name">Slimes</span></a><span class="what">Point towards, then wiggle</span></li>
-      <li><a href="#step-2"><span class="name">Towers</span></a><span class="what">Drag anywhere</span></li>
-      <li><a href="#step-3"><span class="name">Aiming</span></a><span class="what">A costume that looks for you</span></li>
-      <li><a href="#step-4"><span class="name">Shooting</span></a><span class="what">Bolts are clones of their cannon</span></li>
-      <li><a href="#step-5"><span class="name">Chewing and repair</span></a><span class="what">Each clone keeps its own health</span></li>
-      <li><a href="#step-6"><span class="name">Upgrades</span></a><span class="what">A tool, then a cannon</span></li>
-      <li><a href="#step-7"><span class="name">Waves</span></a><span class="what">One number makes it harder</span></li>
+      <li><a href="#step-2"><span class="name">Cannons</span></a><span class="what">Drag anywhere, click to turn</span></li>
+      <li><a href="#step-3"><span class="name">Shooting</span></a><span class="what">Bolts are clones of their cannon</span></li>
+      <li><a href="#step-4"><span class="name">Hits and coins</span></a><span class="what">Touching a colour</span></li>
+      <li><a href="#step-5"><span class="name">The seeker</span></a><span class="what">Who is in front?</span></li>
+      <li><a href="#step-6"><span class="name">Chewing and repair</span></a><span class="what">Each clone keeps its own health</span></li>
+      <li><a href="#step-7"><span class="name">Upgrades</span></a><span class="what">A tool, then a cannon</span></li>
+      <li><a href="#step-8"><span class="name">Waves</span></a><span class="what">One number makes it harder</span></li>
     </ol>
   </section>
 
   <section class="step" id="step-1">
     <div class="step-head"><span class="num">1</span><h2>Slimes</h2></div>
     <div class="idea"><b>Big idea: point towards, then wiggle</b><span>The Slime sprite hides and, every few seconds, makes a <b>clone</b> at a random place on the right edge. Each clone heads for the keep: <b>point towards Keep</b>, then <b>turn</b> a little left or right, then <b>move</b>. The turn comes from a wave, <b>40 × sin(timer × 200)</b>, so the slimes zigzag.</span></div>
-    <p class="make"><span><b>Make:</b> nothing new yet. The starter has the Keep, Slime, Tower, Tool and Ring sprites and the meadow.</span></p>
+    <p class="make"><span><b>Make:</b> <code>speed</code> and <code>wiggle</code> for the Slime only. The starter already has the Keep, Slime, Tower, Target, Tool and Ring sprites and the meadow.</span></p>
     <!--changed:1-->
     <ul class="do">
       <li>Each slime starts its wave at a different point (<b>wiggle</b> is random), so they don't all zigzag together.</li>
@@ -133,16 +134,17 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     </div>
   </section>
   <section class="step" id="step-2">
-    <div class="step-head"><span class="num">2</span><h2>Towers</h2></div>
-    <div class="idea"><b>Big idea: drag anywhere</b><span>Click the cannon in the shop and a new one appears under your mouse. Its clone script says <b>repeat until not mouse down: go to mouse-pointer</b>: it follows you until you let go, wherever you like on the meadow.</span></div>
-    <p class="make"><span><b>Make:</b> the variable <code>coins</code>, and <code>role</code>, <code>hp</code>, <code>maxhp</code>, <code>delay</code>, <code>power</code>, <code>pierce</code> and <code>locked</code> for this sprite only.</span></p>
+    <div class="step-head"><span class="num">2</span><h2>Cannons</h2></div>
+    <div class="idea"><b>Big idea: drag anywhere, click to turn</b><span>Click the cannon in the shop and a new one appears under your mouse. Its clone script says <b>repeat until not mouse down: go to mouse-pointer</b>: it follows you until you let go, wherever you like on the meadow. Click a placed cannon and it <b>turns 45°</b>: this is the <b>fixed cannon</b>, and you decide where it points.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>coins</code>, and <code>role</code>, <code>kind</code>, <code>price</code>, <code>hp</code>, <code>maxhp</code>, <code>delay</code>, <code>power</code>, <code>pierce</code> and <code>locked</code> for this sprite only.</span></p>
     <!--changed:2-->
     <ul class="do">
       <li>Let go on the toolbar, on another cannon or on the keep, and the new cannon goes back: it is deleted before you pay.</li>
+      <li>A fixed cannon costs 15 coins.</li>
     </ul>
     <figure>
-      <img src="step2.png" alt="Three cannons placed on the meadow." width="720" height="541" loading="lazy">
-      <figcaption>Drag cannons wherever you like.</figcaption>
+      <img src="step2.png" alt="Three fixed cannons placed on the meadow, pointing different ways." width="720" height="541" loading="lazy">
+      <figcaption>Place cannons and turn them.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 2.</p>
@@ -150,17 +152,17 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     </div>
   </section>
   <section class="step" id="step-3">
-    <div class="step-head"><span class="num">3</span><h2>Aiming</h2></div>
-    <div class="idea"><b>Big idea: a costume that looks for you</b><span>A cannon can't ask where a slime is, so it looks. Every frame it puts on its long, see-through <b>beam</b> costume, checks <b>touching Slime</b>, and puts its own costume back, all before the screen is drawn. A slime in the beam: <b>locked</b>, so it stays pointed there. No slime: it turns a little and looks again, like a radar.</span></div>
+    <div class="step-head"><span class="num">3</span><h2>Shooting</h2></div>
+    <div class="idea"><b>Big idea: bolts are clones of their cannon</b><span>Every 0.7 seconds the cannon becomes a bolt for a moment and makes a clone of itself, then turns back into a cannon. The clone starts where the cannon is and points the same way, so it flies off in the cannon's direction.</span></div>
     <p class="make"><span><b>Make:</b> nothing new.</span></p>
     <!--changed:3-->
     <ul class="do">
-      <li>The beam is a cone that starts at the cannon's centre, so it turns with the cannon.</li>
-      <li>A longer beam costume means the cannon sees further. That would make a good upgrade!</li>
+      <li>A fixed cannon always shoots, whether there is a slime or not: point it where the slimes will come.</li>
+      <li>The bolt moves 24 steps first, so it starts at the end of the barrel.</li>
     </ul>
     <figure>
-      <img src="step3.png" alt="A cannon aiming at a slime." width="720" height="541" loading="lazy">
-      <figcaption>The cannon finds a slime and aims at it.</figcaption>
+      <img src="step3.png" alt="Fixed cannons shooting bolts across the meadow." width="720" height="541" loading="lazy">
+      <figcaption>Bolts fly the way the cannon points.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 3.</p>
@@ -168,17 +170,17 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     </div>
   </section>
   <section class="step" id="step-4">
-    <div class="step-head"><span class="num">4</span><h2>Shooting</h2></div>
-    <div class="idea"><b>Big idea: bolts are clones of their cannon</b><span>When it is locked on, every 0.7 seconds the cannon becomes a bolt for a moment and makes a clone of itself. The clone starts where the cannon is and points the same way, so it flies straight at the slime. A slime touching the bolts' bright yellow loses health, and at 0 you get 10 coins.</span></div>
-    <p class="make"><span><b>Make:</b> the variable <code>lives</code>, and <code>health</code>, <code>ouch</code>, <code>speed</code> and <code>wiggle</code> for the Slime only.</span></p>
+    <div class="step-head"><span class="num">4</span><h2>Hits and coins</h2></div>
+    <div class="idea"><b>Big idea: touching a colour</b><span>A slime touching the bolts' bright yellow loses health, and at 0 you get 10 coins. A slime that reaches the keep costs one of your 5 lives.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>lives</code>, and <code>health</code> and <code>ouch</code> for the Slime only.</span></p>
     <!--changed:4-->
     <ul class="do">
-      <li>A slime that reaches the keep costs one of your 5 lives.</li>
       <li>A bolt stops at the first slime, and waits a moment so the slime notices it.</li>
+      <li><b>ouch</b> is a short wait, so one bolt only counts once.</li>
     </ul>
     <figure>
-      <img src="step4.png" alt="A cannon shooting at the slimes." width="720" height="541" loading="lazy">
-      <figcaption>Bolts fly where the cannon points.</figcaption>
+      <img src="step4.png" alt="A slime being hit by bolts." width="720" height="541" loading="lazy">
+      <figcaption>Hit the slimes before they reach the keep.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 4.</p>
@@ -186,17 +188,17 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     </div>
   </section>
   <section class="step" id="step-5">
-    <div class="step-head"><span class="num">5</span><h2>Chewing and repair</h2></div>
-    <div class="idea"><b>Big idea: each clone keeps its own health</b><span>A slime that bumps into a cannon's purple base stops and chews (<b>touching color</b>). The cannon checks <b>touching Slime</b> and loses health while it is being chewed. Below half it cracks, and at 0 it is gone. Pick the <b>Repair</b> tool and click a cannon to mend it for 10 coins.</span></div>
-    <p class="make"><span><b>Make:</b> the variable <code>tool</code>.</span></p>
+    <div class="step-head"><span class="num">5</span><h2>The seeker</h2></div>
+    <div class="idea"><b>Big idea: who is in front?</b><span>The <b>seeker cannon</b> (35 coins) aims by itself, at the slime closest to the keep. Every frame, each slime checks: is my <b>distance to Keep</b> smaller than <b>nextD</b>? If so it writes its distance and position there. The hidden <b>Target</b> sprite then goes to that position and sets <b>nextD</b> back to 9999 for the next frame. A seeker just says <b>point towards Target</b>, and shoots when Target is within range.</span></div>
+    <p class="make"><span><b>Make:</b> the sprite <b>Target</b> is already there. Make the variables <code>nextD</code>, <code>nextX</code>, <code>nextY</code> and <code>front</code>.</span></p>
     <!--changed:5-->
     <ul class="do">
-      <li>Every cannon has its own <b>hp</b>: it is a variable <b>for this sprite only</b>, so each clone has its own copy.</li>
-      <li>A cannon has several <b>when I start as a clone</b> scripts: one aims, one shoots, one checks for chewing.</li>
+      <li><b>front</b> is 1 while there is a slime at all; with no slimes the seeker waits.</li>
+      <li>The shop makes a clone of itself for the seeker, with its own <b>kind</b> and <b>price</b>.</li>
     </ul>
     <figure>
-      <img src="step5.png" alt="A slime chewing a cannon, the Repair tool in the toolbar." width="720" height="541" loading="lazy">
-      <figcaption>Repair a chewed cannon.</figcaption>
+      <img src="step5.png" alt="A seeker cannon aiming at the front slime." width="720" height="541" loading="lazy">
+      <figcaption>The seeker always aims at the slime in front.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 5.</p>
@@ -204,17 +206,17 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     </div>
   </section>
   <section class="step" id="step-6">
-    <div class="step-head"><span class="num">6</span><h2>Upgrades</h2></div>
-    <div class="idea"><b>Big idea: a tool, then a cannon</b><span>Four more tools: <b>Speed</b> (shoots twice as often), <b>Damage</b> (red bolts that take 2 health), <b>Pierce</b> (bolts fly through slimes) and <b>Strength</b> (double health). Pick a tool, then click a cannon: only that cannon gets the upgrade.</span></div>
-    <p class="make"><span><b>Make:</b> nothing new: the upgrades change the cannon's own variables.</span></p>
+    <div class="step-head"><span class="num">6</span><h2>Chewing and repair</h2></div>
+    <div class="idea"><b>Big idea: each clone keeps its own health</b><span>A slime that bumps into a cannon's purple base stops and chews (<b>touching color</b>). The cannon checks <b>touching Slime</b> and loses health while it is being chewed. Below half it cracks, and at 0 it is gone. Pick the <b>Repair</b> tool and click a cannon to mend it for 10 coins.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>tool</code>.</span></p>
     <!--changed:6-->
     <ul class="do">
-      <li>The bolts are clones of their cannon, so they copy its <b>power</b> and <b>pierce</b>.</li>
-      <li>Each upgrade makes the cannon a little bigger, so you can see which ones are upgraded.</li>
+      <li>Every cannon has its own <b>hp</b>: it is a variable <b>for this sprite only</b>, so each clone has its own copy.</li>
+      <li>With a tool picked, a click uses the tool; with no tool, a click turns a fixed cannon.</li>
     </ul>
     <figure>
-      <img src="step6.png" alt="An upgraded cannon with red bolts." width="720" height="541" loading="lazy">
-      <figcaption>Upgrade your best cannons.</figcaption>
+      <img src="step6.png" alt="A slime chewing a cannon, the Repair tool in the toolbar." width="720" height="541" loading="lazy">
+      <figcaption>Repair a chewed cannon.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 6.</p>
@@ -222,27 +224,46 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     </div>
   </section>
   <section class="step" id="step-7">
-    <div class="step-head"><span class="num">7</span><h2>Waves</h2></div>
-    <div class="idea"><b>Big idea: one number makes it harder</b><span>After every 8 slimes the <b>wave</b> goes up: more health, faster, new colours. From wave 3 they also come from the top and the bottom, and every fifth wave starts with a big boss slime.</span></div>
-    <p class="make"><span><b>Make:</b> the variable <code>wave</code>.</span></p>
+    <div class="step-head"><span class="num">7</span><h2>Upgrades</h2></div>
+    <div class="idea"><b>Big idea: a tool, then a cannon</b><span>Four more tools: <b>Speed</b> (shoots twice as often), <b>Damage</b> (red bolts that take 2 health), <b>Pierce</b> (bolts fly through slimes) and <b>Strength</b> (double health). Pick a tool, then click a cannon: only that cannon gets the upgrade.</span></div>
+    <p class="make"><span><b>Make:</b> nothing new: the upgrades change the cannon's own variables.</span></p>
     <!--changed:7-->
     <ul class="do">
-      <li>This is the whole game. How many waves can you hold?</li>
+      <li>The bolts are clones of their cannon, so they copy its <b>power</b> and <b>pierce</b>.</li>
+      <li>Each upgrade makes the cannon a little bigger, so you can see which ones are upgraded.</li>
     </ul>
     <figure>
-      <img src="step7.png" alt="Cannons around the keep at wave 3." width="720" height="541" loading="lazy">
-      <figcaption>Hold the keep!</figcaption>
+      <img src="step7.png" alt="An upgraded cannon with red bolts." width="720" height="541" loading="lazy">
+      <figcaption>Upgrade your best cannons.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 7.</p>
       <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step7.sb3">Download step7.sb3</a>
     </div>
   </section>
+  <section class="step" id="step-8">
+    <div class="step-head"><span class="num">8</span><h2>Waves</h2></div>
+    <div class="idea"><b>Big idea: one number makes it harder</b><span>After every 8 slimes the <b>wave</b> goes up: more health, faster, new colours. From wave 3 they also come from the top and the bottom, and every fifth wave starts with a big boss slime.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>wave</code>.</span></p>
+    <!--changed:8-->
+    <ul class="do">
+      <li>This is the whole game. How many waves can you hold?</li>
+      <li>Fixed cannons are cheap: a row of them pointing the right way is a strong wall of bolts.</li>
+    </ul>
+    <figure>
+      <img src="step8.png" alt="Cannons around the keep at wave 3." width="720" height="541" loading="lazy">
+      <figcaption>Hold the keep!</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 8.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-siege/step8.sb3">Download step8.sb3</a>
+    </div>
+  </section>
 
   <section class="stack">
     <h3>Make it your own</h3>
     <ul class="try">
-      <li>A Range upgrade: a second, longer beam costume.</li>
+      <li>A Range upgrade for the seeker: a bigger distance before it shoots.</li>
       <li>A wall: a cheap cannon that does not shoot but has lots of health, to slow the slimes down.</li>
       <li>Selling: a Sell tool that removes a cannon and gives back half its price.</li>
       <li>Fast slimes that are weak, and slow slimes that are strong.</li>

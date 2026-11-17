@@ -1,14 +1,15 @@
 {
   "title": "Slime Siege Runner",
   "heading": "Slime Siege",
-  "help": "Pick a step and click Green flag. Drag a cannon from the shop (bottom left) anywhere on the meadow; pick a tool, then click a cannon.",
+  "help": "Pick a step and click Green flag. Drag a cannon from the shop (bottom left) anywhere on the meadow; click a fixed cannon to turn it; pick a tool, then click a cannon.",
   "steps": {
     "1": { "name": "Slimes", "note": "Clones head for the keep: point towards, then turn by a wave." },
-    "2": { "name": "Towers", "note": "Click the shop and drag: follow the mouse until you let go." },
-    "3": { "name": "Aiming", "note": "The cannon scans; its long beam costume finds slimes with touching." },
-    "4": { "name": "Shooting", "note": "Bolts are clones of their cannon; touching the bolt colour hurts slimes." },
-    "5": { "name": "Chewing and repair", "note": "Slimes chew cannons in their way; Repair mends them." },
-    "6": { "name": "Upgrades", "note": "Speed, Damage, Pierce, Strength: each cannon keeps its own." },
-    "7": { "name": "Waves", "note": "Tougher, faster slimes from more sides; a boss every fifth wave. The whole game." }
+    "2": { "name": "Cannons", "note": "Click the shop and drag; click a placed cannon to turn it 45°." },
+    "3": { "name": "Shooting", "note": "Bolts are clones of their cannon, flying the way it points." },
+    "4": { "name": "Hits and coins", "note": "Touching the bolt colour hurts slimes; a slime at the keep costs a life." },
+    "5": { "name": "The seeker", "note": "The slime closest to the keep reports its place; Target goes there; seekers point towards Target." },
+    "6": { "name": "Chewing and repair", "note": "Slimes chew cannons in their way; Repair mends them." },
+    "7": { "name": "Upgrades", "note": "Speed, Damage, Pierce, Strength: each cannon keeps its own." },
+    "8": { "name": "Waves", "note": "Tougher, faster slimes from more sides; a boss every fifth wave. The whole game." }
   }
 }

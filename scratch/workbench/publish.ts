@@ -25,7 +25,7 @@ const GAMES: [string, string, string, string][] = [
   ["beanstalk-bounce", "games/beanstalk-bounce/beanstalk-bounce.sb3", "Beanstalk Bounce", "Bounce up the beanstalk, leaf by leaf."],
   ["chimney-drop", "games/chimney-drop/chimney-drop.sb3", "Chimney Drop", "Christmas: drop the presents down the chimneys."],
   ["chain-spark", "games/chain-spark/chain-spark.sb3", "Chain Spark", "Fireworks: place them, light one, watch the chain."],
-  ["slime-siege", "games/slime-siege/slime-siege.sb3", "Slime Siege", "Tower defence: cannons that aim, upgrades and repairs."],
+  ["slime-siege", "games/slime-siege/slime-siege.sb3", "Slime Siege", "Tower defence: fixed and seeker cannons, upgrades and repairs."],
   ["chain-spark-deluxe", "games/chain-spark-deluxe/chain-spark-deluxe.sb3", "Chain Spark Deluxe", "Fireworks puzzle: build, test, then GO for real."],
   ["sky-guard", "games/sky-guard/sky-guard.sb3", "Sky Guard", "Turn the cannon and shoot the falling meteors."],
   ["sheepdog", "games/sheepdog/sheepdog.sb3", "Sheepdog", "Herd all eight sheep into the pen."],

@@ -3,4 +3,4 @@
 import { buildTutorial } from "../../lib/tutorial.ts";
 import { slimeSiege, LAST } from "../../games/slime-siege/project.ts";
 
-buildTutorial(new URL(".", import.meta.url), LAST, slimeSiege, ["Keep", "Slime", "Tower", "Tool", "Ring"]);
+buildTutorial(new URL(".", import.meta.url), LAST, slimeSiege, ["Keep", "Slime", "Tower", "Target", "Tool", "Ring"]);

@@ -1,0 +1,13 @@
+{
+  "title": "Chain Spark Runner",
+  "heading": "Chain Spark",
+  "help": "Pick a step and click Green flag. Drag fireworks into the sky (click one to turn it), drag the match next to one, press Space.",
+  "steps": {
+    "1": { "name": "Place", "note": "Clones in the tray; set drag mode draggable; a click turns 45 degrees." },
+    "2": { "name": "Light", "note": "Space: the match flares; a shell touching it bursts into a ring of 20 sparks." },
+    "3": { "name": "Chain reaction", "note": "Touching the sparks' yellow sets a firework off." },
+    "4": { "name": "Rockets and fountains", "note": "A rocket flies its way with a trail of sparks; a fountain sprays." },
+    "5": { "name": "Score", "note": "Points per firework (rockets few) and show-time points while they burn." },
+    "6": { "name": "The finale", "note": "The end of the show, and a bonus when all eight went off. The whole game." }
+  }
+}

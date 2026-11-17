@@ -243,6 +243,8 @@ export function dsl(B: Blocks) {
     cloneOf: (sprite: string) => B.add("control_create_clone_of", {
       CLONE_OPTION: [1, B.shadow("control_create_clone_of_menu", { CLONE_OPTION: [sprite, null] })] }),
     costumeNumber: () => B.add("looks_costumenumbername", {}, { NUMBER_NAME: ["number", null] }),
+    costumeName: () => B.add("looks_costumenumbername", {}, { NUMBER_NAME: ["name", null] }),
+    setDragMode: (draggable: boolean) => B.add("sensing_setdragmode", {}, { DRAG_MODE: [draggable ? "draggable" : "not draggable", null] }),
     // Switch costume by a calculated value (a reporter or variable): the menu stays underneath as a shadow.
     costumeTo: (x: Ref | VarRef) => B.add("looks_switchcostumeto",
       { COSTUME: [3, num(x)[1], B.shadow("looks_costume", { COSTUME: ["", null] })] }),

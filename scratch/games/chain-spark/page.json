@@ -1,0 +1,8 @@
+{
+  "title": "Chain Spark",
+  "tagline": "Put on a fireworks show: place them, turn them, light one, and watch the chain reaction.",
+  "project": "chain-spark.sb3",
+  "left": [],
+  "right": [{ "key": " ", "label": "Light", "name": "Light", "big": true }],
+  "keys": "Drag fireworks into the sky · click one to turn it · drag the match next to one · Space lights it"
+}

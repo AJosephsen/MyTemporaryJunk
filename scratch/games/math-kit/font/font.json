@@ -297,6 +297,66 @@
    "game": "pizza-fractions"
   },
   {
+   "text": "CHAIN SPARK",
+   "name": "cs1",
+   "width": 300,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "DELUXE",
+   "name": "cs2",
+   "width": 192,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "TEST",
+   "name": "test",
+   "width": 126,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "RESET",
+   "name": "reset",
+   "width": 154.5,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "GO!",
+   "name": "go",
+   "width": 93.5,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "TARGET",
+   "name": "target",
+   "width": 189,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "FINALE!",
+   "name": "finale",
+   "width": 185.5,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "TRY AGAIN",
+   "name": "tryagain",
+   "width": 254,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "WELL DONE!",
+   "name": "welldone",
+   "width": 287,
+   "game": "chain-spark-deluxe"
+  },
+  {
+   "text": "SHOW",
+   "name": "show",
+   "width": 148.5,
+   "game": "chain-spark-deluxe"
+  },
+  {
    "text": "STARFIRE",
    "name": "sf1",
    "width": 217,

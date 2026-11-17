@@ -136,6 +136,17 @@ const start = () => {
 play.addEventListener("click", start);
 $("restart").addEventListener("click", start);
 
+// The keyboard: the player does not pick keys up by itself here, so pass them on. Arrows and Space would also scroll
+// the page, so they are kept from doing that while the game runs (but not while typing in a field).
+const typing = e => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || "");
+for (const [ev, down] of [["keydown", true], ["keyup", false]]) document.addEventListener(ev, e => {
+  if (!scaffolding || typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+  scaffolding.vm.postIOData("keyboard", { key: e.key, isDown: down });
+  if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) e.preventDefault();
+});
+// A key let go while the page was in the background must not stay "pressed".
+window.addEventListener("blur", () => { for (const k of [" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]) scaffolding?.vm.postIOData("keyboard", { key: k, isDown: false }); });
+
 // On-screen keys: pressed while held, released when the finger or mouse lets go or slides off.
 for (const b of document.querySelectorAll(".key")) {
   const press = down => {

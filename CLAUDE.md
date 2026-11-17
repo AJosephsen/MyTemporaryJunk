@@ -25,3 +25,5 @@ npm run check               # type check
 
 - The user often follows along on a phone. Share screenshots in the chat (SendUserFile), not only at the end:
   also during development, whenever something visible changes (a new step, a fix, a page layout).
+- After each iteration of a game, also share a playable demo: export it (`npm run export:game -- games/<name>`) and
+  publish `export/<name>.html` as an artifact (republish the same path to keep the link).

@@ -1,0 +1,8 @@
+{
+  "title": "Slime Lanes",
+  "tagline": "Slimes are crawling towards your castle! Drag crystal towers onto the lanes, then repair and upgrade them.",
+  "project": "slime-lanes.sb3",
+  "left": [],
+  "right": [],
+  "keys": "Drag a tower from the shop (bottom left) onto a square · pick a tool, then click a tower: speed, damage, pierce, strength, repair"
+}

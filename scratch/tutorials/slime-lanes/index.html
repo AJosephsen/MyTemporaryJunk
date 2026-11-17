@@ -1,0 +1,746 @@
+<title>Slime Lanes Tutorial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: one reading column; each step is a numbered section: the big idea, the blocks, a picture and a checkpoint file. */
+:root {
+  --bg: #f4f3fa; --surface: #ffffff; --fg: #1f1d33; --muted: #5c5a74; --line: #dddbea;
+  --accent: #3b3f9e; --accent-soft: #e6e6fa; --drone: #d97706; --code-bg: #f8f7fd;
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #13121f; --surface: #1c1a2c; --fg: #ebe9f7; --muted: #a6a3bf; --line: #312e47;
+  --accent: #a5a8ff; --accent-soft: #23244a; --drone: #fbbf24; --code-bg: #232036; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #13121f; --surface: #1c1a2c; --fg: #ebe9f7; --muted: #a6a3bf; --line: #312e47;
+  --accent: #a5a8ff; --accent-soft: #23244a; --drone: #fbbf24; --code-bg: #232036; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 18px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 48px; }
+main > *, .step > *, .stack > *, .intro > * { min-width: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 6vw, 2.9rem); }
+h2 { font-size: 1.7rem; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+a { color: var(--accent); }
+code { font: 0.88em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.eyebrow { font: 600 0.78rem var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--drone); }
+.stack { display: grid; gap: 16px; min-width: 0; }
+.intro { display: grid; gap: 14px; }
+.intro p { color: var(--muted); font-size: 1.08rem; }
+
+.plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: plan; }
+.plan li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 8px 12px; border-radius: 6px; counter-increment: plan; }
+.plan li::before { content: counter(plan); font: 600 0.95rem var(--display); color: var(--muted); width: 1.4em; }
+.plan .name { font-weight: 700; }
+.plan a { text-decoration: none; }
+.plan a:hover .name, .plan a:focus-visible .name { text-decoration: underline; }
+.plan .what { color: var(--muted); flex: 1 1 220px; }
+
+.step { display: grid; gap: 20px; border-top: 2px solid var(--line); padding-top: 32px; }
+.step-head { display: flex; align-items: center; gap: 14px; }
+.num { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--surface); font: 600 1.3rem var(--display); }
+ol.do { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 66ch; }
+
+.blocks-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; overflow-x: auto; }
+.blocks-panel .label { font: 700 0.78rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+pre.blocks { margin: 0; font: 13px var(--mono); white-space: pre; }
+
+.note { border-left: 3px solid var(--drone); padding: 2px 0 2px 14px; color: var(--fg); }
+.note b { color: var(--drone); }
+figure { margin: 0; display: grid; gap: 8px; }
+figure img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
+figcaption { font-size: 0.9rem; color: var(--muted); }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 420px; }
+th, td { text-align: right; padding: 6px 14px; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 0.82rem; color: var(--muted); font-weight: 700; }
+
+.checkpoint { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
+.checkpoint p { flex: 1 1 260px; color: var(--muted); font-size: 0.95rem; }
+.btn { display: inline-block; font-weight: 700; text-decoration: none; color: var(--surface); background: var(--accent);
+  padding: 8px 16px; border-radius: 6px; white-space: nowrap; }
+.btn:hover, .btn:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 1px; }
+.try { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+svg.coords text { font: 11px var(--body); fill: var(--muted); }
+.scripts { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.scripts .blocks-panel { flex: 0 1 auto; max-width: 100%; min-width: 0; }
+.tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; padding: 1px 7px; border-radius: 999px; margin-left: 6px; }
+.tag.new { background: var(--accent); color: var(--surface); }
+.tag.changed { border: 1px solid var(--drone); color: var(--drone); }
+.flow { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; counter-reset: none; }
+.flow li { display: grid; gap: 2px; padding: 10px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line);
+  flex: 1 1 130px; min-width: 0; position: relative; }
+.flow li b { font: 600 1.05rem var(--display); color: var(--accent); }
+.flow li span { font-size: 0.85rem; color: var(--muted); }
+footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--line); padding-top: 24px; }
+.idea { background: var(--accent-soft); border-radius: 8px; padding: 12px 16px; display: grid; gap: 4px; max-width: 66ch; }
+.make { display: grid; gap: 4px; max-width: 66ch; font-size: 0.95rem; }
+.make b { color: var(--drone); }
+.idea b { font: 600 1rem var(--display); color: var(--accent); }
+</style>
+
+<main>
+  <header class="intro">
+    <span class="eyebrow">Scratch tutorial for kids (9+) · 7 steps · basic blocks only</span>
+    <h1>Slime Lanes</h1>
+    <p>Slimes are crawling along four lanes towards your castle! Drag crystal towers onto the field to stop them. Destroyed slimes give coins for more towers, repairs and upgrades: faster shooting, stronger bolts, bolts that fly through, and sturdier towers.</p>
+    <p>Every step is a game you can play, and every step has a file you can download if you get stuck. You need the Scratch editor: <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>.</p>
+    <div class="checkpoint">
+      <p>Start here: the starter project has the slimes, the tower, the tools and the field. No code yet.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/starter.sb3">Download starter.sb3</a>
+    </div>
+  </header>
+
+  <section class="stack" aria-label="Steps">
+    <h3>The steps</h3>
+    <ol class="plan">
+      <li><a href="#step-1"><span class="name">Slimes</span></a><span class="what">Clones on lanes</span></li>
+      <li><a href="#step-2"><span class="name">Towers</span></a><span class="what">Drag and snap</span></li>
+      <li><a href="#step-3"><span class="name">Shooting</span></a><span class="what">Bolts are clones of their tower</span></li>
+      <li><a href="#step-4"><span class="name">Hits and coins</span></a><span class="what">Touching color</span></li>
+      <li><a href="#step-5"><span class="name">Chewing and repair</span></a><span class="what">Each clone keeps its own health</span></li>
+      <li><a href="#step-6"><span class="name">Upgrades</span></a><span class="what">A tool, then a tower</span></li>
+      <li><a href="#step-7"><span class="name">Waves</span></a><span class="what">One number makes it harder</span></li>
+    </ol>
+  </section>
+
+  <section class="step" id="step-1">
+    <div class="step-head"><span class="num">1</span><h2>Slimes</h2></div>
+    <div class="idea"><b>Big idea: clones on lanes</b><span>The Slime sprite hides and, every few seconds, picks one of four lanes and makes a <b>clone</b> of itself there. The lanes are 60 apart: <b>set y to 90 − 60 × pick random 0 to 3</b>. Each clone crawls right until it reaches the castle wall.</span></div>
+    <p class="make"><span><b>Make:</b> nothing new yet. The starter has the Slime, Tower, Tool and Ring sprites and the field.</span></p>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Slime <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+hide
+go to x: (-228) y: (0)
+forever
+  wait (pick random (2) to (3.5)) seconds
+  set y to ((90) - ((60) * (pick random (0) to (3))))
+  create clone of (myself v)
+end</pre></div>
+<div class="blocks-panel"><div class="label">Slime <span class="tag new">new</span></div>
+<pre class="blocks">when I start as a clone
+set [health v] to (3)
+set [ouch v] to (0)
+set [speed v] to (0.6)
+switch costume to (green v)
+show
+repeat until &lt;(x position) &gt; (185)&gt;
+  change x by (speed)
+end
+delete this clone</pre></div>
+</div>
+    <ul class="do">
+      <li>Try more lanes or fewer: what do you need to change?</li>
+    </ul>
+    <figure>
+      <img src="step1.png" alt="Slimes crawling along the lanes." width="720" height="541" loading="lazy">
+      <figcaption>Slimes on their way to the castle.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 1.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step1.sb3">Download step1.sb3</a>
+    </div>
+  </section>
+  <section class="step" id="step-2">
+    <div class="step-head"><span class="num">2</span><h2>Towers</h2></div>
+    <div class="idea"><b>Big idea: drag and snap</b><span>Click the tower in the shop and a new one appears under your mouse. Its clone script says <b>repeat until not mouse down: go to mouse-pointer</b>: it follows you until you let go. Then it <b>snaps</b> to the nearest square with <b>round</b>.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>coins</code>, and <code>role</code>, <code>hp</code>, <code>maxhp</code>, <code>delay</code>, <code>power</code> and <code>pierce</code> for this sprite only.</span></p>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Tower <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+set [role v] to [shop]
+go to x: (-205) y: (-152)
+switch costume to (tower v)
+set size to (80) %
+show
+set [coins v] to (100)</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag new">new</span></div>
+<pre class="blocks">when this sprite clicked
+if &lt;(role) = [shop]&gt; then
+  if &lt;not &lt;(coins) &lt; (25)&gt;&gt; then
+    set [role v] to [new]
+    set size to (100) %
+    create clone of (myself v)
+    set [role v] to [shop]
+    set size to (80) %
+  else
+    say (join (25) [ coins for a tower]) for (1) seconds
+  end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag new">new</span></div>
+<pre class="blocks">when I start as a clone
+if &lt;(role) = [new]&gt; then
+  repeat until &lt;not &lt;mouse down?&gt;&gt;
+    go to (mouse-pointer v)
+  end
+  set x to (((round (((x position) - (-210)) / (60))) * (60)) + (-210))
+  set y to (((round (((y position) - (-90)) / (60))) * (60)) + (-90))
+  if &lt;&lt;&lt;(y position) &lt; (-95)&gt; or &lt;(y position) &gt; (95)&gt;&gt; or &lt;&lt;(x position) &gt; (150)&gt; or &lt;touching (Tower v)?&gt;&gt;&gt; then
+    delete this clone
+  end
+  change [coins v] by (-25)
+  set [role v] to [tower]
+  set [hp v] to (20)
+  set [maxhp v] to (20)
+  set [delay v] to (0.7)
+  set [power v] to (1)
+  set [pierce v] to (0)
+end
+if &lt;(role) = [bolt]&gt; then
+  change x by (-24)
+  repeat until &lt;(x position) &lt; (-235)&gt;
+    change x by (-8)
+  end
+  delete this clone
+end</pre></div>
+</div>
+    <ul class="do">
+      <li>Snapping: x becomes <b>round((x + 210) ÷ 60) × 60 − 210</b>, the nearest square. y works the same way.</li>
+      <li>Let go off the field, or on top of another tower, and the new tower goes back: it is deleted before you pay.</li>
+    </ul>
+    <figure>
+      <img src="step2.png" alt="Two towers placed on the field." width="720" height="541" loading="lazy">
+      <figcaption>Drag towers onto the squares.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 2.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step2.sb3">Download step2.sb3</a>
+    </div>
+  </section>
+  <section class="step" id="step-3">
+    <div class="step-head"><span class="num">3</span><h2>Shooting</h2></div>
+    <div class="idea"><b>Big idea: bolts are clones of their tower</b><span>Every 0.7 seconds a tower turns into a bolt for a moment: <b>set role to bolt</b>, bolt costume, <b>create clone of myself</b>, then back to a tower. The clone starts right where its tower is and flies left along the lane.</span></div>
+    <p class="make"><span><b>Make:</b> nothing new.</span></p>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+if &lt;(role) = [new]&gt; then
+  repeat until &lt;not &lt;mouse down?&gt;&gt;
+    go to (mouse-pointer v)
+  end
+  set x to (((round (((x position) - (-210)) / (60))) * (60)) + (-210))
+  set y to (((round (((y position) - (-90)) / (60))) * (60)) + (-90))
+  if &lt;&lt;&lt;(y position) &lt; (-95)&gt; or &lt;(y position) &gt; (95)&gt;&gt; or &lt;&lt;(x position) &gt; (150)&gt; or &lt;touching (Tower v)?&gt;&gt;&gt; then
+    delete this clone
+  end
+  change [coins v] by (-25)
+  set [role v] to [tower]
+  set [hp v] to (20)
+  set [maxhp v] to (20)
+  set [delay v] to (0.7)
+  set [power v] to (1)
+  set [pierce v] to (0)
+  forever
+    wait (delay) seconds
+    set [role v] to [bolt]
+    if &lt;(power) = (2)&gt; then
+      switch costume to (power v)
+    else
+      switch costume to (bolt v)
+    end
+    create clone of (myself v)
+    set [role v] to [tower]
+    if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
+      switch costume to (cracked v)
+    else
+      switch costume to (tower v)
+    end
+  end
+end
+if &lt;(role) = [bolt]&gt; then
+  change x by (-24)
+  repeat until &lt;(x position) &lt; (-235)&gt;
+    change x by (-8)
+  end
+  delete this clone
+end</pre></div>
+</div>
+    <ul class="do">
+      <li>Why a clone of the tower and not of a Bolt sprite? A clone copies its parent: its place, and its own variables. Later the bolts will copy their tower's upgrades this way.</li>
+    </ul>
+    <figure>
+      <img src="step3.png" alt="A tower shooting bolts along its lane." width="720" height="541" loading="lazy">
+      <figcaption>Bolts fly left along the lane.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 3.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step3.sb3">Download step3.sb3</a>
+    </div>
+  </section>
+  <section class="step" id="step-4">
+    <div class="step-head"><span class="num">4</span><h2>Hits and coins</h2></div>
+    <div class="idea"><b>Big idea: touching color</b><span>A slime that touches the bolts' bright yellow loses 1 health. At 0 it is gone and you get 10 coins. A slime that gets through the castle wall costs one of your 5 lives.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>lives</code>, and <code>health</code> and <code>ouch</code> for the Slime only.</span></p>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Slime <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+set [health v] to (3)
+set [ouch v] to (0)
+set [speed v] to (0.6)
+switch costume to (green v)
+show
+repeat until &lt;(x position) &gt; (185)&gt;
+  change x by (speed)
+  if &lt;(ouch) &gt; (0)&gt; then
+    change [ouch v] by (-1)
+  end
+  if &lt;&lt;(ouch) = (0)&gt; and &lt;&lt;touching color [#ffe600]?&gt; or &lt;touching color [#ff2d55]?&gt;&gt;&gt; then
+    if &lt;touching color [#ff2d55]?&gt; then
+      change [health v] by (-2)
+    else
+      change [health v] by (-1)
+    end
+    set [ouch v] to (6)
+    if &lt;not &lt;(health) &gt; (0)&gt;&gt; then
+      change [coins v] by (10)
+      delete this clone
+    end
+  end
+end
+change [lives v] by (-1)
+delete this clone</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+set [role v] to [shop]
+go to x: (-205) y: (-152)
+switch costume to (tower v)
+set size to (80) %
+show
+set [coins v] to (100)
+set [lives v] to (5)
+wait until &lt;(lives) = (0)&gt;
+say [The slimes got in!] for (3) seconds
+stop [all v]</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+if &lt;(role) = [new]&gt; then
+  repeat until &lt;not &lt;mouse down?&gt;&gt;
+    go to (mouse-pointer v)
+  end
+  set x to (((round (((x position) - (-210)) / (60))) * (60)) + (-210))
+  set y to (((round (((y position) - (-90)) / (60))) * (60)) + (-90))
+  if &lt;&lt;&lt;(y position) &lt; (-95)&gt; or &lt;(y position) &gt; (95)&gt;&gt; or &lt;&lt;(x position) &gt; (150)&gt; or &lt;touching (Tower v)?&gt;&gt;&gt; then
+    delete this clone
+  end
+  change [coins v] by (-25)
+  set [role v] to [tower]
+  set [hp v] to (20)
+  set [maxhp v] to (20)
+  set [delay v] to (0.7)
+  set [power v] to (1)
+  set [pierce v] to (0)
+  forever
+    wait (delay) seconds
+    set [role v] to [bolt]
+    if &lt;(power) = (2)&gt; then
+      switch costume to (power v)
+    else
+      switch costume to (bolt v)
+    end
+    create clone of (myself v)
+    set [role v] to [tower]
+    if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
+      switch costume to (cracked v)
+    else
+      switch costume to (tower v)
+    end
+  end
+end
+if &lt;(role) = [bolt]&gt; then
+  change x by (-24)
+  repeat until &lt;(x position) &lt; (-235)&gt;
+    change x by (-8)
+    if &lt;&lt;touching (Slime v)?&gt; and &lt;(pierce) = (0)&gt;&gt; then
+      wait (0.05) seconds
+      delete this clone
+    end
+  end
+  delete this clone
+end</pre></div>
+</div>
+    <ul class="do">
+      <li><b>ouch</b> is a short pause after a hit, so one bolt counts once.</li>
+      <li>A bolt stops at the first slime, and waits a moment so the slime notices it.</li>
+    </ul>
+    <figure>
+      <img src="step4.png" alt="Slimes being hit, with coins and lives." width="720" height="541" loading="lazy">
+      <figcaption>Bolts destroy slimes for coins.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 4.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step4.sb3">Download step4.sb3</a>
+    </div>
+  </section>
+  <section class="step" id="step-5">
+    <div class="step-head"><span class="num">5</span><h2>Chewing and repair</h2></div>
+    <div class="idea"><b>Big idea: each clone keeps its own health</b><span>A slime that reaches a tower's purple stone base stops and chews: <b>touching color</b> again. The tower checks <b>touching Slime</b> and loses health while it is being chewed. Below half it cracks, and at 0 it is gone. Pick the <b>Repair</b> tool and click a tower to mend it for 10 coins.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>tool</code>.</span></p>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Slime <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+set [health v] to (3)
+set [ouch v] to (0)
+set [speed v] to (0.6)
+switch costume to (green v)
+show
+repeat until &lt;(x position) &gt; (185)&gt;
+  if &lt;touching color [#8b5cf6]?&gt; then
+  else
+    change x by (speed)
+  end
+  if &lt;(ouch) &gt; (0)&gt; then
+    change [ouch v] by (-1)
+  end
+  if &lt;&lt;(ouch) = (0)&gt; and &lt;&lt;touching color [#ffe600]?&gt; or &lt;touching color [#ff2d55]?&gt;&gt;&gt; then
+    if &lt;touching color [#ff2d55]?&gt; then
+      change [health v] by (-2)
+    else
+      change [health v] by (-1)
+    end
+    set [ouch v] to (6)
+    if &lt;not &lt;(health) &gt; (0)&gt;&gt; then
+      change [coins v] by (10)
+      delete this clone
+    end
+  end
+end
+change [lives v] by (-1)
+delete this clone</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+set [role v] to [shop]
+go to x: (-205) y: (-152)
+switch costume to (tower v)
+set size to (80) %
+show
+set [coins v] to (100)
+set [tool v] to []
+set [lives v] to (5)
+wait until &lt;(lives) = (0)&gt;
+say [The slimes got in!] for (3) seconds
+stop [all v]</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when this sprite clicked
+if &lt;(role) = [shop]&gt; then
+  if &lt;not &lt;(coins) &lt; (25)&gt;&gt; then
+    set [role v] to [new]
+    set size to (100) %
+    create clone of (myself v)
+    set [role v] to [shop]
+    set size to (80) %
+  else
+    say (join (25) [ coins for a tower]) for (1) seconds
+  end
+end
+if &lt;(role) = [tower]&gt; then
+  if &lt;&lt;(tool) = [repair]&gt; and &lt;&lt;(hp) &lt; (maxhp)&gt; and &lt;not &lt;(coins) &lt; (10)&gt;&gt;&gt;&gt; then
+    set [hp v] to (maxhp)
+    change [coins v] by (-10)
+    if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
+      switch costume to (cracked v)
+    else
+      switch costume to (tower v)
+    end
+  end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+if &lt;(role) = [new]&gt; then
+  repeat until &lt;(role) = [tower]&gt;
+    wait (0.1) seconds
+  end
+  forever
+    if &lt;touching (Slime v)?&gt; then
+      change [hp v] by (-1)
+      if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
+        switch costume to (cracked v)
+      else
+        switch costume to (tower v)
+      end
+      if &lt;not &lt;(hp) &gt; (0)&gt;&gt; then
+        delete this clone
+      end
+    end
+    wait (0.25) seconds
+  end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Tool <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+hide
+set [name v] to []
+set [name v] to [repair]
+set [price v] to (10)
+go to x: (120) y: (-152)
+switch costume to (repair v)
+create clone of (myself v)</pre></div>
+<div class="blocks-panel"><div class="label">Tool <span class="tag new">new</span></div>
+<pre class="blocks">when I start as a clone
+show</pre></div>
+<div class="blocks-panel"><div class="label">Tool <span class="tag new">new</span></div>
+<pre class="blocks">when this sprite clicked
+if &lt;(tool) = (name)&gt; then
+  set [tool v] to []
+else
+  set [tool v] to (name)
+  say (join (join (name) [: ]) (join (price) [ coins])) for (1) seconds
+end</pre></div>
+<div class="blocks-panel"><div class="label">Ring <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+hide
+set y to (-152)
+forever
+  if &lt;(tool) = [speed]&gt; then
+    set x to (-120)
+  end
+  if &lt;(tool) = [damage]&gt; then
+    set x to (-60)
+  end
+  if &lt;(tool) = [pierce]&gt; then
+    set x to (0)
+  end
+  if &lt;(tool) = [strength]&gt; then
+    set x to (60)
+  end
+  if &lt;(tool) = [repair]&gt; then
+    set x to (120)
+  end
+  if &lt;(tool) = []&gt; then
+    hide
+  else
+    show
+  end
+end</pre></div>
+</div>
+    <ul class="do">
+      <li>Every tower has its own <b>hp</b>, because it is a variable <b>for this sprite only</b>: each clone has its own copy.</li>
+      <li>A tower can have more than one <b>when I start as a clone</b> script: one shoots, one checks for chewing.</li>
+    </ul>
+    <figure>
+      <img src="step5.png" alt="A tower defending its lane, the Repair tool in the toolbar." width="720" height="541" loading="lazy">
+      <figcaption>Repair a chewed tower.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 5.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step5.sb3">Download step5.sb3</a>
+    </div>
+  </section>
+  <section class="step" id="step-6">
+    <div class="step-head"><span class="num">6</span><h2>Upgrades</h2></div>
+    <div class="idea"><b>Big idea: a tool, then a tower</b><span>Four more tools: <b>Speed</b> (shoots twice as often), <b>Damage</b> (red bolts that take 2 health), <b>Pierce</b> (bolts fly through slimes) and <b>Strength</b> (double health). Pick a tool, then click a tower: only that tower gets the upgrade.</span></div>
+    <p class="make"><span><b>Make:</b> nothing new: the upgrades change the tower's own variables.</span></p>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when this sprite clicked
+if &lt;(role) = [shop]&gt; then
+  if &lt;not &lt;(coins) &lt; (25)&gt;&gt; then
+    set [role v] to [new]
+    set size to (100) %
+    create clone of (myself v)
+    set [role v] to [shop]
+    set size to (80) %
+  else
+    say (join (25) [ coins for a tower]) for (1) seconds
+  end
+end
+if &lt;(role) = [tower]&gt; then
+  if &lt;&lt;(tool) = [repair]&gt; and &lt;&lt;(hp) &lt; (maxhp)&gt; and &lt;not &lt;(coins) &lt; (10)&gt;&gt;&gt;&gt; then
+    set [hp v] to (maxhp)
+    change [coins v] by (-10)
+    if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
+      switch costume to (cracked v)
+    else
+      switch costume to (tower v)
+    end
+  else
+    if &lt;&lt;(tool) = [speed]&gt; and &lt;&lt;(delay) &gt; (0.35)&gt; and &lt;not &lt;(coins) &lt; (20)&gt;&gt;&gt;&gt; then
+      set [delay v] to (0.35)
+      change [coins v] by (-20)
+      change size by (8)
+    else
+      if &lt;&lt;(tool) = [damage]&gt; and &lt;&lt;(power) = (1)&gt; and &lt;not &lt;(coins) &lt; (30)&gt;&gt;&gt;&gt; then
+        set [power v] to (2)
+        change [coins v] by (-30)
+        change size by (8)
+      else
+        if &lt;&lt;(tool) = [pierce]&gt; and &lt;&lt;(pierce) = (0)&gt; and &lt;not &lt;(coins) &lt; (30)&gt;&gt;&gt;&gt; then
+          set [pierce v] to (1)
+          change [coins v] by (-30)
+          change size by (8)
+        else
+          if &lt;&lt;(tool) = [strength]&gt; and &lt;&lt;(maxhp) = (20)&gt; and &lt;not &lt;(coins) &lt; (15)&gt;&gt;&gt;&gt; then
+            set [maxhp v] to (40)
+            change [hp v] by (20)
+            change [coins v] by (-15)
+            change size by (8)
+            if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
+              switch costume to (cracked v)
+            else
+              switch costume to (tower v)
+            end
+          end
+        end
+      end
+    end
+  end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Tool <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+hide
+set [name v] to []
+set [name v] to [speed]
+set [price v] to (20)
+go to x: (-120) y: (-152)
+switch costume to (speed v)
+create clone of (myself v)
+set [name v] to [damage]
+set [price v] to (30)
+go to x: (-60) y: (-152)
+switch costume to (damage v)
+create clone of (myself v)
+set [name v] to [pierce]
+set [price v] to (30)
+go to x: (0) y: (-152)
+switch costume to (pierce v)
+create clone of (myself v)
+set [name v] to [strength]
+set [price v] to (15)
+go to x: (60) y: (-152)
+switch costume to (strength v)
+create clone of (myself v)
+set [name v] to [repair]
+set [price v] to (10)
+go to x: (120) y: (-152)
+switch costume to (repair v)
+create clone of (myself v)</pre></div>
+</div>
+    <ul class="do">
+      <li>The bolts are clones of their tower, so they copy its <b>power</b> and <b>pierce</b>.</li>
+      <li>Each upgrade makes the tower a little bigger, so you can see which ones are upgraded.</li>
+    </ul>
+    <figure>
+      <img src="step6.png" alt="An upgraded tower shooting red bolts, the Strength tool picked." width="720" height="541" loading="lazy">
+      <figcaption>Upgrade your best towers.</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 6.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step6.sb3">Download step6.sb3</a>
+    </div>
+  </section>
+  <section class="step" id="step-7">
+    <div class="step-head"><span class="num">7</span><h2>Waves</h2></div>
+    <div class="idea"><b>Big idea: one number makes it harder</b><span>After every 8 slimes the <b>wave</b> goes up. Slimes get more health (1 + 2 × wave), get faster and change colour, and every fifth wave starts with a big boss slime. The slimes also come more often.</span></div>
+    <p class="make"><span><b>Make:</b> the variable <code>wave</code>.</span></p>
+    <div class="scripts">
+<div class="blocks-panel"><div class="label">Slime <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+hide
+go to x: (-228) y: (0)
+set [wave v] to (1)
+set [spawned v] to (0)
+forever
+  wait ((((0.6) + ((3) - ((0.25) * (wave)))) + ([abs v] of ((0.6) - ((3) - ((0.25) * (wave)))))) / (2)) seconds
+  set y to ((90) - ((60) * (pick random (0) to (3))))
+  change [spawned v] by (1)
+  if &lt;((spawned) mod (8)) = (0)&gt; then
+    change [wave v] by (1)
+  end
+  create clone of (myself v)
+end</pre></div>
+<div class="blocks-panel"><div class="label">Slime <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+set [health v] to (3)
+set [ouch v] to (0)
+set [speed v] to (0.6)
+switch costume to (green v)
+set [health v] to ((1) + ((2) * (wave)))
+set [speed v] to ((((1.6) + ((0.4) + ((0.12) * (wave)))) - ([abs v] of ((1.6) - ((0.4) + ((0.12) * (wave)))))) / (2))
+if &lt;(wave) &gt; (2)&gt; then
+  switch costume to (blue v)
+end
+if &lt;(wave) &gt; (4)&gt; then
+  switch costume to (purple v)
+end
+if &lt;&lt;((wave) mod (5)) = (0)&gt; and &lt;((spawned) mod (8)) = (1)&gt;&gt; then
+  switch costume to (boss v)
+  set [health v] to ((12) * (wave))
+  set [speed v] to (0.35)
+end
+show
+repeat until &lt;(x position) &gt; (185)&gt;
+  if &lt;touching color [#8b5cf6]?&gt; then
+  else
+    change x by (speed)
+  end
+  if &lt;(ouch) &gt; (0)&gt; then
+    change [ouch v] by (-1)
+  end
+  if &lt;&lt;(ouch) = (0)&gt; and &lt;&lt;touching color [#ffe600]?&gt; or &lt;touching color [#ff2d55]?&gt;&gt;&gt; then
+    if &lt;touching color [#ff2d55]?&gt; then
+      change [health v] by (-2)
+    else
+      change [health v] by (-1)
+    end
+    set [ouch v] to (6)
+    if &lt;not &lt;(health) &gt; (0)&gt;&gt; then
+      change [coins v] by (10)
+      delete this clone
+    end
+  end
+end
+change [lives v] by (-1)
+delete this clone</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when flag clicked
+set [role v] to [shop]
+go to x: (-205) y: (-152)
+switch costume to (tower v)
+set size to (80) %
+show
+set [coins v] to (100)
+set [tool v] to []
+set [lives v] to (5)
+wait until &lt;(lives) = (0)&gt;
+say (join [The slimes got in! You reached wave ] (wave)) for (3) seconds
+stop [all v]</pre></div>
+</div>
+    <ul class="do">
+      <li>This is the whole game. How many waves can you hold?</li>
+    </ul>
+    <figure>
+      <img src="step7.png" alt="Towers in every lane at wave 3." width="720" height="541" loading="lazy">
+      <figcaption>Hold the castle!</figcaption>
+    </figure>
+    <div class="checkpoint">
+      <p>Stuck? This is the project at the end of step 7.</p>
+      <a class="btn" href="https://github.com/AJosephsen/MyTemporaryJunk/raw/main/scratch/tutorials/slime-lanes/step7.sb3">Download step7.sb3</a>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h3>Make it your own</h3>
+    <ul class="try">
+      <li>A wall: a cheap tower that does not shoot but has lots of health.</li>
+      <li>Selling: a Sell tool that removes a tower and gives back half its price.</li>
+      <li>Fast slimes that are weak, and slow slimes that are strong.</li>
+      <li>Show each tower's health with <b>say</b> when you point at it.</li>
+    </ul>
+  </section>
+
+  <footer>Made with the Scratch workbench in this repository. The blocks on this page are drawn from the real project files, so they always match the downloads; the last step is the finished game.</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/scratchblocks@3.6.4/build/scratchblocks.min.js"></script>
+<script>
+  scratchblocks.renderMatching("pre.blocks", { style: "scratch3", languages: ["en"], scale: 0.75 });
+</script>

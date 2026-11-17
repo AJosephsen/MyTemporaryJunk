@@ -23,6 +23,7 @@ const GAMES: [string, string, string, string][] = [
   ["deep-dig", "games/deep-dig/deep-dig.sb3", "Deep Dig", "Dig for gold and gems; watch out for falling rocks."],
   ["lantern-deep", "games/lantern-deep/lantern-deep.sb3", "Lantern Deep", "Dig down forever; your lantern shows treasure, lava and crawlers."],
   ["beanstalk-bounce", "games/beanstalk-bounce/beanstalk-bounce.sb3", "Beanstalk Bounce", "Bounce up the beanstalk, leaf by leaf."],
+  ["chimney-drop", "games/chimney-drop/chimney-drop.sb3", "Chimney Drop", "Christmas: drop the presents down the chimneys."],
   ["sky-guard", "games/sky-guard/sky-guard.sb3", "Sky Guard", "Turn the cannon and shoot the falling meteors."],
   ["sheepdog", "games/sheepdog/sheepdog.sb3", "Sheepdog", "Herd all eight sheep into the pen."],
   ["splat-patrol", "games/splat-patrol/splat-patrol.sb3", "Splat Patrol", "Splat the raccoon bandits, not the villagers."],
@@ -37,7 +38,7 @@ const GAMES: [string, string, string, string][] = [
   ["starfire-rush", "games/starfire-rush/starfire-rush.sb3", "Starfire Rush", "Shoot 'em up: waves, bosses, power-ups."],
 ];
 // The tutorials, in the order of the list (easiest first).
-const TUTORIALS = ["sky-guard", "sheepdog", "maze-maker", "splat-patrol", "beanstalk-bounce", "comet-rally", "dust-hopper", "lantern-deep"];
+const TUTORIALS = ["chimney-drop", "sky-guard", "sheepdog", "maze-maker", "splat-patrol", "beanstalk-bounce", "comet-rally", "dust-hopper", "lantern-deep"];
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 

@@ -1,0 +1,13 @@
+{
+  "title": "Chimney Drop",
+  "tagline": "It's Christmas Eve! Fly the sleigh over the town and drop the presents down the chimneys.",
+  "project": "chimney-drop.sb3",
+  "left": [
+    { "key": "ArrowLeft", "label": "◀", "name": "Left" },
+    { "key": "ArrowRight", "label": "▶", "name": "Right" }
+  ],
+  "right": [
+    { "key": " ", "label": "Drop", "name": "Drop", "big": true }
+  ],
+  "keys": "Left and right arrows fly the sleigh · Space drops a present · drop it early, the town keeps moving"
+}

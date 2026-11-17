@@ -1,0 +1,13 @@
+{
+  "title": "Chimney Drop Runner",
+  "heading": "Chimney Drop",
+  "help": "Pick a step and click Green flag. Left and right arrows move the sleigh; Space drops a present.",
+  "steps": {
+    "1": { "name": "The sleigh", "note": "If key pressed, change x, in a forever loop." },
+    "2": { "name": "Houses", "note": "The House makes a clone of itself and of the Chimney; they move left together." },
+    "3": { "name": "Presents", "note": "Space makes a Present clone at the sleigh; it falls to the snow." },
+    "4": { "name": "Delivered!", "note": "Touching a Chimney scores, and the chimney glows." },
+    "5": { "name": "The sack", "note": "A miss costs a present; at 0 Santa says goodbye and the game stops." },
+    "6": { "name": "Snow and speed", "note": "Snow clones; speed = 2 + score / 5. This is the whole game." }
+  }
+}

@@ -29,7 +29,7 @@ test("slime lanes step 1: slimes come along the four lanes and crawl to the cast
   await start(t, 1);
   await t.frames(240);
   const s = await clones(t, "Slime");
-  t.expect(s.length >= 2 && s.every(c => [90, 30, -30, -90].includes(c.y) && c.x > -230), `slimes ${JSON.stringify(s.map(c => [Math.round(c.x), c.y]))}`);
+  t.expect(s.length >= 2 && s.every(c => [90, 30, -30, -90].includes(c.y) && c.x < 230), `slimes ${JSON.stringify(s.map(c => [Math.round(c.x), c.y]))}`);
   await t.screenshot(pic(1));
 });
 
@@ -46,32 +46,32 @@ test("slime lanes step 2: drag a tower from the shop onto a square; it costs coi
   await t.screenshot(pic(2));
 });
 
-test("slime lanes step 3: a tower shoots bolts to the left along its lane", async t => {
+test("slime lanes step 3: a tower shoots bolts to the right along its lane", async t => {
   await start(t, 3);
-  await buyTower(t, 90, -30);
+  await buyTower(t, -90, -30);
   await t.frames(40);
   const b = await bolts(t);
-  t.expect(b.length >= 1 && b.every(c => c.y === -30 && c.x < 90), `bolts ${JSON.stringify(b.map(c => [Math.round(c.x), c.y]))}`);
+  t.expect(b.length >= 1 && b.every(c => c.y === -30 && c.x > -90), `bolts ${JSON.stringify(b.map(c => [Math.round(c.x), c.y]))}`);
   await t.screenshot(pic(3));
 });
 
 for (const compiler of [true, false]) test(`slime lanes step 4: bolts destroy slimes for coins; a slime at the castle costs a life (${compiler ? "compiled" : "interpreted"})`, async t => {
   await start(t, 4, compiler);
-  await buyTower(t, 150, 90);
+  await buyTower(t, -150, 90);
   const coins = Number(await t.get("coins"));
-  await slimeAt(t, -60, 90);
+  await slimeAt(t, 60, 90);
   await t.until(v => Number(v.coins) === 85, { max: 400, what: "the slime to be destroyed" });
   t.expect(coins === 75, `paid for the tower: ${coins}`);
-  await slimeAt(t, 170, -90);
+  await slimeAt(t, -170, -90);
   await t.until(v => Number(v.lives) === 4, { max: 200, what: "a slime at the castle" });
   if (compiler) await t.screenshot(pic(4));
 });
 
 test("slime lanes step 5: a slime chews a tower; Repair mends it", async t => {
   await start(t, 5);
-  await buyTower(t, -150, -30);
+  await buyTower(t, 150, -30);
   // A tough slime right in front of it: it reaches the tower and chews.
-  await slimeAt(t, -200, -30);
+  await slimeAt(t, 200, -30);
   await t.page(w => { const s = w.vm.runtime.targets.filter((c: any) => !c.isOriginal && c.sprite.name === "Slime").pop();
     for (const x of Object.values(s.variables) as any[]) if (x.name === "health") x.value = 999; });
   await t.frames(150);
@@ -80,15 +80,15 @@ test("slime lanes step 5: a slime chews a tower; Repair mends it", async t => {
   await t.frames(60);
   await t.screenshot(pic(5));
   await click(t, 120, -152);                 // the Repair tool
-  await click(t, -150, -30);                 // the tower
+  await click(t, 150, -30);                  // the tower
   t.expect(Number((await towers(t))[0].vars.hp) >= 19, `repaired: hp ${(await towers(t))[0].vars.hp}`);
 });
 
 test("slime lanes step 6: upgrades: speed, damage (red bolts), pierce, strength; each costs coins", async t => {
   await start(t, 6);
   await t.page(w => { for (const x of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (x.name === "coins") x.value = 500; });
-  await buyTower(t, 90, 30);
-  for (const [tx, ty] of [[-120, -152], [90, 30], [-60, -152], [90, 30], [0, -152], [90, 30], [60, -152], [90, 30]]) await click(t, tx, ty);
+  await buyTower(t, -90, 30);
+  for (const [tx, ty] of [[-120, -152], [-90, 30], [-60, -152], [-90, 30], [0, -152], [-90, 30], [60, -152], [-90, 30]]) await click(t, tx, ty);
   const tw = (await towers(t))[0];
   t.expect(Number(tw.vars.delay) === 0.35 && Number(tw.vars.power) === 2 && Number(tw.vars.pierce) === 1 && Number(tw.vars.maxhp) === 40,
     `upgraded: ${JSON.stringify(tw.vars)}`);
@@ -96,7 +96,7 @@ test("slime lanes step 6: upgrades: speed, damage (red bolts), pierce, strength;
   await t.frames(30);
   t.expect((await bolts(t)).every(b => b.costume === "power"), "red bolts");
   // Pierce: one bolt goes through two slimes.
-  await slimeAt(t, -20, 30); await slimeAt(t, -60, 30);
+  await slimeAt(t, 20, 30); await slimeAt(t, 60, 30);
   await t.frames(60);
   await t.screenshot(pic(6));
 });
@@ -104,7 +104,7 @@ test("slime lanes step 6: upgrades: speed, damage (red bolts), pierce, strength;
 test("slime lanes step 7: waves get tougher; the castle falls when the lives run out", async t => {
   await start(t, 7);
   await t.page(w => { for (const x of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (x.name === "coins") x.value = 300; });
-  for (const [x, y] of [[150, 90], [150, 30], [150, -30], [150, -90], [90, 30], [90, -30]]) await buyTower(t, x, y);
+  for (const [x, y] of [[-150, 90], [-150, 30], [-150, -30], [-150, -90], [-90, 30], [-90, -30]]) await buyTower(t, x, y);
   for (let f = 0; f < 60 && Number(await t.get("wave")) < 3; f++) await t.frames(30);
   t.expect(Number(await t.get("wave")) >= 3, `wave ${await t.get("wave")}`);
   await t.screenshot(pic(7));

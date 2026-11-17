@@ -1,9 +1,9 @@
 // Slime Lanes, as a function of the tutorial step: slimeLanes(7) is the whole game, 1..6 are the tutorial's
 // checkpoints, 0 is the starter (artwork, no code). Standard Scratch: every sprite runs its own scripts; clones with
 // "for this sprite only" variables; touching and touching color.
-//   1  slimes: clones crawl along one of four lanes towards the castle
+//   1  slimes: clones crawl from the right along one of four lanes towards the castle on the left
 //   2  towers: click the tower in the shop and drag the new one onto the field (it snaps to a square); it costs coins
-//   3  shooting: a tower makes clones of itself that are bolts, flying left along its lane
+//   3  shooting: a tower makes clones of itself that are bolts, flying right along its lane
 //   4  hits: a slime touching a bolt's colour loses health; destroyed slimes give coins; a slime at the castle costs a life
 //   5  chewing and repair: a slime that reaches a tower stops and chews it; the Repair tool mends a tower
 //   6  upgrades: Speed (shoots faster), Damage (red bolts, double), Pierce (bolts fly through), Strength (sturdier)
@@ -15,7 +15,7 @@ import { Project, Blocks, dsl } from "../../lib/sb3.ts";
 import { art, TOWER_BASE, POWER_CORE, BOLT_CORE } from "./art.ts";
 
 export const LAST = 7;
-export const LANE_Y = [90, 30, -30, -90], COL0 = -210, SQUARE = 60, CASTLE_X = 185, START_X = -228, BAR_Y = -152;
+export const LANE_Y = [90, 30, -30, -90], COL0 = -210, SQUARE = 60, CASTLE_X = -185, START_X = 228, BAR_Y = -152;
 export const SHOP_X = -205, TOOLS: [string, number][] = [["speed", 20], ["damage", 30], ["pierce", 30], ["strength", 15], ["repair", 10]];
 export const TOOL_X = [-120, -60, 0, 60, 120], TOWER_COST = 25, BOUNTY = 10, DELAY = 0.7, FAST = 0.35;
 
@@ -51,9 +51,9 @@ export function slimeLanes(step: number): Buffer {
         ifThen(and(eq(mod(v("wave"), 5), 0), eq(mod(v("spawned"), 8), 1)), [costume("boss"), set("health", mul(12, v("wave"))), set("speed", 0.35)]),
       ]),
       show(),
-      until(gt(xPos(), CASTLE_X), [
+      until(lt(xPos(), CASTLE_X), [
         // Chewing a tower (its stone colour): stop. Otherwise crawl on.
-        ...(at(5) ? [ifElse(touchingColor(TOWER_BASE), [], [changeX(v("speed"))])] : [changeX(v("speed"))]),
+        ...(at(5) ? [ifElse(touchingColor(TOWER_BASE), [], [changeX(mul(-1, v("speed")))])] : [changeX(mul(-1, v("speed")))]),
         ...when(4, () => [
           // Hit by a bolt: red ones hurt twice as much. A short "ouch" so one bolt counts once.
           ifThen(gt(v("ouch"), 0), [change("ouch", -1)]),
@@ -108,7 +108,7 @@ export function slimeLanes(step: number): Buffer {
         until(not(mouseDown()), [goTo("_mouse_")]),
         setX(add(mul(round(div(sub(xPos(), COL0), SQUARE)), SQUARE), COL0)), setY(add(mul(round(div(sub(yPos(), LANE_Y[3]), SQUARE)), SQUARE), LANE_Y[3])),
         // Not on the field, or on another tower: it goes back to the shop.
-        ifThen(or(or(lt(yPos(), LANE_Y[3] - 5), gt(yPos(), LANE_Y[0] + 5)), or(gt(xPos(), 150), touching("Tower"))), [deleteClone()]),
+        ifThen(or(or(lt(yPos(), LANE_Y[3] - 5), gt(yPos(), LANE_Y[0] + 5)), or(lt(xPos(), -150), touching("Tower"))), [deleteClone()]),
         change("coins", -TOWER_COST), set("role", "tower"), set("hp", 20), set("maxhp", 20), set("delay", DELAY), set("power", 1), set("pierce", 0),
         ...when(3, () => [forever([
           // Shoot: become a bolt for a moment, make a clone (it copies power and pierce), and turn back.
@@ -117,8 +117,8 @@ export function slimeLanes(step: number): Buffer {
         ])]),
       ]),
       ifThen(eq(v("role"), "bolt"), [
-        changeX(-24),
-        until(lt(xPos(), -235), [changeX(-8),
+        changeX(24),
+        until(gt(xPos(), 235), [changeX(8),
           // A bolt stops at the first slime, unless it pierces.
           ...when(4, () => [ifThen(and(touching("Slime"), eq(v("pierce"), 0)), [wait(0.05), deleteClone()])])]),
         deleteClone(),
@@ -167,5 +167,6 @@ export function slimeLanes(step: number): Buffer {
       P.sprite("Ring", { blocks: ringScripts(), costumes: A.ring, layer: 4, visible: false }),
     ],
     shown: ["coins", ...(at(4) ? ["lives"] : []), ...(at(7) ? ["wave"] : [])].filter(n => at(2) || n !== "coins"),
+    shownInRow: true,   // along the sky, clear of the lanes
   });
 }

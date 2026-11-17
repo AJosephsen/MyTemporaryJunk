@@ -50,7 +50,7 @@ export class Project {
   }
 
   // Assembles project.json and packs it with the costume files.
-  build(opts: { backdrop: any | any[]; sprites: any[]; stage?: Blocks; listValues?: Record<string, (number | string)[]>; shown?: string[]; shownLeft?: number }): Buffer {
+  build(opts: { backdrop: any | any[]; sprites: any[]; stage?: Blocks; listValues?: Record<string, (number | string)[]>; shown?: string[]; shownLeft?: number; shownInRow?: boolean }): Buffer {
     const shown = opts.shown ?? [];
     const left = opts.shownLeft ?? 3; // displays in the top left corner; the rest go top right
     shown.forEach(n => this.varId(n));
@@ -69,9 +69,11 @@ export class Project {
       ],
       monitors: shown.map((n, i) => ({
         id: this.vars[n], mode: "default", opcode: "data_variable", params: { VARIABLE: n }, spriteName: null,
-        value: 0, width: 0, height: 0, y: 5 + (i < left ? i : i - left) * 27, visible: true,
-        // Right-hand displays are placed by an estimate of their width, so they stay inside the Stage.
-        x: i < left ? 5 : Math.round(475 - (n.length * 7.5 + 60)),
+        // shownInRow: side by side along the top (an estimate of each one's width); otherwise stacked in the top left
+        // corner, the rest top right (placed by an estimate of their width, so they stay inside the Stage).
+        value: 0, width: 0, height: 0, y: opts.shownInRow ? 5 : 5 + (i < left ? i : i - left) * 27, visible: true,
+        x: opts.shownInRow ? 5 + shown.slice(0, i).reduce((w, m) => w + m.length * 7.5 + 70, 0)
+          : i < left ? 5 : Math.round(475 - (n.length * 7.5 + 60)),
         sliderMin: 0, sliderMax: 100, isDiscrete: true,
       })),
       extensions: this.extensions,

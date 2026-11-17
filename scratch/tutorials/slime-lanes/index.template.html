@@ -93,7 +93,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
   <header class="intro">
     <span class="eyebrow">Scratch tutorial for kids (9+) · 7 steps · basic blocks only</span>
     <h1>Slime Lanes</h1>
-    <p>Slimes are crawling along four lanes towards your castle! Drag crystal towers onto the field to stop them. Destroyed slimes give coins for more towers, repairs and upgrades: faster shooting, stronger bolts, bolts that fly through, and sturdier towers.</p>
+    <p>Slimes are crawling in from the right along four lanes towards your castle! Drag crystal towers onto the field to stop them. Destroyed slimes give coins for more towers, repairs and upgrades: faster shooting, stronger bolts, bolts that fly through, and sturdier towers.</p>
     <p>Every step is a game you can play, and every step has a file you can download if you get stuck. You need the Scratch editor: <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a>.</p>
     <div class="checkpoint">
       <p>Start here: the starter project has the slimes, the tower, the tools and the field. No code yet.</p>
@@ -116,7 +116,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 
   <section class="step" id="step-1">
     <div class="step-head"><span class="num">1</span><h2>Slimes</h2></div>
-    <div class="idea"><b>Big idea: clones on lanes</b><span>The Slime sprite hides and, every few seconds, picks one of four lanes and makes a <b>clone</b> of itself there. The lanes are 60 apart: <b>set y to 90 − 60 × pick random 0 to 3</b>. Each clone crawls right until it reaches the castle wall.</span></div>
+    <div class="idea"><b>Big idea: clones on lanes</b><span>The Slime sprite hides and, every few seconds, picks one of four lanes and makes a <b>clone</b> of itself there. The lanes are 60 apart: <b>set y to 90 − 60 × pick random 0 to 3</b>. Each clone starts at the right and crawls left until it reaches the castle wall.</span></div>
     <p class="make"><span><b>Make:</b> nothing new yet. The starter has the Slime, Tower, Tool and Ring sprites and the field.</span></p>
     <!--changed:1-->
     <ul class="do">
@@ -151,7 +151,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
   </section>
   <section class="step" id="step-3">
     <div class="step-head"><span class="num">3</span><h2>Shooting</h2></div>
-    <div class="idea"><b>Big idea: bolts are clones of their tower</b><span>Every 0.7 seconds a tower turns into a bolt for a moment: <b>set role to bolt</b>, bolt costume, <b>create clone of myself</b>, then back to a tower. The clone starts right where its tower is and flies left along the lane.</span></div>
+    <div class="idea"><b>Big idea: bolts are clones of their tower</b><span>Every 0.7 seconds a tower turns into a bolt for a moment: <b>set role to bolt</b>, bolt costume, <b>create clone of myself</b>, then back to a tower. The clone starts right where its tower is and flies right along the lane, towards the slimes.</span></div>
     <p class="make"><span><b>Make:</b> nothing new.</span></p>
     <!--changed:3-->
     <ul class="do">
@@ -159,7 +159,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
     </ul>
     <figure>
       <img src="step3.png" alt="A tower shooting bolts along its lane." width="720" height="541" loading="lazy">
-      <figcaption>Bolts fly left along the lane.</figcaption>
+      <figcaption>Bolts fly along the lane towards the slimes.</figcaption>
     </figure>
     <div class="checkpoint">
       <p>Stuck? This is the project at the end of step 3.</p>

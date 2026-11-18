@@ -1,6 +1,6 @@
 {
   "title": "Slime Siege",
-  "tagline": "Slimes zigzag towards your keep! Drag cannons anywhere: they turn, find the slimes and shoot. Upgrade and repair them.",
+  "tagline": "Slimes zigzag towards your keep! Fixed cannons shoot the way you turn them; seekers aim at the slime in front. Upgrade and repair them.",
   "project": "slime-siege.sb3",
   "left": [],
   "right": [],

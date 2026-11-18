@@ -1,0 +1,15 @@
+{
+  "title": "Boom Lab Runner",
+  "heading": "Boom Lab",
+  "help": "Pick a step and click Green flag. Pick an effect in the toolbar, then click the sky.",
+  "steps": {
+    "1": { "name": "Pop", "note": "A flip-book: next costume, five times." },
+    "2": { "name": "Fireball", "note": "One costume: change size and the ghost effect." },
+    "3": { "name": "Ring", "note": "Turn 360 / n before each clone: they point all the way round." },
+    "4": { "name": "Sparks", "note": "Gravity: vy goes down a little every frame." },
+    "5": { "name": "Smoke", "note": "Random size, place, start and drift; rise, grow, fade." },
+    "6": { "name": "Blast", "note": "A full-screen flash and a shockwave, with a fireball and a ring." },
+    "7": { "name": "Quake", "note": "The ground shakes, a little less each time." },
+    "8": { "name": "Mega", "note": "Bouncing debris, and every effect at once. The whole lab." }
+  }
+}

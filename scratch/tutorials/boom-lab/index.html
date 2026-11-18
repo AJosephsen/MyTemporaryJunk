@@ -210,7 +210,7 @@ else
     make (1) [fireball] :: custom
   end
 end</pre></div>
-<div class="blocks-panel"><div class="label">Boom <span class="tag changed">changed</span></div>
+<div class="blocks-panel"><div class="label">Boom <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [fireball]&gt; then
   switch costume to (fireball v)
@@ -278,7 +278,7 @@ else
     end
   end
 end</pre></div>
-<div class="blocks-panel"><div class="label">Boom <span class="tag changed">changed</span></div>
+<div class="blocks-panel"><div class="label">Boom <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [spark]&gt; then
   switch costume to (spark v)
@@ -346,7 +346,7 @@ else
     end
   end
 end</pre></div>
-<div class="blocks-panel"><div class="label">Boom <span class="tag changed">changed</span></div>
+<div class="blocks-panel"><div class="label">Boom <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [ember]&gt; then
   switch costume to (ember v)
@@ -426,7 +426,7 @@ else
     end
   end
 end</pre></div>
-<div class="blocks-panel"><div class="label">Boom <span class="tag changed">changed</span></div>
+<div class="blocks-panel"><div class="label">Boom <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [smoke]&gt; then
   switch costume to (smoke v)
@@ -521,7 +521,7 @@ else
     end
   end
 end</pre></div>
-<div class="blocks-panel"><div class="label">Boom <span class="tag changed">changed</span></div>
+<div class="blocks-panel"><div class="label">Boom <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [shock]&gt; then
   switch costume to (shock v)
@@ -597,6 +597,9 @@ go to x: (0) y: (-160)</pre></div>
     <div class="idea"><b>Big idea: shake, less and less</b><span><b>Quake</b> broadcasts <b>shake</b>. The Land sprite jumps to a random spot near home, 12 times, and each time a little less far (<b>jolt</b> goes down by 1). Then it goes home. The ground is wider than the stage, so you never see its edges.</span></div>
     <p class="make"><span><b>Make:</b> <code>jolt</code> for the Land only.</span></p>
     <div class="scripts">
+<div class="blocks-panel"><div class="label">Land <span class="tag new">new</span></div>
+<pre class="blocks">when flag clicked
+go to x: (0) y: (-95)</pre></div>
 <div class="blocks-panel"><div class="label">Land <span class="tag new">new</span></div>
 <pre class="blocks">when I receive [shake v]
 set [jolt v] to (12)
@@ -741,7 +744,7 @@ else
     end
   end
 end</pre></div>
-<div class="blocks-panel"><div class="label">Boom <span class="tag changed">changed</span></div>
+<div class="blocks-panel"><div class="label">Boom <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [chunk]&gt; then
   switch costume to (join [chunk] (pick random (1) to (2)))

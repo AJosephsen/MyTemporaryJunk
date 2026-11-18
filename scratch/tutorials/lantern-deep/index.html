@@ -140,8 +140,8 @@ if &lt;(isClone) = (1)&gt; then
 end</pre></div>
 <div class="blocks-panel"><div class="label">Square <span class="tag new">new</span></div>
 <pre class="blocks">when I receive [tick v]
-if &lt;(isClone) = (1)&gt; then
-  go to x: ((-224) + ((col) * (32))) y: ((124) - ((row) * (32)))
+if &lt;(isClone) = (0)&gt; then
+  make rows :: custom
 end</pre></div>
 <div class="blocks-panel"><div class="label">Square <span class="tag new">new</span></div>
 <pre class="blocks">define make rows
@@ -167,6 +167,11 @@ end</pre></div>
 set [isClone v] to (1)
 switch costume to ((kind) + (1))
 show</pre></div>
+<div class="blocks-panel"><div class="label">Square <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [tick v]
+if &lt;(isClone) = (1)&gt; then
+  go to x: ((-224) + ((col) * (32))) y: ((124) - ((row) * (32)))
+end</pre></div>
 <div class="blocks-panel"><div class="label">Miner <span class="tag new">new</span></div>
 <pre class="blocks">when flag clicked
 switch costume to (right v)
@@ -376,18 +381,6 @@ forever
   broadcast (tick v)
 end</pre></div>
 <div class="blocks-panel"><div class="label">Square <span class="tag changed">changed</span></div>
-<pre class="blocks">when I receive [tick v]
-if &lt;(isClone) = (1)&gt; then
-  if &lt;(((124) - ((row) * (32))) + (scroll)) &gt; (200)&gt; then
-    delete this clone
-  end
-  go to x: ((-224) + ((col) * (32))) y: (((124) - ((row) * (32))) + (scroll))
-  if &lt;&lt;(lit) = (0)&gt; and &lt;touching (Lantern v)?&gt;&gt; then
-    set [lit v] to (1)
-    switch costume to ((kind) + (1))
-  end
-end</pre></div>
-<div class="blocks-panel"><div class="label">Square <span class="tag changed">changed</span></div>
 <pre class="blocks">define make rows
 repeat until &lt;not &lt;(lastRow) &lt; ((mrow) + (9))&gt;&gt;
   change [lastRow v] by (1)
@@ -463,6 +456,18 @@ set [isClone v] to (1)
 set [lit v] to (0)
 switch costume to (dark v)
 show</pre></div>
+<div class="blocks-panel"><div class="label">Square <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [tick v]
+if &lt;(isClone) = (1)&gt; then
+  if &lt;(((124) - ((row) * (32))) + (scroll)) &gt; (200)&gt; then
+    delete this clone
+  end
+  go to x: ((-224) + ((col) * (32))) y: (((124) - ((row) * (32))) + (scroll))
+  if &lt;&lt;(lit) = (0)&gt; and &lt;touching (Lantern v)?&gt;&gt; then
+    set [lit v] to (1)
+    switch costume to ((kind) + (1))
+  end
+end</pre></div>
 <div class="blocks-panel"><div class="label">Square <span class="tag changed">changed</span></div>
 <pre class="blocks">when I receive [dig v]
 if &lt;&lt;(isClone) = (1)&gt; and &lt;touching (Pick v)?&gt;&gt; then

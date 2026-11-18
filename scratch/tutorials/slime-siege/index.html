@@ -235,7 +235,7 @@ end</pre></div>
     <div class="idea"><b>Big idea: bolts are clones of their cannon</b><span>Every 0.7 seconds the cannon becomes a bolt for a moment and makes a clone of itself, then turns back into a cannon. The clone starts where the cannon is and points the same way, so it flies off in the cannon's direction.</span></div>
     <p class="make"><span><b>Make:</b> nothing new.</span></p>
     <div class="scripts">
-<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [new]&gt; then
   repeat until &lt;(role) = [tower]&gt;
@@ -320,6 +320,36 @@ set [lives v] to (5)
 wait until &lt;(lives) = (0)&gt;
 say [The slimes got in!] for (3) seconds
 stop [all v]</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+if &lt;(role) = [new]&gt; then
+  repeat until &lt;not &lt;mouse down?&gt;&gt;
+    go to (mouse-pointer v)
+  end
+  if &lt;&lt;(y position) &lt; (-105)&gt; or &lt;&lt;touching (Tower v)?&gt; or &lt;touching (Keep v)?&gt;&gt;&gt; then
+    delete this clone
+  end
+  change [coins v] by ((-1) * (price))
+  set [role v] to [tower]
+  set [hp v] to (20)
+  set [maxhp v] to (20)
+  set [delay v] to (0.7)
+  set [power v] to (1)
+  set [pierce v] to (0)
+  set [locked v] to (1)
+  point in direction (90)
+end
+if &lt;(role) = [bolt]&gt; then
+  move (24) steps
+  repeat until &lt;touching (edge v)?&gt;
+    move (9) steps
+    if &lt;&lt;touching (Slime v)?&gt; and &lt;(pierce) = (0)&gt;&gt; then
+      wait (0.05) seconds
+      delete this clone
+    end
+  end
+  delete this clone
+end</pre></div>
 </div>
     <ul class="do">
       <li>A bolt stops at the first slime, and waits a moment so the slime notices it.</li>
@@ -398,6 +428,47 @@ set [lives v] to (5)
 wait until &lt;(lives) = (0)&gt;
 say [The slimes got in!] for (3) seconds
 stop [all v]</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+if &lt;(role) = [new]&gt; then
+  repeat until &lt;not &lt;mouse down?&gt;&gt;
+    go to (mouse-pointer v)
+  end
+  if &lt;&lt;(y position) &lt; (-105)&gt; or &lt;&lt;touching (Tower v)?&gt; or &lt;touching (Keep v)?&gt;&gt;&gt; then
+    delete this clone
+  end
+  change [coins v] by ((-1) * (price))
+  set [role v] to [tower]
+  set [hp v] to (20)
+  set [maxhp v] to (20)
+  set [delay v] to (0.7)
+  set [power v] to (1)
+  set [pierce v] to (0)
+  set [locked v] to (1)
+  point in direction (90)
+  if &lt;(kind) = [seeker]&gt; then
+    set [locked v] to (0)
+    forever
+      if &lt;&lt;(front) = (1)&gt; and &lt;(distance to (Target v)) &lt; (170)&gt;&gt; then
+        point towards (Target v)
+        set [locked v] to (1)
+      else
+        set [locked v] to (0)
+      end
+    end
+  end
+end
+if &lt;(role) = [bolt]&gt; then
+  move (24) steps
+  repeat until &lt;touching (edge v)?&gt;
+    move (9) steps
+    if &lt;&lt;touching (Slime v)?&gt; and &lt;(pierce) = (0)&gt;&gt; then
+      wait (0.05) seconds
+      delete this clone
+    end
+  end
+  delete this clone
+end</pre></div>
 <div class="blocks-panel"><div class="label">Target <span class="tag new">new</span></div>
 <pre class="blocks">when flag clicked
 hide
@@ -524,6 +595,31 @@ if &lt;(role) = [tower]&gt; then
   end
 end</pre></div>
 <div class="blocks-panel"><div class="label">Tower <span class="tag changed">changed</span></div>
+<pre class="blocks">when I start as a clone
+if &lt;(role) = [new]&gt; then
+  repeat until &lt;(role) = [tower]&gt;
+    wait (0.05) seconds
+  end
+  forever
+    wait (delay) seconds
+    if &lt;(locked) = (1)&gt; then
+      set [role v] to [bolt]
+      if &lt;(power) = (2)&gt; then
+        switch costume to (power v)
+      else
+        switch costume to (bolt v)
+      end
+      create clone of (myself v)
+      set [role v] to [tower]
+      if &lt;(hp) &lt; ((maxhp) / (2))&gt; then
+        switch costume to (join (kind) [-cracked])
+      else
+        switch costume to (kind)
+      end
+    end
+  end
+end</pre></div>
+<div class="blocks-panel"><div class="label">Tower <span class="tag new">new</span></div>
 <pre class="blocks">when I start as a clone
 if &lt;(role) = [new]&gt; then
   repeat until &lt;(role) = [tower]&gt;

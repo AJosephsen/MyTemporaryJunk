@@ -100,8 +100,8 @@ export function boomLab(step: number): Buffer {
     const B = new Blocks(P).local("jolt");
     const d = dsl(B);
     const { v, add, set, change, whenFlag, whenReceive, goto, repeat, random, mul } = d;
-    B.script(whenFlag(), [goto(0, LAND_Y)], 20, 20);
     if (!at(7)) return B;
+    B.script(whenFlag(), [goto(0, LAND_Y)], 20, 20);
     // A shake: jump to a random spot near home, a little less far each time, then home again.
     B.script(whenReceive("shake"), [set("jolt", 12), repeat(12, [
       goto(random(mul(-1, v("jolt")), v("jolt")), add(LAND_Y, random(mul(-1, v("jolt")), v("jolt")))), change("jolt", -1)]),

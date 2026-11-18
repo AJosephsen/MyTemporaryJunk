@@ -13,6 +13,15 @@ export function projectJson(sb3: Buffer): any {
   return JSON.parse(sb3.subarray(30 + nameLen, 30 + nameLen + size).toString());
 }
 
+// A script is known by its first line (its hat block). Scripts with the same hat (several "when I start as a clone")
+// are known by their first lines up to the first one that differs, so each keeps its own identity between steps.
+function scriptKey(script: string, all: string[]): string {
+  const lines = script.split("\n"), same = all.filter(s => s !== script && s.split("\n")[0] === lines[0]).map(s => s.split("\n"));
+  let n = 1;
+  while (n < lines.length && same.some(o => o.slice(0, n).join("\n") === lines.slice(0, n).join("\n"))) n++;
+  return lines.slice(0, n).join("\n");
+}
+
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /**
@@ -30,22 +39,31 @@ export function buildTutorial(dir: URL, last: number, build: (step: number) => B
     writeFileSync(here(name), sb3);
     const byTarget: Scripts = {};
     for (const [target, list] of Object.entries(projectScripts(projectJson(sb3))))
-      byTarget[target] = new Map(list.map(s => [s.split("\n")[0], s]));
+      byTarget[target] = new Map(list.map(s => [scriptKey(s, list), s]));
     perStep.push(byTarget);
     console.log(`${name}: ${sb3.length} bytes`);
   }
 
+  // What is new or changed in a step. A script that is not exactly as before is "changed" if it continues an old one
+  // (same hat and more of the same beginning than any other, or the only one with that hat on both sides), else "new".
   const changed = (step: number): string => {
     const now = perStep[step], before = perStep[step - 1];
     const panels: string[] = [], removed: string[] = [];
+    const hat = (s: string) => s.split("\n")[0];
+    const common = (a: string, b: string) => { const x = a.split("\n"), y = b.split("\n"); let n = 0; while (n < x.length && n < y.length && x[n] === y[n]) n++; return n; };
     for (const t of targets) {
-      for (const [head, text] of now[t] ?? new Map()) {
-        const old = before[t]?.get(head);
-        if (old === text) continue;
-        const tag = old === undefined ? "new" : "changed";
+      const nowList = [...(now[t]?.values() ?? [])], beforeList = [...(before[t]?.values() ?? [])];
+      const open = beforeList.filter(s => !nowList.includes(s));
+      const fresh = nowList.filter(s => !beforeList.includes(s));
+      for (const text of fresh) {
+        const sameHat = open.filter(o => hat(o) === hat(text));
+        const best = sameHat.sort((a, b) => common(b, text) - common(a, text))[0];
+        const only = sameHat.length === 1 && fresh.filter(f => hat(f) === hat(text)).length === 1;
+        const tag = best && (common(best, text) >= 2 || only) ? "changed" : "new";
+        if (tag === "changed") open.splice(open.indexOf(best), 1);
         panels.push(`<div class="blocks-panel"><div class="label">${t} <span class="tag ${tag}">${tag}</span></div>\n<pre class="blocks">${esc(text)}</pre></div>`);
       }
-      for (const head of before[t]?.keys() ?? []) if (!now[t]?.has(head)) removed.push(`${t}: <code>${esc(head)}</code>`);
+      for (const o of open) removed.push(`${t}: <code>${esc(o.split("\n").slice(0, 2).join(" … "))}</code>`);
     }
     const note = removed.length ? `<p class="note"><b>Remove</b> ${removed.join(", ")}.</p>\n` : "";
     return `${note}<div class="scripts">\n${panels.join("\n")}\n</div>`;

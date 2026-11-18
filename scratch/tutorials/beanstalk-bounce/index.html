@@ -175,10 +175,8 @@ if &lt;(isClone) = (1)&gt; then
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag new">new</span></div>
 <pre class="blocks">when I receive [tick v]
-if &lt;(isClone) = (1)&gt; then
-  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
-    set [vy v] to (11)
-  end
+if &lt;(isClone) = (0)&gt; then
+  grow :: custom
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag new">new</span></div>
 <pre class="blocks">define grow
@@ -196,6 +194,13 @@ end</pre></div>
 <pre class="blocks">when I start as a clone
 set [isClone v] to (1)
 show</pre></div>
+<div class="blocks-panel"><div class="label">Leaf <span class="tag new">new</span></div>
+<pre class="blocks">when I receive [tick v]
+if &lt;(isClone) = (1)&gt; then
+  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
+    set [vy v] to (11)
+  end
+end</pre></div>
 </div>
     <ul class="do">
       <li>The frog only bounces when he is <b>falling</b> (vy &lt; 0). On the way up he jumps right through the leaves.</li>
@@ -264,17 +269,6 @@ forever
   end
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
-<pre class="blocks">when I receive [tick v]
-if &lt;(isClone) = (1)&gt; then
-  if &lt;((wy) - (camera)) &lt; (-200)&gt; then
-    delete this clone
-  end
-  set y to ((wy) - (camera))
-  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
-    set [vy v] to (11)
-  end
-end</pre></div>
-<div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
 <pre class="blocks">define grow
 repeat until &lt;(nextY) &gt; ((camera) + (220))&gt;
   set [wy v] to (nextY)
@@ -285,6 +279,17 @@ repeat until &lt;(nextY) &gt; ((camera) + (220))&gt;
   end
   create clone of (myself v)
   change [nextY v] by (pick random (40) to (70))
+end</pre></div>
+<div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [tick v]
+if &lt;(isClone) = (1)&gt; then
+  if &lt;((wy) - (camera)) &lt; (-200)&gt; then
+    delete this clone
+  end
+  set y to ((wy) - (camera))
+  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
+    set [vy v] to (11)
+  end
 end</pre></div>
 </div>
     <ul class="do">
@@ -422,35 +427,6 @@ forever
   broadcast (tick v)
 end</pre></div>
 <div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
-<pre class="blocks">when I receive [tick v]
-if &lt;(isClone) = (1)&gt; then
-  if &lt;((wy) - (camera)) &lt; (-200)&gt; then
-    delete this clone
-  end
-  set y to ((wy) - (camera))
-  if &lt;not &lt;(dx) = (0)&gt;&gt; then
-    change x by (dx)
-    if &lt;&lt;(x position) &gt; (200)&gt; or &lt;(x position) &lt; (-200)&gt;&gt; then
-      set [dx v] to ((dx) * (-1))
-    end
-  end
-  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
-    if &lt;(costume [number v]) = (1)&gt; then
-      set [vy v] to (11)
-    end
-    if &lt;(costume [number v]) = (3)&gt; then
-      set [vy v] to (20)
-    end
-    if &lt;(costume [number v]) = (2)&gt; then
-      set [crumble v] to (1)
-    end
-  end
-  if &lt;(crumble) = (1)&gt; then
-    change [wy v] by (-8)
-    change [ghost v] effect by (12)
-  end
-end</pre></div>
-<div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
 <pre class="blocks">define grow
 repeat until &lt;(nextY) &gt; ((camera) + (220))&gt;
   set [wy v] to (nextY)
@@ -482,6 +458,35 @@ end</pre></div>
 set [isClone v] to (1)
 set [crumble v] to (0)
 show</pre></div>
+<div class="blocks-panel"><div class="label">Leaf <span class="tag changed">changed</span></div>
+<pre class="blocks">when I receive [tick v]
+if &lt;(isClone) = (1)&gt; then
+  if &lt;((wy) - (camera)) &lt; (-200)&gt; then
+    delete this clone
+  end
+  set y to ((wy) - (camera))
+  if &lt;not &lt;(dx) = (0)&gt;&gt; then
+    change x by (dx)
+    if &lt;&lt;(x position) &gt; (200)&gt; or &lt;(x position) &lt; (-200)&gt;&gt; then
+      set [dx v] to ((dx) * (-1))
+    end
+  end
+  if &lt;&lt;(phase) = [play]&gt; and &lt;&lt;(vy) &lt; (0)&gt; and &lt;touching (Frog v)?&gt;&gt;&gt; then
+    if &lt;(costume [number v]) = (1)&gt; then
+      set [vy v] to (11)
+    end
+    if &lt;(costume [number v]) = (3)&gt; then
+      set [vy v] to (20)
+    end
+    if &lt;(costume [number v]) = (2)&gt; then
+      set [crumble v] to (1)
+    end
+  end
+  if &lt;(crumble) = (1)&gt; then
+    change [wy v] by (-8)
+    change [ghost v] effect by (12)
+  end
+end</pre></div>
 </div>
     <ul class="do">
       <li><b>costume number</b> tells a leaf what it is: 1 is a leaf, 2 is dry, 3 is a mushroom.</li>

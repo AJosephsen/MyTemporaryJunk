@@ -12,7 +12,7 @@ const RUNTIME = join(ROOT, "node_modules", "@turbowarp", "scaffolding", "dist");
 const SKIP_DIRS = new Set(["node_modules", ".git"]);
 const BUILD_SCRIPTS = new Set(["build.ts", "build-steps.ts"]);
 // Files written by builds; changes to them must not trigger another build.
-const GENERATED = [/\.sb3$/, /\.png$/, /(^|\/)index\.html$/, /(^|\/)blocks\.json$/];
+const GENERATED = [/\.sb3$/, /\.sprite3$/, /\.png$/, /(^|\/)index\.html$/, /(^|\/)blocks\.json$/];
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -75,7 +75,7 @@ export async function startServer(opts: { port?: number; watch?: boolean; log?: 
     }
     if (path.startsWith("/project/")) {
       const file = resolve(ROOT, path.slice("/project/".length));
-      if (!file.startsWith(ROOT + sep) || !file.endsWith(".sb3")) { res.writeHead(403).end(); return; }
+      if (!file.startsWith(ROOT + sep) || !/\.(sb3|sprite3)$/.test(file)) { res.writeHead(403).end(); return; }
       return send(res, file);
     }
     if (path === "/events") {

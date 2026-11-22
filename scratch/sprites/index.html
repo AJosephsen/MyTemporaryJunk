@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Effect Sprites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+:root {
+  --bg: #f4f3fa; --surface: #ffffff; --fg: #1f1d33; --muted: #5c5a74; --line: #dddbea;
+  --accent: #3b3f9e; --accent-soft: #e6e6fa; --warm: #d97706; --code-bg: #f8f7fd;
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #13121f; --surface: #1c1a2c; --fg: #ebe9f7; --muted: #a6a3bf; --line: #312e47;
+  --accent: #a5a8ff; --accent-soft: #23244a; --warm: #fbbf24; --code-bg: #232036; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #13121f; --surface: #1c1a2c; --fg: #ebe9f7; --muted: #a6a3bf; --line: #312e47;
+  --accent: #a5a8ff; --accent-soft: #23244a; --warm: #fbbf24; --code-bg: #232036; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 18px/1.6 var(--body);
+  padding: 40px max(16px, env(safe-area-inset-right, 0px)) 72px max(16px, env(safe-area-inset-left, 0px)); }
+main { max-width: 980px; margin: 0 auto; display: grid; gap: 48px; }
+main > *, .stack > * { min-width: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 6vw, 2.9rem); }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.25rem; }
+p { margin: 0; max-width: 66ch; }
+a { color: var(--accent); }
+code { font: 0.88em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.eyebrow { font: 600 0.78rem var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--warm); }
+.intro, .stack { display: grid; gap: 14px; }
+.intro p { color: var(--muted); font-size: 1.08rem; }
+ol.how { margin: 0; padding-left: 1.4em; display: grid; gap: 10px; max-width: 66ch; }
+.blocks-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow-x: auto; }
+pre.blocks { margin: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 20px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+.card img { width: 100%; height: auto; display: block; aspect-ratio: 4 / 3; }
+.card-body { padding: 14px 16px 16px; display: grid; gap: 8px; align-content: start; }
+.card-body p { color: var(--muted); font-size: 0.98rem; }
+.sprite-name { font-size: 0.9rem; }
+audio { width: 100%; height: 36px; }
+.btn { display: inline-block; justify-self: start; background: var(--accent); color: var(--surface); text-decoration: none; font-weight: 700;
+  padding: 8px 14px; border-radius: 8px; font-size: 0.95rem; }
+.note { background: var(--accent-soft); border-radius: 8px; padding: 12px 16px; max-width: 66ch; }
+footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--line); padding-top: 24px; }
+</style>
+</head>
+<body>
+<main>
+  <header class="intro">
+    <span class="eyebrow">Scratch sprite library</span>
+    <h1>Effect Sprites</h1>
+    <p>Ready-made explosion effects for your own Scratch games, each with its own sound. Every sprite hides when the green flag is clicked and plays its effect in a clone, wherever you ask, then cleans up after itself.</p>
+  </header>
+
+  <section class="stack">
+    <h2>How to use them</h2>
+    <ol class="how">
+      <li>Download a sprite below (a <code>.sprite3</code> file).</li>
+      <li>In the Scratch editor, point at the cat button at the bottom right of the sprite list and choose <b>Upload Sprite</b>. Pick the file.</li>
+      <li>Scratch makes two variables for all sprites, <code>fx x</code> and <code>fx y</code>: that is where the effect plays.</li>
+      <li>In any sprite (a ship that is hit, a balloon that pops), set them and make a clone of the effect:</li>
+    </ol>
+    <div class="blocks-panel"><pre class="blocks">set [fx x v] to (x position)
+set [fx y v] to (y position)
+create clone of [FX Explosion v]</pre></div>
+    <p class="note">That's all: you don't need to change anything inside the effect sprite. Use as many as you like, and as often as you like: every clone plays on its own and deletes itself.</p>
+    <p>Try them all first: <a href="effects-demo.sb3" download>effects-demo.sb3</a> has every effect. Press 1 to 9 to pick one, and click anywhere on the stage.</p>
+  </section>
+
+  <section class="stack">
+    <h2>The sprites</h2>
+    <div class="grid">
+    <article class="card">
+      <img src="effects/fx-pop.png" alt="Pop effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Pop</h3>
+        <p class="sprite-name"><code>FX Pop</code></p>
+        <p>A cartoon pop: a five-frame flip-book.</p>
+        <audio controls preload="none" src="effects/sounds/pop.wav" aria-label="Pop sound"></audio>
+        <a class="btn" href="effects/fx-pop.sprite3" download>Download fx-pop.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-fireball.png" alt="Fireball effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Fireball</h3>
+        <p class="sprite-name"><code>FX Fireball</code></p>
+        <p>A soft fireball that swells up and fades.</p>
+        <audio controls preload="none" src="effects/sounds/whoomp.wav" aria-label="Fireball sound"></audio>
+        <a class="btn" href="effects/fx-fireball.sprite3" download>Download fx-fireball.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-shockwave.png" alt="Shockwave effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Shockwave</h3>
+        <p class="sprite-name"><code>FX Shockwave</code></p>
+        <p>A ring that grows very fast and fades.</p>
+        <audio controls preload="none" src="effects/sounds/thump.wav" aria-label="Shockwave sound"></audio>
+        <a class="btn" href="effects/fx-shockwave.sprite3" download>Download fx-shockwave.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-ring.png" alt="Spark ring effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Spark ring</h3>
+        <p class="sprite-name"><code>FX Ring</code></p>
+        <p>Sixteen sparks fly out in a ring.</p>
+        <audio controls preload="none" src="effects/sounds/zing.wav" aria-label="Spark ring sound"></audio>
+        <a class="btn" href="effects/fx-ring.sprite3" download>Download fx-ring.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-sparks.png" alt="Sparks effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Sparks</h3>
+        <p class="sprite-name"><code>FX Sparks</code></p>
+        <p>Embers fly up, slow down and fall: gravity.</p>
+        <audio controls preload="none" src="effects/sounds/crackle.wav" aria-label="Sparks sound"></audio>
+        <a class="btn" href="effects/fx-sparks.sprite3" download>Download fx-sparks.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-smoke.png" alt="Smoke effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Smoke</h3>
+        <p class="sprite-name"><code>FX Smoke</code></p>
+        <p>Grey puffs that rise, grow and fade.</p>
+        <audio controls preload="none" src="effects/sounds/hiss.wav" aria-label="Smoke sound"></audio>
+        <a class="btn" href="effects/fx-smoke.sprite3" download>Download fx-smoke.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-debris.png" alt="Debris effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Debris</h3>
+        <p class="sprite-name"><code>FX Debris</code></p>
+        <p>Rocks and planks fly, spin, and bounce on the bottom of the stage.</p>
+        <audio controls preload="none" src="effects/sounds/clatter.wav" aria-label="Debris sound"></audio>
+        <a class="btn" href="effects/fx-debris.sprite3" download>Download fx-debris.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-explosion.png" alt="Explosion effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Explosion</h3>
+        <p class="sprite-name"><code>FX Explosion</code></p>
+        <p>The big one: fireball, shockwave, sparks, embers and smoke.</p>
+        <audio controls preload="none" src="effects/sounds/boom.wav" aria-label="Explosion sound"></audio>
+        <a class="btn" href="effects/fx-explosion.sprite3" download>Download fx-explosion.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-flash.png" alt="Screen flash effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Screen flash</h3>
+        <p class="sprite-name"><code>FX Flash</code></p>
+        <p>The whole screen flashes warm white. It ignores fx x and fx y.</p>
+        <audio controls preload="none" src="effects/sounds/flash.wav" aria-label="Screen flash sound"></audio>
+        <a class="btn" href="effects/fx-flash.sprite3" download>Download fx-flash.sprite3</a>
+      </div>
+    </article>
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>How they work</h2>
+    <p>Open a sprite's code to see. The clone you make goes to <code>fx x</code>, <code>fx y</code> and starts its sound. A simple effect (Pop, Fireball, Shockwave) then just changes its costume, size or ghost effect. A bigger one makes pieces: more clones of itself, each with a <b>role</b> (spark, ember, smoke, ...), and the first clone waits until its sound is over before it deletes itself, because a deleted clone's sound stops too. Debris bounces on the bottom of the stage.</p>
+  </section>
+
+  <footer>Made with the Scratch workbench in this repository. The artwork and the sounds are original; the sounds are made by a small synthesiser in code.</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/scratchblocks@3.6.4/build/scratchblocks.min.js"></script>
+<script>
+  scratchblocks.renderMatching("pre.blocks", { style: "scratch3", languages: ["en"], scale: 0.8 });
+</script>
+</body>
+</html>

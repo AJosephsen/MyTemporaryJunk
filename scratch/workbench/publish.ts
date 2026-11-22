@@ -90,6 +90,23 @@ for (const name of TUTORIALS) {
   console.log(`tutorials/${name}: ${files.length + 1} files`);
 }
 
+// ---------------------------------------------------------------- the sprite library (sprites/): its page and files
+{
+  const src = join(ROOT, "sprites"), dst = join(OUT, "sprites");
+  for (const dir of ["", "effects", "effects/sounds"]) mkdirSync(join(dst, dir), { recursive: true });
+  const copy = (dir: string, re: RegExp) => readdirSync(join(src, dir)).filter(f => re.test(f)).map(f => copyFileSync(join(src, dir, f), join(dst, dir, f)));
+  const n = copy("", /\.sb3$/).length + copy("effects", /\.(sprite3|png)$/).length + copy("effects/sounds", /\.wav$/).length;
+  const page = await browser.newPage({ viewport: { width: 1000, height: 900 } });
+  await page.goto("file://" + join(src, "index.html"));
+  await page.waitForFunction(() => Array.from(document.querySelectorAll("pre.blocks")).every(p => p.querySelector("svg")), null, { timeout: 30000 });
+  await page.evaluate(() => { for (const s of Array.from(document.querySelectorAll("script"))) s.remove(); });
+  const html = "<!doctype html>\n" + (await page.content());
+  await page.close();
+  if (/<script/i.test(html)) throw new Error("sprites: a script is left");
+  writeFileSync(join(dst, "index.html"), html);
+  console.log(`sprites: ${n + 1} files`);
+}
+
 // ---------------------------------------------------------------- games, with a still picture of each
 const server = await startServer();
 for (const [name, from] of GAMES) {
@@ -172,6 +189,13 @@ ${tutorials.map(t => "      " + card(`tutorials/${t.name}/`, t.picture, t.title,
     </div>
   </section>
   <section>
+    <h2>Sprites</h2>
+    <p>Ready-made sprites for your own projects: download one (<b>.sprite3</b>) and add it in the Scratch editor with <b>Upload Sprite</b>.</p>
+    <div class="grid">
+      ${card("sprites/", "sprites/effects/fx-explosion.png", "Effect Sprites", "Sprite library", "Explosions, sparks, smoke, debris and a screen flash, each with its own sound. Set fx x and fx y, then create a clone.")}
+    </div>
+  </section>
+  <section>
     <h2>Games</h2>
     <p>Download a game (<b>.sb3</b>), then open it at <a href="https://scratch.mit.edu/projects/editor/">scratch.mit.edu/projects/editor</a> with <b>File › Load from your computer</b>.</p>
     <div class="grid">
@@ -197,6 +221,11 @@ Open \`index.html\` for the overview.
 ${tutorials.map(t => `| [${t.title}](tutorials/${t.name}/index.html) | ${t.eyebrow} | ${t.lead.replace(/\|/g, "/")} |`).join("\n")}
 
 Every tutorial folder has \`starter.sb3\` (artwork, no code) and a \`stepN.sb3\` for the end of each step.
+
+## Sprites
+
+[Effect Sprites](sprites/index.html): explosions, sparks, smoke, debris and a screen flash, each with its own sound
+(\`.sprite3\` files to add with **Upload Sprite**).
 
 ## Games
 

@@ -35,7 +35,15 @@ export class Project {
       rotationCenterX: cx * 2, rotationCenterY: cy * 2 };
   }
 
-  sprite(name: string, opts: { blocks?: Blocks; costumes: any[]; layer: number; x?: number; y?: number; visible?: boolean;
+  /** A sound from a mono 16-bit WAV file (see lib/sound.ts). */
+  sound(name: string, wav: Buffer) {
+    const md5 = createHash("md5").update(wav).digest("hex");
+    this.assets[`${md5}.wav`] = wav;
+    const rate = wav.readUInt32LE(24), sampleCount = wav.readUInt32LE(40) / 2;
+    return { name, assetId: md5, dataFormat: "wav", format: "", rate, sampleCount, md5ext: `${md5}.wav` };
+  }
+
+  sprite(name: string, opts: { blocks?: Blocks; costumes: any[]; sounds?: any[]; layer: number; x?: number; y?: number; visible?: boolean;
     rotationStyle?: "all around" | "left-right" | "don't rotate" }) {
     // A block with no parent that does not start a script was created but never placed.
     const strays = Object.values(opts.blocks?.map ?? {}).filter((b: any) => b.parent === null && !b.topLevel);
@@ -44,7 +52,7 @@ export class Project {
       isStage: false, name, broadcasts: {}, blocks: opts.blocks?.map ?? {}, comments: {}, lists: {},
       // Variables "for this sprite only": every clone gets its own copy.
       variables: Object.fromEntries(Object.entries(opts.blocks?.locals ?? {}).map(([n, id]) => [id, [n, 0]])),
-      currentCostume: 0, costumes: opts.costumes, sounds: [], volume: 100, layerOrder: opts.layer, visible: opts.visible ?? true,
+      currentCostume: 0, costumes: opts.costumes, sounds: opts.sounds ?? [], volume: 100, layerOrder: opts.layer, visible: opts.visible ?? true,
       x: opts.x ?? 0, y: opts.y ?? 0, size: 100, direction: 90, draggable: false, rotationStyle: opts.rotationStyle ?? "all around",
     };
   }
@@ -83,6 +91,14 @@ export class Project {
     for (const [name, content] of Object.entries(this.assets)) files[name] = Buffer.from(content);
     return zip(files);
   }
+}
+
+/** A sprite on its own (.sprite3): sprite.json and the costume and sound files it uses. Import it in Scratch with
+ *  "Upload Sprite". Variables for all sprites that its scripts use are listed under "globals"; see sprites/README.md. */
+export function sprite3(P: Project, sprite: any): Buffer {
+  const files: Record<string, Buffer> = { "sprite.json": Buffer.from(JSON.stringify(sprite)) };
+  for (const a of [...sprite.costumes, ...sprite.sounds]) files[a.md5ext] = Buffer.from(P.assets[a.md5ext]);
+  return zip(files);
 }
 
 export class Blocks {
@@ -244,6 +260,9 @@ export function dsl(B: Blocks) {
     pointToMouse: () => B.add("motion_pointtowards", { TOWARDS: [1, B.shadow("motion_pointtowards_menu", { TOWARDS: ["_mouse_", null] })] }),
     cloneOf: (sprite: string) => B.add("control_create_clone_of", {
       CLONE_OPTION: [1, B.shadow("control_create_clone_of_menu", { CLONE_OPTION: [sprite, null] })] }),
+    // create clone of (a reporter or variable holding a sprite name): the menu stays underneath as a shadow.
+    cloneOfValue: (x: Ref | VarRef) => B.add("control_create_clone_of", {
+      CLONE_OPTION: [3, num(x)[1], B.shadow("control_create_clone_of_menu", { CLONE_OPTION: ["_myself_", null] })] }),
     costumeNumber: () => B.add("looks_costumenumbername", {}, { NUMBER_NAME: ["number", null] }),
     costumeName: () => B.add("looks_costumenumbername", {}, { NUMBER_NAME: ["name", null] }),
     setDragMode: (draggable: boolean) => B.add("sensing_setdragmode", {}, { DRAG_MODE: [draggable ? "draggable" : "not draggable", null] }),
@@ -286,6 +305,9 @@ export function dsl(B: Blocks) {
     front: () => B.add("looks_gotofrontback", {}, { FRONT_BACK: ["front", null] }),
     say: (m: In) => B.add("looks_say", { MESSAGE: txt(m) }),
     sayFor: (m: In, s: number) => B.add("looks_sayforsecs", { MESSAGE: txt(m), SECS: num(s) }),
+    // Sound
+    startSound: (name: string) => B.add("sound_play", { SOUND_MENU: [1, B.shadow("sound_sounds_menu", { SOUND_MENU: [name, null] })] }),
+    playSoundUntilDone: (name: string) => B.add("sound_playuntildone", { SOUND_MENU: [1, B.shadow("sound_sounds_menu", { SOUND_MENU: [name, null] })] }),
     broadcast: (name: string) => B.add("event_broadcast", { BROADCAST_INPUT: [1, [11, name, P.bcastId(name)]] }),
     broadcastWait: (name: string) => B.add("event_broadcastandwait", { BROADCAST_INPUT: [1, [11, name, P.bcastId(name)]] }),
     forever: (a: Ref[]) => B.add("control_forever", { SUBSTACK: sub(a) }),

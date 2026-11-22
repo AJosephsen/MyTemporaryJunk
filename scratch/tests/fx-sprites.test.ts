@@ -1,7 +1,7 @@
 // Tests for the effect sprites (sprites/effects/*.sprite3) and their demo project (sprites/effects-demo.sb3).
 import { test, type T } from "../workbench/testing.ts";
 
-const NAMES = ["FX Pop", "FX Fireball", "FX Shockwave", "FX Ring", "FX Sparks", "FX Smoke", "FX Debris", "FX Explosion", "FX Flash"];
+const NAMES = ["FX Pop", "FX Fireball", "FX Shockwave", "FX Ring", "FX Sparks", "FX Smoke", "FX Debris", "FX Explosion", "FX Cartoon Smoke", "FX Cartoon Boom", "FX Flash"];
 const file = (name: string) => `sprites/effects/${name.toLowerCase().replace(/\s+/g, "-")}.sprite3`;
 type C = { x: number; y: number; visible: boolean; costume: string; role: string };
 const clones = (t: T, name: string) => t.page((w, n) => w.vm.runtime.targets.filter((c: any) => !c.isOriginal && c.sprite.name === n).map((c: any) => ({
@@ -40,13 +40,22 @@ test("fx sprites: uploading one into a project makes fx x and fx y for all sprit
 
 // When each effect looks its best, in frames after the click (for the pictures on the library page).
 const SHOT: Record<string, number> = { "FX Pop": 4, "FX Fireball": 6, "FX Shockwave": 4, "FX Ring": 7, "FX Sparks": 12, "FX Smoke": 20,
-  "FX Debris": 22, "FX Explosion": 8, "FX Flash": 2 };
+  "FX Debris": 22, "FX Explosion": 8, "FX Cartoon Smoke": 16, "FX Cartoon Boom": 9, "FX Flash": 2 };
 const pic = (name: string) => new URL(`../sprites/effects/${name.toLowerCase().replace(/\s+/g, "-")}.png`, import.meta.url).pathname;
 
-for (const [i, name] of NAMES.entries()) test(`fx sprites demo: key ${i + 1} picks ${name}; a click plays it there, with its sound, then it is gone`, async t => {
+test("fx sprites demo: number keys pick the first nine effects; space goes to the next one and round again", async t => {
   await t.load("sprites/effects-demo.sb3"); await t.greenFlag(); await t.frames(2);
-  await t.hold(String(i + 1)); await t.frames(1); await t.release(String(i + 1));
-  t.expect(await t.get("effect") === name, `picked ${await t.get("effect")}`);
+  const press = async (k: string) => { await t.hold(k); await t.frames(1); await t.release(k); await t.frames(1); };
+  await press("3");
+  t.expect(await t.get("effect") === NAMES[2], `3: ${await t.get("effect")}`);
+  const seen: string[] = [];
+  for (let i = 0; i < NAMES.length; i++) { await press("space"); seen.push(await t.get("effect")); }
+  t.expect(seen.join() === [...NAMES.slice(3), ...NAMES.slice(0, 3)].join(), `space: ${seen}`);
+});
+
+for (const name of NAMES) test(`fx sprites demo: ${name} plays where you click, with its sound, then it is gone`, async t => {
+  await t.load("sprites/effects-demo.sb3"); await t.greenFlag(); await t.frames(2);
+  await t.set("effect", name);
   const sound = await t.page((w, n) => w.vm.runtime.getSpriteTargetByName(n).sprite.sounds.map((s: any) => [s.name, s.sampleCount]), name);
   t.expect(sound.length === 1 && sound[0][1] > 1000, `one sound: ${JSON.stringify(sound)}`);
   await t.mouse(40, 30, true); await t.frames(1); await t.mouse(40, 30, false);
@@ -59,4 +68,14 @@ for (const [i, name] of NAMES.entries()) test(`fx sprites demo: key ${i + 1} pic
   await t.screenshot(pic(name));
   await t.frames(120);
   t.expect((await clones(t, name)).length === 0, "all gone");
+});
+
+test("fx sprites: cartoon puffs switch between their two drawings (the pencil lines boil)", async t => {
+  await t.load("sprites/effects-demo.sb3"); await t.greenFlag(); await t.frames(2);
+  await t.set("effect", "FX Cartoon Smoke");
+  await t.mouse(0, 0, true); await t.frames(1); await t.mouse(0, 0, false);
+  const looks = new Set<string>();
+  for (let i = 0; i < 20; i++) { await t.frames(1); for (const c of await clones(t, "FX Cartoon Smoke")) if (c.visible) looks.add(c.costume); }
+  const takes = [...looks].map(n => n.split("-")[1]);
+  t.expect(takes.includes("0") && takes.includes("1") && [...looks].every(n => /^puff[1-3]-[01]$/.test(n)), `costumes ${[...looks]}`);
 });

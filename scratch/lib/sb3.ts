@@ -154,7 +154,8 @@ export class Blocks {
     const seen = new Set<string>(), out: Ref[] = [];
     stmts.forEach((s, i) => {
       const parent = this.map[s.id].parent;
-      const copy = seen.has(s.id) || (i > 0 && parent !== null && parent !== out[i - 1].id);
+      // (The first one too: if it already starts or sits in another stack, chaining it here would rewire that one.)
+      const copy = seen.has(s.id) || (parent !== null && (i === 0 || parent !== out[i - 1].id));
       out.push(copy ? { id: this.copy(s.id) } : s);
       seen.add(out[i].id);
     });

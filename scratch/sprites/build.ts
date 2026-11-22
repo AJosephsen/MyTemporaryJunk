@@ -17,7 +17,7 @@ for (const fx of list) {
   console.log(`effects/${fileName(fx.name)}: ${file.length} bytes`);
 }
 
-// The demo: click anywhere to set off the effect picked with the number keys 1 to 9.
+// The demo: click anywhere to set off the picked effect: space for the next one, or the number keys 1 to 9.
 const B = new Blocks(P), d = dsl(B);
 const { v, set, whenFlag, whenKey, forever, waitUntil, mouseDown, not, mouseX, mouseY, cloneOfValue, hide } = d;
 B.script(whenFlag(), [hide(), set("effect", "FX Explosion"), forever([
@@ -25,7 +25,9 @@ B.script(whenFlag(), [hide(), set("effect", "FX Explosion"), forever([
   set(FX_X, mouseX()), set(FX_Y, mouseY()), cloneOfValue(v("effect")),
   waitUntil(not(mouseDown())),
 ])], 20, 20);
-list.forEach((fx, i) => B.script(whenKey(String(i + 1)), [set("effect", fx.name)], 400, 20 + i * 70));
+list.slice(0, 9).forEach((fx, i) => B.script(whenKey(String(i + 1)), [set("effect", fx.name)], 400, 20 + i * 70));
+// Space: the next effect (after the last one, the first again).
+B.script(whenKey("space"), [d.cond(list.map((fx, i) => [d.eq(v("effect"), fx.name), [set("effect", list[(i + 1) % list.length].name)]] as [any, any[]]))], 800, 20);
 const blank = P.costume("blank", `<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"/>`, 1, 1);
 const sb3 = P.build({
   backdrop: art(P).backdrop,
@@ -128,7 +130,7 @@ footer { color: var(--muted); font-size: 0.92rem; border-top: 2px solid var(--li
 set [${FX_Y} v] to (y position)
 create clone of [FX Explosion v]</pre></div>
     <p class="note">That's all: you don't need to change anything inside the effect sprite. Use as many as you like, and as often as you like: every clone plays on its own and deletes itself.</p>
-    <p>Try them all first: <a href="effects-demo.sb3" download>effects-demo.sb3</a> has every effect. Press 1 to 9 to pick one, and click anywhere on the stage.</p>
+    <p>Try them all first: <a href="effects-demo.sb3" download>effects-demo.sb3</a> has every effect. Press space for the next effect (or 1 to 9), and click anywhere on the stage.</p>
   </section>
 
   <section class="stack">

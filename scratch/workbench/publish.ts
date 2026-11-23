@@ -25,6 +25,7 @@ const GAMES: [string, string, string, string][] = [
   ["beanstalk-bounce", "games/beanstalk-bounce/beanstalk-bounce.sb3", "Beanstalk Bounce", "Bounce up the beanstalk, leaf by leaf."],
   ["chimney-drop", "games/chimney-drop/chimney-drop.sb3", "Chimney Drop", "Christmas: drop the presents down the chimneys."],
   ["chain-spark", "games/chain-spark/chain-spark.sb3", "Chain Spark", "Fireworks: place them, light one, watch the chain."],
+  ["gift-factory", "games/gift-factory/gift-factory.sb3", "Gift Factory", "Sort the gifts on the conveyor belt into the right baskets."],
   ["boom-lab", "games/boom-lab/boom-lab.sb3", "Boom Lab", "Eight explosion effects to try: pick one and click the sky."],
   ["slime-siege", "games/slime-siege/slime-siege.sb3", "Slime Siege", "Tower defence: fixed and seeker cannons, upgrades and repairs."],
   ["chain-spark-deluxe", "games/chain-spark-deluxe/chain-spark-deluxe.sb3", "Chain Spark Deluxe", "Fireworks puzzle: build, test, then GO for real."],
@@ -42,7 +43,7 @@ const GAMES: [string, string, string, string][] = [
   ["starfire-rush", "games/starfire-rush/starfire-rush.sb3", "Starfire Rush", "Shoot 'em up: waves, bosses, power-ups."],
 ];
 // The tutorials, in the order of the list (easiest first).
-const TUTORIALS = ["boom-lab", "slime-siege", "chimney-drop", "chain-spark", "sky-guard", "sheepdog", "maze-maker", "splat-patrol", "beanstalk-bounce", "comet-rally", "dust-hopper", "lantern-deep"];
+const TUTORIALS = ["gift-factory", "boom-lab", "slime-siege", "chimney-drop", "chain-spark", "sky-guard", "sheepdog", "maze-maker", "splat-patrol", "beanstalk-bounce", "comet-rally", "dust-hopper", "lantern-deep"];
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 

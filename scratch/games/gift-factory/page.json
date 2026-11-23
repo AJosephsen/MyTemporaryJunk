@@ -1,0 +1,8 @@
+{
+  "title": "Gift Factory",
+  "tagline": "Sort the gifts on the conveyor belt into the right baskets. Full baskets go away to be emptied: toss gifts into the air to buy time!",
+  "project": "gift-factory.sb3",
+  "left": [],
+  "right": [],
+  "keys": "Drag a gift into the basket of its colour · let go anywhere else to throw it up in the air"
+}

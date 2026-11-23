@@ -1,0 +1,13 @@
+{
+  "title": "Gift Factory Runner",
+  "heading": "Gift Factory",
+  "help": "Pick a step and click Green flag. Drag a gift into the basket of its colour; let go anywhere else to throw it up in the air.",
+  "steps": {
+    "1": { "name": "The belt", "note": "Clones ride the belt: change x by the speed, every frame." },
+    "2": { "name": "Grab and toss", "note": "Follow the mouse while the button is down; let go and the gift zigzags down." },
+    "3": { "name": "Baskets", "note": "Which basket is under the gift? Right colour: in it goes. Wrong colour: back up." },
+    "4": { "name": "Full baskets", "note": "Five gifts and the basket glides away to be emptied; meanwhile it is busy." },
+    "5": { "name": "Misses", "note": "A gift that falls off the end is missed; after five the factory closes." },
+    "6": { "name": "Faster!", "note": "Every sorted gift speeds the belt up; gold gifts fit any basket. The whole game." }
+  }
+}

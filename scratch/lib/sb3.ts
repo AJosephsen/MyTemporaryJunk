@@ -222,6 +222,7 @@ export function dsl(B: Blocks) {
     touching: (sprite: string) => B.add("sensing_touchingobject", {
       TOUCHINGOBJECTMENU: [1, B.shadow("sensing_touchingobjectmenu", { TOUCHINGOBJECTMENU: [sprite, null] })] }),
     direction: () => B.add("motion_direction"),
+    glide: (secs: In, x: In, y: In) => B.add("motion_glidesecstoxy", { SECS: num(secs), X: num(x), Y: num(y) }),
     goto: (x: In, y: In) => B.add("motion_gotoxy", { X: num(x), Y: num(y) }),
     point: (d: In) => B.add("motion_pointindirection",
       { DIRECTION: typeof d === "number" ? [1, [8, String(d)]] : [3, ...num(d).slice(1, 2), [8, "90"]] }),

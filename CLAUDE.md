@@ -12,7 +12,11 @@ npm install                 # once per checkout
 npm run build               # regenerate every project after a change
 npm test                    # headless tests in the TurboWarp runtime, about 25 s
 npm run check               # type check
+npm run check:layout        # no two scripts of a sprite overlap in the editor
 ```
+
+- Script positions in the editor are set by `lib/layout.ts` when a sprite is built (columns by kind, no overlaps);
+  the x, y given to `B.script(...)` only decide the order within a kind.
 
 - Use `npm test` instead of the scratch.mit.edu editor to check behaviour. Add or update tests in `scratch/tests/`
   when a game's behaviour changes.

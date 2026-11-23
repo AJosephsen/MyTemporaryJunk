@@ -1,6 +1,7 @@
 // Shared builder for Scratch 3 projects (.sb3): blocks, variables, costumes, monitors and zip packaging.
 // No packages needed; run scripts with: node --experimental-strip-types --no-warnings <script>.ts
 import { createHash } from "node:crypto";
+import { layoutScripts } from "./layout.ts";
 
 export type Ref = { id: string };
 export type VarRef = { v: string };
@@ -48,6 +49,8 @@ export class Project {
     // A block with no parent that does not start a script was created but never placed.
     const strays = Object.values(opts.blocks?.map ?? {}).filter((b: any) => b.parent === null && !b.topLevel);
     if (strays.length) throw new Error(`${name}: ${strays.length} stray blocks (${strays.map((b: any) => b.opcode).join(", ")})`);
+    // Place the scripts so they don't overlap in the editor (see lib/layout.ts).
+    if (opts.blocks) layoutScripts(opts.blocks.map);
     return {
       isStage: false, name, broadcasts: {}, blocks: opts.blocks?.map ?? {}, comments: {}, lists: {},
       // Variables "for this sprite only": every clone gets its own copy.

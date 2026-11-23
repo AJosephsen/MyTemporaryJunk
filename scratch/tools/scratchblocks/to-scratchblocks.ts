@@ -92,6 +92,7 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
       case "event_whenflagclicked": return ["when flag clicked"];
       case "event_whenthisspriteclicked": return ["when this sprite clicked"];
       case "event_whenstageclicked": return ["when stage clicked"];
+      case "event_whenkeypressed": return [`when [${field(b, "KEY_OPTION")} v] key pressed`];
       case "event_whenbroadcastreceived": return [`when I receive [${field(b, "BROADCAST_OPTION")} v]`];
       case "event_broadcast": return [`broadcast ${value(b, "BROADCAST_INPUT")}`];
       case "event_broadcastandwait": return [`broadcast ${value(b, "BROADCAST_INPUT")} and wait`];
@@ -163,6 +164,13 @@ export function scripts(blocks: Record<string, Block | any[]>): string[] {
   return Object.entries(blocks)
     .filter(([, b]) => !Array.isArray(b) && b.topLevel && !b.shadow)
     .map(([id]) => stack(id).join("\n"));
+}
+
+/** Like scripts(), with the id of each script's top block. */
+export function scriptsWithIds(blocks: Record<string, Block | any[]>): [string, string][] {
+  const ids = Object.entries(blocks).filter(([, b]) => !Array.isArray(b) && b.topLevel && !b.shadow).map(([id]) => id);
+  const texts = scripts(blocks);
+  return ids.map((id, i) => [id, texts[i]]);
 }
 
 // Scripts of every sprite, keyed by sprite name.

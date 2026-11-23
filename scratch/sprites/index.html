@@ -191,6 +191,48 @@ create clone of [FX Explosion v]</pre></div>
   </section>
 
   <section class="stack">
+    <h2>Floating text</h2>
+    <p>Score pop-ups and messages. These use a third variable for all sprites, <code>fx text</code>: set it to the words, then make the clone.</p>
+    <div class="blocks-panel"><pre class="blocks">set [fx text v] to (join [+] (points))
+set [fx x v] to (x position)
+set [fx y v] to ((y position) + (30))
+create clone of [FX Float Text v]</pre></div>
+    <p class="note">Each letter is a clone with its own costume, so the letters can move one by one. Letters, digits and <code>+ - ! ? . , : ' % $ # * / = ( ) &amp; @</code> are in the font; anything else (a space, too) just leaves a gap. Keep it short: about 12 characters fit across the stage.</p>
+    <div class="grid">
+    <article class="card">
+      <img src="effects/fx-float-text.png" alt="Float text effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Float text</h3>
+        <p class="sprite-name"><code>FX Float Text</code></p>
+        <p>Letters pop in one after another, rise and fade: for points and pick-ups.</p>
+        <audio controls preload="none" src="effects/sounds/chime.wav" aria-label="Float text sound"></audio>
+        <a class="btn" href="effects/fx-float-text.sprite3" download>Download fx-float-text.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-wave-text.png" alt="Wave text effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Wave text</h3>
+        <p class="sprite-name"><code>FX Wave Text</code></p>
+        <p>Letters ripple in a wave while the words float up: for messages like Level up!</p>
+        <audio controls preload="none" src="effects/sounds/blip.wav" aria-label="Wave text sound"></audio>
+        <a class="btn" href="effects/fx-wave-text.sprite3" download>Download fx-wave-text.sprite3</a>
+      </div>
+    </article>
+    <article class="card">
+      <img src="effects/fx-pop-text.png" alt="Pop text effect" width="480" height="360" loading="lazy">
+      <div class="card-body">
+        <h3>Pop text</h3>
+        <p class="sprite-name"><code>FX Pop Text</code></p>
+        <p>Big and bouncy: the word slams in, then the letters fly apart. For combos and KAPOW moments.</p>
+        <audio controls preload="none" src="effects/sounds/boing.wav" aria-label="Pop text sound"></audio>
+        <a class="btn" href="effects/fx-pop-text.sprite3" download>Download fx-pop-text.sprite3</a>
+      </div>
+    </article>
+    </div>
+  </section>
+
+  <section class="stack">
     <h2>How they work</h2>
     <p>Open a sprite's code to see. The clone you make goes to <code>fx x</code>, <code>fx y</code> and starts its sound. A simple effect (Pop, Fireball, Shockwave) then just changes its costume, size or ghost effect. A bigger one makes pieces: more clones of itself, each with a <b>role</b> (spark, ember, smoke, ...), and the first clone waits until its sound is over before it deletes itself, because a deleted clone's sound stops too. Debris bounces on the bottom of the stage.</p>
   </section>

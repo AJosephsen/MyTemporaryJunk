@@ -5,6 +5,9 @@ import { Project, Blocks, dsl } from "../lib/sb3.ts";
 import { art } from "../games/boom-lab/art.ts";
 import { effects, FX_X, FX_Y, SOUNDS } from "./effects.ts";
 import { wav } from "../lib/sound.ts";
+import { FX_TEXT } from "./text-effects.ts";
+
+export const SAMPLES = ["+100", "+25", "Nice!", "COMBO x3", "Level up!", "KAPOW!", "Great!", "+1 life"];
 
 export const fileName = (name: string) => name.toLowerCase().replace(/\s+/g, "-") + ".sprite3";
 
@@ -22,6 +25,8 @@ const B = new Blocks(P), d = dsl(B);
 const { v, set, whenFlag, whenKey, forever, waitUntil, mouseDown, not, mouseX, mouseY, cloneOfValue, hide } = d;
 B.script(whenFlag(), [hide(), set("effect", "FX Explosion"), forever([
   waitUntil(mouseDown()),
+  // The text sprites use fx text: a sample (the other effects don't mind).
+  set(FX_TEXT, d.item("samples", d.random(1, SAMPLES.length))),
   set(FX_X, mouseX()), set(FX_Y, mouseY()), cloneOfValue(v("effect")),
   waitUntil(not(mouseDown())),
 ])], 20, 20);
@@ -35,6 +40,7 @@ const sb3 = P.build({
     P.sprite("Demo", { blocks: B, costumes: [blank], layer: 1, visible: false }),
     ...list.map((fx, i) => ({ ...fx.sprite, layerOrder: i + 2 })),
   ],
+  listValues: { samples: SAMPLES },
   shown: ["effect"],
 });
 writeFileSync(new URL("effects-demo.sb3", import.meta.url), sb3);
@@ -47,7 +53,7 @@ for (const fx of list) writeFileSync(new URL(`effects/sounds/${fx.sound}.wav`, i
 // The library page (the pictures come from tests/fx-sprites.test.ts).
 const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const base = (name: string) => fileName(name).replace(".sprite3", "");
-const cards = list.map(fx => `    <article class="card">
+const card = (fx: typeof list[number]) => `    <article class="card">
       <img src="effects/${base(fx.name)}.png" alt="${esc(fx.title)} effect" width="480" height="360" loading="lazy">
       <div class="card-body">
         <h3>${esc(fx.title)}</h3>
@@ -56,7 +62,9 @@ const cards = list.map(fx => `    <article class="card">
         <audio controls preload="none" src="effects/sounds/${fx.sound}.wav" aria-label="${esc(fx.title)} sound"></audio>
         <a class="btn" href="effects/${fileName(fx.name)}" download>Download ${fileName(fx.name)}</a>
       </div>
-    </article>`).join("\n");
+    </article>`;
+const cards = list.filter(fx => fx.section === "boom").map(card).join("\n");
+const textCards = list.filter(fx => fx.section === "text").map(card).join("\n");
 const page = `<!doctype html>
 <html lang="en">
 <head>
@@ -137,6 +145,19 @@ create clone of [FX Explosion v]</pre></div>
     <h2>The sprites</h2>
     <div class="grid">
 ${cards}
+    </div>
+  </section>
+
+  <section class="stack">
+    <h2>Floating text</h2>
+    <p>Score pop-ups and messages. These use a third variable for all sprites, <code>${FX_TEXT}</code>: set it to the words, then make the clone.</p>
+    <div class="blocks-panel"><pre class="blocks">set [${FX_TEXT} v] to (join [+] (points))
+set [${FX_X} v] to (x position)
+set [${FX_Y} v] to ((y position) + (30))
+create clone of [FX Float Text v]</pre></div>
+    <p class="note">Each letter is a clone with its own costume, so the letters can move one by one. Letters, digits and <code>+ - ! ? . , : ' % $ # * / = ( ) &amp; @</code> are in the font; anything else (a space, too) just leaves a gap. Keep it short: about 12 characters fit across the stage.</p>
+    <div class="grid">
+${textCards}
     </div>
   </section>
 

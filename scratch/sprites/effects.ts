@@ -13,6 +13,7 @@ import { Project, Blocks, dsl, sprite3 } from "../lib/sb3.ts";
 import { tone, noise, clicks, mix, env, wav } from "../lib/sound.ts";
 import { art } from "../games/boom-lab/art.ts";
 import { cartoonArt } from "./cartoon-art.ts";
+import { textEffects } from "./text-effects.ts";
 
 export const FX_X = "fx x", FX_Y = "fx y", FLOOR = -170;
 
@@ -30,6 +31,10 @@ export const SOUNDS: Record<string, () => Float32Array> = {
     [0.05, clicks(1.0, 40, 0.6, env(0.02, 0.3), 13)]]),
   // Cartoon sounds: a soft "poof", and a bouncy "ka-boom" (a falling square-wave tone with a thud).
   poof: () => mix([[0, noise(0.45, 0.25, 0.06, env(0.03, 0.1), 14)], [0, tone(0.2, 320, 140, env(0.01, 0.06))]], 0.7),
+  // For the text sprites: a two-note chime, a rising blip, a bouncy boing.
+  chime: () => mix([[0, tone(0.5, 1046, 1046, env(0.003, 0.12))], [0.08, tone(0.6, 1568, 1568, env(0.003, 0.16))]], 0.6),
+  blip: () => mix([[0, tone(0.12, 400, 900, env(0.004, 0.04), "square")], [0.1, tone(0.16, 600, 1300, env(0.004, 0.05), "square")]], 0.45),
+  boing: () => mix([[0, tone(0.5, 180, 420, (t: number) => env(0.004, 0.15)(t) * (1 + 0.5 * Math.sin(t * 70)))], [0, noise(0.06, 0.6, 0.3, env(0.001, 0.015), 17)]], 0.7),
   kaboom: () => mix([[0, tone(0.18, 420, 160, env(0.003, 0.05), "square")], [0.1, noise(1.0, 0.14, 0.02, env(0.005, 0.25), 15)],
     [0.1, tone(0.8, 120, 38, env(0.004, 0.22))], [0.35, noise(0.5, 0.2, 0.05, env(0.05, 0.12), 16)]]),
 };
@@ -125,10 +130,11 @@ export function effects(P: Project) {
       } },
   ];
 
-  return list.map(fx => {
+  const made = list.map(fx => {
     const B = new Blocks(P);
     fx.build(B);
     const sprite = P.sprite(fx.name, { blocks: B, costumes: fx.costumes.map(n => typeof n === "string" ? costumes.find(c => c.name === n)! : n), sounds: [sounds[fx.sound]], layer: 1, visible: false });
-    return { ...fx, sprite, file: () => sprite3(P, sprite) };
+    return { ...fx, sprite, section: "boom", file: () => sprite3(P, sprite) };
   });
+  return [...made, ...textEffects(P, sounds)];
 }

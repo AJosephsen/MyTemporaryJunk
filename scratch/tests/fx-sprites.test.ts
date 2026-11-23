@@ -1,7 +1,7 @@
 // Tests for the effect sprites (sprites/effects/*.sprite3) and their demo project (sprites/effects-demo.sb3).
 import { test, type T } from "../workbench/testing.ts";
 
-const NAMES = ["FX Pop", "FX Fireball", "FX Shockwave", "FX Ring", "FX Sparks", "FX Smoke", "FX Debris", "FX Explosion", "FX Cartoon Smoke", "FX Cartoon Boom", "FX Flash"];
+const NAMES = ["FX Pop", "FX Fireball", "FX Shockwave", "FX Ring", "FX Sparks", "FX Smoke", "FX Debris", "FX Explosion", "FX Cartoon Smoke", "FX Cartoon Boom", "FX Flash", "FX Float Text", "FX Wave Text", "FX Pop Text"];
 const file = (name: string) => `sprites/effects/${name.toLowerCase().replace(/\s+/g, "-")}.sprite3`;
 type C = { x: number; y: number; visible: boolean; costume: string; role: string };
 const clones = (t: T, name: string) => t.page((w, n) => w.vm.runtime.targets.filter((c: any) => !c.isOriginal && c.sprite.name === n).map((c: any) => ({
@@ -40,7 +40,7 @@ test("fx sprites: uploading one into a project makes fx x and fx y for all sprit
 
 // When each effect looks its best, in frames after the click (for the pictures on the library page).
 const SHOT: Record<string, number> = { "FX Pop": 4, "FX Fireball": 6, "FX Shockwave": 4, "FX Ring": 7, "FX Sparks": 12, "FX Smoke": 20,
-  "FX Debris": 22, "FX Explosion": 8, "FX Cartoon Smoke": 16, "FX Cartoon Boom": 9, "FX Flash": 2 };
+  "FX Debris": 22, "FX Explosion": 8, "FX Cartoon Smoke": 16, "FX Cartoon Boom": 9, "FX Flash": 2, "FX Float Text": 14, "FX Wave Text": 22, "FX Pop Text": 12 };
 const pic = (name: string) => new URL(`../sprites/effects/${name.toLowerCase().replace(/\s+/g, "-")}.png`, import.meta.url).pathname;
 
 test("fx sprites demo: number keys pick the first nine effects; space goes to the next one and round again", async t => {
@@ -56,13 +56,16 @@ test("fx sprites demo: number keys pick the first nine effects; space goes to th
 for (const name of NAMES) test(`fx sprites demo: ${name} plays where you click, with its sound, then it is gone`, async t => {
   await t.load("sprites/effects-demo.sb3"); await t.greenFlag(); await t.frames(2);
   await t.set("effect", name);
+  // A fitting word for the picture: the demo picks fx text from its samples list.
+  const word = ({ "FX Float Text": "+100", "FX Wave Text": "Level up!", "FX Pop Text": "KAPOW!" } as Record<string, string>)[name];
+  if (word) await t.page((w, x) => { for (const l of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (l.name === "samples" && l.type === "list") l.value = Array(8).fill(x); }, word);
   const sound = await t.page((w, n) => w.vm.runtime.getSpriteTargetByName(n).sprite.sounds.map((s: any) => [s.name, s.sampleCount]), name);
   t.expect(sound.length === 1 && sound[0][1] > 1000, `one sound: ${JSON.stringify(sound)}`);
   await t.mouse(40, 30, true); await t.frames(1); await t.mouse(40, 30, false);
   await t.frames(2);
   const c = await clones(t, name);
   const shown = c.filter(x => x.visible);
-  t.expect(shown.length >= 1 && (name === "FX Flash" ? shown[0].x === 0 : shown.every(x => Math.abs(x.x - 40) < 60 && Math.abs(x.y - 30) < 60)),
+  t.expect(shown.length >= 1 && (name === "FX Flash" ? shown[0].x === 0 : shown.every(x => Math.abs(x.x - 40) < (name.endsWith("Text") ? 140 : 60) && Math.abs(x.y - 30) < 60)),
     `${shown.length} pieces near the click: ${JSON.stringify(shown.slice(0, 3))}`);
   await t.frames(SHOT[name] - 3);
   await t.screenshot(pic(name));
@@ -78,4 +81,22 @@ test("fx sprites: cartoon puffs switch between their two drawings (the pencil li
   for (let i = 0; i < 20; i++) { await t.frames(1); for (const c of await clones(t, "FX Cartoon Smoke")) if (c.visible) looks.add(c.costume); }
   const takes = [...looks].map(n => n.split("-")[1]);
   t.expect(takes.includes("0") && takes.includes("1") && [...looks].every(n => /^puff[1-3]-[01]$/.test(n)), `costumes ${[...looks]}`);
+});
+
+test("fx sprites: a text sprite spells fx text letter by letter, centred on fx x; a space leaves a gap", async t => {
+  await t.load("tutorials/boom-lab/starter.sb3");
+  await upload(t, file("FX Float Text"));
+  const g = await globals(t);
+  t.expect(["fx text", "fx x", "fx y"].every(n => g.includes(n)), `globals ${g}`);
+  await t.greenFlag(); await t.frames(2);
+  await t.page(w => { for (const v of Object.values(w.vm.runtime.getTargetForStage().variables) as any[]) if (v.name === "fx text") v.value = "Hi 5!"; });
+  await setGlobal(t, "fx x", 10); await setGlobal(t, "fx y", 0);
+  await cloneOf(t, "FX Float Text");
+  await t.frames(12);
+  const letters = (await clones(t, "FX Float Text")).filter(c => c.role === "letter").sort((a, b) => a.x - b.x);
+  t.expect(letters.map(c => c.costume).join("") === "Hi5!", `letters ${letters.map(c => c.costume)}`);
+  // Five places, 24 apart, centred on 10: -38, -14, (space), 34, 58.
+  t.expect(JSON.stringify(letters.map(c => Math.round(c.x))) === JSON.stringify([-38, -14, 34, 58]), `x ${letters.map(c => c.x)}`);
+  await t.frames(60);
+  t.expect((await clones(t, "FX Float Text")).length === 0, "all gone");
 });
